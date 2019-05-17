@@ -1,15 +1,14 @@
-# flake8: noqa
-import os
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_restful import Api
 
 db = SQLAlchemy()
 migrate = Migrate()
 
 # import models
-from ml_enabler.models import *
+from ml_enabler.models import * # noqa
+
 
 def create_app(env=None):
     # create and configure the app
@@ -19,9 +18,16 @@ def create_app(env=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
-
+    init_routes(app)
     return app
+
+
+def init_routes(app):
+    """ Initialize all API routes """
+
+    api = Api(app)
+
+    # import apis
+    from ml_enabler.api.ml import StatusCheckAPI
+
+    api.add_resource(StatusCheckAPI, '/api/status')
