@@ -13,7 +13,7 @@ class Prediction(db.Model):
     model_id = db.Column(db.BigInteger, db.ForeignKey(
                         'ml_models.id', name='fk_models'), nullable=False)
     version = db.Column(db.Integer, nullable=False)
-    bbox = db.Column(Geometry('MULTIPOLYGON', srid=4326))
+    bbox = db.Column(Geometry('POLYGON', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
 
     def create(self):
