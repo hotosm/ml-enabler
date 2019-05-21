@@ -1,6 +1,7 @@
 from ml_enabler import db
 from ml_enabler.models.utils import timestamp
 from geoalchemy2 import Geometry
+from sqlalchemy.dialects import postgresql
 
 
 class Prediction(db.Model):
@@ -13,7 +14,7 @@ class Prediction(db.Model):
                         'ml_models.id', name='fk_models'), nullable=False)
     version = db.Column(db.Integer, nullable=False)
     bbox = db.Column(Geometry('MULTIPOLYGON', srid=4326))
-    predictions = db.Column(db.JSON, nullable=False)
+    predictions = db.Column(postgresql.JSONB, nullable=False)
 
     def create(self):
         """ Creates and saves the current model to the DB """
