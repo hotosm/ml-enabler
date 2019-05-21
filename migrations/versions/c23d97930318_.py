@@ -24,7 +24,7 @@ def upgrade():
     sa.Column('name', sa.String(), nullable=True),
     sa.Column('source', sa.String(), nullable=True),
     sa.Column('dockerhub_url', sa.String(), nullable=True),
-    sa.Column('dockethub_hash', sa.String(), nullable=True),
+    sa.Column('dockerhub_hash', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
