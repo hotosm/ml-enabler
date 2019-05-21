@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    image: hotosm/ml-enabler
+    container_name: app
+    env_file: ml_enabler.env
+    environment:
+      - POSTGRES_ENDPOINT=postgresql
+      - FLASK_APP=ml_enabler
+    depends_on:
+      - postgresql
+    expose:
+      - "5000"
+    ports:
+      - "5000:5000"
+    links:
+      - postgresql
+
+  migration:
+    image: hotosm/ml-enabler
+    env_file: ml_enabler.env
+    restart: on-failure
+    environment:
+      - POSTGRES_ENDPOINT=postgresql
+      - FLASK_APP=ml_enabler
+    depends_on:
+      - postgresql
+    links:
+      - postgresql
+    command: flask db upgrade
+
+  postgresql:
+    image: mdillon/postgis:9.6
+    container_name: postgresql
+    env_file: ml_enabler.env
+    expose:
+      - "5432"

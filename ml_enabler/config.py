@@ -6,7 +6,7 @@ class EnvironmentConfig:
     """ Base configuration class """
 
     load_dotenv(os.path.normpath(os.path.join(os.path.dirname(__file__),
-                '.', 'ml_enabler.env')))
+                '..', 'ml_enabler.env')))
 
     # Database connection
     POSTGRES_USER = os.getenv('POSTGRES_USER', None)
