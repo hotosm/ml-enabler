@@ -17,7 +17,6 @@ services:
       - "5000:5000"
     links:
       - postgresql
-    command: flask run --host 0.0.0.0
 
   migration:
     image: hotosm/ml-enabler
