@@ -1,5 +1,7 @@
 from ml_enabler import db
 from ml_enabler.models.utils import timestamp
+from geoalchemy2 import Geometry
+from sqlalchemy.dialects import postgresql
 
 
 class Prediction(db.Model):
@@ -10,7 +12,9 @@ class Prediction(db.Model):
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     model_id = db.Column(db.BigInteger, db.ForeignKey(
                         'ml_models.id', name='fk_models'), nullable=False)
-    predictions = db.Column(db.JSON, nullable=False)
+    version = db.Column(db.Integer, nullable=False)
+    bbox = db.Column(Geometry('POLYGON', srid=4326))
+    predictions = db.Column(postgresql.JSONB, nullable=False)
 
     def create(self):
         """ Creates and saves the current model to the DB """
@@ -45,7 +49,7 @@ class MLModel(db.Model):
     name = db.Column(db.String)
     source = db.Column(db.String)
     dockerhub_url = db.Column(db.String)
-    dockethub_hash = db.Column(db.String)
+    dockerhub_hash = db.Column(db.String)
     predictions = db.relationship(Prediction, backref='ml_models',
                                   cascade='all, delete-orphan', lazy='dynamic')
 
