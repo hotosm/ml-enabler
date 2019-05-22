@@ -31,3 +31,8 @@ def init_routes(app):
     from ml_enabler.api.ml import StatusCheckAPI
 
     api.add_resource(StatusCheckAPI, '/api/status')
+
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run()
