@@ -30,7 +30,7 @@ def init_routes(app):
     # import apis
     from ml_enabler.api.ml import StatusCheckAPI
 
-    api.add_resource(StatusCheckAPI, '/api/status')
+    api.add_resource(StatusCheckAPI, '/')
 
 
 if __name__ == '__main__':
