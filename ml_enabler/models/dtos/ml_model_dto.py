@@ -5,7 +5,7 @@ from schematics.types import StringType, BaseType, IntType, DateTimeType
 class MLModelDTO(Model):
     """ Describes JSON of an ML Model """
 
-    mlmodel_id = IntType(serialized_name='mlmodelId')
+    model_id = IntType(serialized_name='mlmodelId')
     created = DateTimeType()
     name = StringType(required=True)
     source = StringType(required=True)

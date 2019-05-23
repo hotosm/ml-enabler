@@ -2,6 +2,7 @@ from ml_enabler import db
 from ml_enabler.models.utils import timestamp
 from geoalchemy2 import Geometry
 from sqlalchemy.dialects import postgresql
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO
 
 
 class Prediction(db.Model):
@@ -46,17 +47,24 @@ class MLModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
-    name = db.Column(db.String)
+    name = db.Column(db.String, unique=True)
     source = db.Column(db.String)
     dockerhub_url = db.Column(db.String)
     dockerhub_hash = db.Column(db.String)
     predictions = db.relationship(Prediction, backref='ml_models',
                                   cascade='all, delete-orphan', lazy='dynamic')
 
-    def create(self):
+    def create(self, ml_model_dto: MLModelDTO):
         """ Creates and saves the current model to the DB """
+
+        self.name = ml_model_dto.name
+        self.source = ml_model_dto.source
+        self.dockerhub_hash = ml_model_dto.dockerhub_hash
+        self.dockerhub_url = ml_model_dto.dockerhub_url
+
         db.session.add(self)
         db.session.commit()
+        return self
 
     def save(self):
         """ Save changes to db"""
@@ -75,3 +83,14 @@ class MLModel(db.Model):
         """ Deletes the current model from the DB """
         db.session.delete(self)
         db.session.commit()
+
+    def as_dto(self):
+        model_dto = MLModelDTO()
+        model_dto.model_id = self.id
+        model_dto.name = self.name
+        model_dto.created = self.created
+        model_dto.source = self.source
+        model_dto.dockerhub_hash = self.dockerhub_hash
+        model_dto.dockerhub_url = self.dockerhub_url
+
+        return model_dto
