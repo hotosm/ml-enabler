@@ -94,3 +94,13 @@ class MLModel(db.Model):
         model_dto.dockerhub_url = self.dockerhub_url
 
         return model_dto
+
+    def update(self, updated_ml_model_dto: MLModelDTO):
+        """ Updates an ML model """
+        self.id = updated_ml_model_dto.model_id
+        self.name = updated_ml_model_dto.name
+        self.source = updated_ml_model_dto.source
+        self.dockerhub_hash = updated_ml_model_dto.dockerhub_hash
+        self.dockerhub_url = updated_ml_model_dto.dockerhub_url
+
+        db.session.commit()

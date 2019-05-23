@@ -32,7 +32,7 @@ def init_routes(app):
 
     api.add_resource(StatusCheckAPI, '/')
     api.add_resource(MLModelAPI, '/model', endpoint="post", methods=['POST'])
-    api.add_resource(MLModelAPI, '/model/<int:model_id>', methods=['DELETE', 'GET'])
+    api.add_resource(MLModelAPI, '/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
 
 
 if __name__ == '__main__':

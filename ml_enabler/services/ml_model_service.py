@@ -54,3 +54,20 @@ class MLModelService():
             return ml_model.as_dto()
         else:
             raise NotFound('Model does not exist')
+
+    @staticmethod
+    def update_ml_model(updated_ml_model_dto: MLModelDTO) -> int:
+        """
+        Update an existing ML Model
+        :param model_id
+
+        :raises NotFound
+        :returns model_id
+        """
+
+        ml_model = MLModel.get(updated_ml_model_dto.model_id)
+        if (ml_model):
+            ml_model.update(updated_ml_model_dto)
+            return updated_ml_model_dto.model_id
+        else:
+            raise NotFound('Model does not exist')
