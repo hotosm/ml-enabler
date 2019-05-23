@@ -23,3 +23,8 @@ class EnvironmentConfig:
                                     f'@{POSTGRES_ENDPOINT}:' + \
                                     f'{POSTGRES_PORT}' + \
                                     f'/{POSTGRES_DB}'
+
+
+class TestConfig(EnvironmentConfig):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = os.getenv('MLENABLER_TEST_DB', 'postgresql://admin@127.0.0.1/ml_enabler_test')

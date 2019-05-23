@@ -10,10 +10,10 @@ migrate = Migrate()
 from ml_enabler.models import * # noqa
 
 
-def create_app(env=None):
+def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
     # create and configure the app
     app = Flask(__name__)
-    app.config.from_object(f'ml_enabler.config.EnvironmentConfig')
+    app.config.from_object(app_config)
 
     db.init_app(app)
     migrate.init_app(app, db)
