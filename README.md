@@ -21,3 +21,15 @@ A service that integrates ML models to applications like Tasking Manager. _work 
   * `export FLASK_APP="ml_enabler"`
   * `export FLASK_ENV="development"`
   * `flask run`
+
+### Tests
+
+Create a database for your tests:
+
+    createdb ml_enabler_test
+    echo 'CREATE EXTENSION postgis' | psql -d ml_enabler_test
+
+Run tests with:
+
+    python3 -m unittest discover ml_enabler/tests/
+
