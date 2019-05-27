@@ -5,8 +5,17 @@ from ml_enabler.services.ml_model_service import MLModelService
 from ml_enabler.models.utils import NotFound
 from sqlalchemy.exc import IntegrityError
 
+
 class StatusCheckAPI(Resource):
-    """ Healthcheck method """
+    """
+    Healthcheck method
+    ---
+    produces:
+        - application/json
+    responses:
+        200:
+            description: API status check success
+    """
 
     def get(self):
         return {'hello': 'world'}, 200
@@ -15,7 +24,39 @@ class StatusCheckAPI(Resource):
 class MLModelAPI(Resource):
 
     def post(self):
-        """ Subscribe a new ML model """
+        """
+        Subscribe a new ML model
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: body
+              name: body
+              required: true
+              type: string
+              description: JSON object of model information
+              schema:
+                properties:
+                    name:
+                        type: string
+                        description: name of the ML model
+                    source:
+                        type: string
+                        description: source of the ML model
+                    dockerhub_hash:
+                        type: string
+                        description: dockerhub hash
+                    dockerhub_url:
+                        type: string
+                        description: dockerhub url
+        responses:
+            200:
+                description: ML Model subscribed
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
         try:
             model_dto = MLModelDTO(request.get_json())
             current_app.logger.info(f'request: {str(request.get_json())}')
@@ -30,6 +71,25 @@ class MLModelAPI(Resource):
             return str(e), 400
 
     def delete(self, model_id):
+        """
+        Deletes an existing model and it's predictions
+        ---
+        produces:
+            - application/json
+        parameters:
+            in: path
+            name: model_id
+            description: ID of the Model to be deleted
+            required: true
+            type: integer
+        responses:
+            200:
+                description: ML Model deleted
+            404:
+                description: Model doesn't exist
+            500:
+                description: Internal Server Error
+        """
         try:
             MLModelService.delete_ml_model(model_id)
             return {"success": "model deleted"}, 200
@@ -41,6 +101,25 @@ class MLModelAPI(Resource):
             return {"error": error_msg}
 
     def get(self, model_id):
+        """
+        Get model information with the ID
+        ---
+        produces:
+            - application/json
+        parameters:
+            in: path
+            name: model_id
+            description: ID of the Model to be fetched
+            required: true
+            type: integer
+        responses:
+            200:
+                description: ML Model information
+            404:
+                description: Model doesn't exist
+            500:
+                description: Internal Server Error
+        """
         try:
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
             return ml_model_dto.to_primitive(), 200
@@ -52,7 +131,43 @@ class MLModelAPI(Resource):
             return {"error": error_msg}
 
     def put(self, model_id):
-        """ Update an existing model """
+        """
+        Update an existing model
+        produces:
+            - application/json
+        parameters:
+            in: path
+            name: model_id
+            description: ID of the Model to update
+            required: true
+            type: integer
+            - in: body
+              name: body
+              required: true
+              type: string
+              description: JSON object of model information
+              schema:
+                properties:
+                    name:
+                        type: string
+                        description: name of the ML model
+                    source:
+                        type: string
+                        description: source of the ML model
+                    dockerhub_hash:
+                        type: string
+                        description: dockerhub hash
+                    dockerhub_url:
+                        type: string
+                        description: dockerhub url
+        responses:
+            200:
+                description: Updated model information
+            404:
+                description: Model doesn't exist
+            500:
+                description: Internal Server Error
+        """
         try:
             updated_model_dto = MLModelDTO(request.get_json())
             print(updated_model_dto.to_primitive())
