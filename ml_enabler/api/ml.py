@@ -77,11 +77,11 @@ class MLModelAPI(Resource):
         produces:
             - application/json
         parameters:
-            in: path
-            name: model_id
-            description: ID of the Model to be deleted
-            required: true
-            type: integer
+            - in: path
+              name: model_id
+              description: ID of the Model to be deleted
+              required: true
+              type: integer
         responses:
             200:
                 description: ML Model deleted
@@ -107,11 +107,11 @@ class MLModelAPI(Resource):
         produces:
             - application/json
         parameters:
-            in: path
-            name: model_id
-            description: ID of the Model to be fetched
-            required: true
-            type: integer
+            - in: path
+              name: model_id
+              description: ID of the Model to be fetched
+              required: true
+              type: integer
         responses:
             200:
                 description: ML Model information
@@ -133,14 +133,15 @@ class MLModelAPI(Resource):
     def put(self, model_id):
         """
         Update an existing model
+        ---
         produces:
             - application/json
         parameters:
-            in: path
-            name: model_id
-            description: ID of the Model to update
-            required: true
-            type: integer
+            - in: path
+              name: model_id
+              description: ID of the Model to update
+              required: true
+              type: integer
             - in: body
               name: body
               required: true
