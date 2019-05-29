@@ -1,6 +1,7 @@
 import unittest
 from ml_enabler import create_app, db
 
+
 def clean_db(db):
     for table in reversed(db.metadata.sorted_tables):
         db.session.execute(table.delete())

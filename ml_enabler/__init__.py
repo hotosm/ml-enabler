@@ -29,7 +29,9 @@ def init_routes(app):
 
     # import apis
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI
+    from ml_enabler.api.swagger import SwaggerDocsAPI
 
+    api.add_resource(SwaggerDocsAPI, '/docs')
     api.add_resource(StatusCheckAPI, '/')
     api.add_resource(MLModelAPI, '/model', endpoint="post", methods=['POST'])
     api.add_resource(MLModelAPI, '/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
