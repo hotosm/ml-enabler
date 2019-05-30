@@ -22,3 +22,14 @@ class PredictionDTO(Model):
     version = IntType(required=True)
     bbox = BaseType(required=True)
     predictions = BaseType(required=True)
+
+
+class VersionDTO(Model):
+    """ Describes JSON of a ML model version """
+
+    version_id = IntType(serialized_name='versionId')
+    created = DateTimeType()
+    model_id = IntType(serialized_name='modelId', required=True)
+    version_major = IntType(serialized_name='versionMajor', required=True)
+    version_minor = IntType(serialized_name='versionMinor', required=True)
+    version_patch = IntType(serialized_name='versionPatch', required=True)
