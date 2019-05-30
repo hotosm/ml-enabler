@@ -13,7 +13,10 @@ class Prediction(db.Model):
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     model_id = db.Column(db.BigInteger, db.ForeignKey(
                         'ml_models.id', name='fk_models'), nullable=False)
-    version = db.Column(db.Integer, nullable=False)
+    version_id = db.Column(db.Integer, db.ForeignKey(
+                          'ml_model_versions.id', name='ml_model_versions_fk'),
+                          nullable=False)
+    dockerhub_hash = db.Column(db.String)
     bbox = db.Column(Geometry('POLYGON', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
 
@@ -50,7 +53,6 @@ class MLModel(db.Model):
     name = db.Column(db.String, unique=True)
     source = db.Column(db.String)
     dockerhub_url = db.Column(db.String)
-    dockerhub_hash = db.Column(db.String)
     predictions = db.relationship(Prediction, backref='ml_models',
                                   cascade='all, delete-orphan', lazy='dynamic')
 
@@ -103,4 +105,27 @@ class MLModel(db.Model):
         self.dockerhub_hash = updated_ml_model_dto.dockerhub_hash
         self.dockerhub_url = updated_ml_model_dto.dockerhub_url
 
+        db.session.commit()
+
+
+class MLModelVersion(db.Model):
+    """ Stores versions of all subscribed ML Models """
+    __tablename__ = 'ml_model_versions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    created = db.Column(db.DateTime, default=timestamp, nullable=False)
+    model_id = db.Column(db.BigInteger, db.ForeignKey(
+        'ml_models.id', name='fk_models_versions'), nullable=False)
+    version_major = db.Column(db.Integer, nullable=False)
+    version_minor = db.Column(db.Integer, nullable=False)
+    version_patch = db.Column(db.Integer, nullable=False)
+
+    def create(self):
+        """  Creates a new version of the current model """
+        db.session.add(self)
+        db.session.commit()
+        return self
+
+    def save(self):
+        """ Save changes to the db """
         db.session.commit()
