@@ -2,7 +2,7 @@ from ml_enabler import db
 from ml_enabler.models.utils import timestamp
 from geoalchemy2 import Geometry
 from sqlalchemy.dialects import postgresql
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, VersionDTO
 
 
 class Prediction(db.Model):
@@ -61,7 +61,6 @@ class MLModel(db.Model):
 
         self.name = ml_model_dto.name
         self.source = ml_model_dto.source
-        self.dockerhub_hash = ml_model_dto.dockerhub_hash
         self.dockerhub_url = ml_model_dto.dockerhub_url
 
         db.session.add(self)
@@ -81,6 +80,10 @@ class MLModel(db.Model):
         """
         return MLModel.query.get(model_id)
 
+    @staticmethod
+    def get_all():
+        return MLModel.query.all()
+
     def delete(self):
         """ Deletes the current model from the DB """
         db.session.delete(self)
@@ -92,7 +95,6 @@ class MLModel(db.Model):
         model_dto.name = self.name
         model_dto.created = self.created
         model_dto.source = self.source
-        model_dto.dockerhub_hash = self.dockerhub_hash
         model_dto.dockerhub_url = self.dockerhub_url
 
         return model_dto
@@ -102,7 +104,6 @@ class MLModel(db.Model):
         self.id = updated_ml_model_dto.model_id
         self.name = updated_ml_model_dto.name
         self.source = updated_ml_model_dto.source
-        self.dockerhub_hash = updated_ml_model_dto.dockerhub_hash
         self.dockerhub_url = updated_ml_model_dto.dockerhub_url
 
         db.session.commit()
@@ -129,3 +130,18 @@ class MLModelVersion(db.Model):
     def save(self):
         """ Save changes to the db """
         db.session.commit()
+
+    @staticmethod
+    def get_version(model_id: int, version_major: int, version_minor: int, version_patch: int):
+        return MLModelVersion.query.filter_by(model_id=model_id, version_major=version_major, version_minor=version_minor, version_patch=version_patch).one()
+
+    def as_dto(self):
+        version_dto = VersionDTO()
+        version_dto.version_id = self.id
+        version_dto.model_id = self.model_id
+        version_dto.created = self.created
+        version_dto.version_major = self.version_major
+        version_dto.version_minor = self.version_minor
+        version_dto.version_patch = self.version_patch
+
+        return version_dto

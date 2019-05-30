@@ -10,7 +10,6 @@ class MLModelDTO(Model):
     name = StringType(required=True)
     source = StringType(required=True)
     dockerhub_url = StringType(serialized_name='dockerhubUrl')
-    dockerhub_hash = StringType(serialized_name='dockerhubHash')
 
 
 class PredictionDTO(Model):
@@ -19,7 +18,7 @@ class PredictionDTO(Model):
     prediction_id = IntType(serialized_name='predictionsId')
     created = DateTimeType()
     model_id = IntType(serialized_name='modelId', required=True)
-    version = IntType(required=True)
+    version_id = IntType(serialized_name='versionId', required=True)
     bbox = BaseType(required=True)
     predictions = BaseType(required=True)
 

@@ -1,8 +1,8 @@
 from flask_restful import Resource, request, current_app
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, VersionDTO, PredictionDTO
 from schematics.exceptions import DataError
-from ml_enabler.services.ml_model_service import MLModelService
-from ml_enabler.models.utils import NotFound
+from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
+from ml_enabler.models.utils import NotFound, VersionNotFound
 from sqlalchemy.exc import IntegrityError
 
 
@@ -181,3 +181,48 @@ class MLModelAPI(Resource):
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}
+
+
+class GetAllModels(Resource):
+    """ Methods to fetch many ML models """
+
+    def get(self):
+        try:
+            ml_models = MLModelService.get_all()
+            return ml_models, 200
+        except NotFound:
+            return {"error": "no models found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}
+
+
+class PredictionAPI(Resource):
+    """ Methods to manage ML predictions """
+
+    def post(self, model_id):
+        try:
+            payload = request.get_json()
+            print(payload)
+            version = payload['version']
+
+            # check if this model exists
+            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
+
+            # check if the version is registered
+            model_version = MLModelVersionService.get_version_by_model_version(model_id, version)
+
+            # predictions = PredictionDTO(payload)
+            # predictions.versionId = model_version.versionId
+
+            # if not, add it
+        except VersionNotFound:
+            return {"error": "version not found"}, 404
+        except NotFound:
+            return {"error": "model not found"}, 404
+
+            # validate predictions
+
+            # save it
+
