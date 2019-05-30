@@ -16,6 +16,7 @@ class Prediction(db.Model):
     version_id = db.Column(db.Integer, db.ForeignKey(
                           'ml_model_versions.id', name='ml_model_versions_fk'),
                           nullable=False)
+    dockerhub_hash = db.Column(db.String)
     bbox = db.Column(Geometry('POLYGON', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
 
@@ -52,7 +53,6 @@ class MLModel(db.Model):
     name = db.Column(db.String, unique=True)
     source = db.Column(db.String)
     dockerhub_url = db.Column(db.String)
-    dockerhub_hash = db.Column(db.String)
     predictions = db.relationship(Prediction, backref='ml_models',
                                   cascade='all, delete-orphan', lazy='dynamic')
 
