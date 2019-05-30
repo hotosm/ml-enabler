@@ -116,7 +116,9 @@ class MLModelVersion(db.Model):
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     model_id = db.Column(db.BigInteger, db.ForeignKey(
         'ml_models.id', name='fk_models_versions'), nullable=False)
-    version = db.Column(db.String, nullable=False)
+    version_major = db.Column(db.Integer, nullable=False)
+    version_minor = db.Column(db.Integer, nullable=False)
+    version_patch = db.Column(db.Integer, nullable=False)
 
     def create(self):
         """  Creates a new version of the current model """
