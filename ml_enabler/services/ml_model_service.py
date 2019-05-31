@@ -1,6 +1,6 @@
 from flask import current_app
 from ml_enabler.models.ml_model import MLModel, MLModelVersion
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO
 from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -110,3 +110,16 @@ class MLModelVersionService():
         except NoResultFound:
             raise VersionNotFound('This version of the model is not registered')
 
+    @staticmethod
+    def create_version(version_dto: MLModelVersionDTO) -> int:
+        """
+        Create a new version of an ML Model
+        :param version_dto
+
+        :raises DataError
+        :returns version ID
+        """
+
+        new_version = MLModelVersion()
+        new_version.create(version_dto)
+        return new_version.id

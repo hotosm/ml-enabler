@@ -1,4 +1,7 @@
 import datetime
+from shapely.geometry import box
+from geoalchemy2 import Geometry
+from geoalchemy2.functions import GenericFunction
 
 
 class NotFound(Exception):
@@ -26,3 +29,15 @@ def version_to_array(version: str):
     version_patch = version_array[2] or 0
 
     return [version_major, version_minor, version_patch]
+
+
+class ST_GeomFromText(GenericFunction):
+    """ Export the postgis ST_GeomFromText function """
+    name = 'ST_GeomFromText'
+    type = Geometry
+
+
+def bbox_to_polygon_wkt(bbox: list):
+    """ Get a polygon from the bbox """
+
+    return box(bbox[0], bbox[1], bbox[2], bbox[3]).wkt

@@ -1,5 +1,5 @@
 from schematics import Model
-from schematics.types import StringType, BaseType, IntType, DateTimeType
+from schematics.types import StringType, BaseType, IntType, DateTimeType, ListType, FloatType
 
 
 class MLModelDTO(Model):
@@ -19,11 +19,12 @@ class PredictionDTO(Model):
     created = DateTimeType()
     model_id = IntType(serialized_name='modelId', required=True)
     version_id = IntType(serialized_name='versionId', required=True)
-    bbox = BaseType(required=True)
+    dockerhub_hash = StringType(serialized_name='dockerhubHash')
+    bbox = ListType(FloatType, required=True)
     predictions = BaseType(required=True)
 
 
-class VersionDTO(Model):
+class MLModelVersionDTO(Model):
     """ Describes JSON of a ML model version """
 
     version_id = IntType(serialized_name='versionId')

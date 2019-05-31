@@ -1,8 +1,9 @@
 from flask_restful import Resource, request, current_app
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, VersionDTO, PredictionDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
-from ml_enabler.models.utils import NotFound, VersionNotFound
+from ml_enabler.services.prediction_service import PredictionService
+from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array
 from sqlalchemy.exc import IntegrityError
 
 
@@ -212,13 +213,29 @@ class PredictionAPI(Resource):
 
             # check if the version is registered
             model_version = MLModelVersionService.get_version_by_model_version(model_id, version)
+            prediction_id = PredictionService.create(model_id, model_version.version_id, payload)
+            return {"prediction_id": prediction_id}, 200
 
-            # predictions = PredictionDTO(payload)
-            # predictions.versionId = model_version.versionId
-
-            # if not, add it
         except VersionNotFound:
-            return {"error": "version not found"}, 404
+            # if not, add it
+            try:
+                version_array = version_to_array(version)
+                version_dto = MLModelVersionDTO()
+                version_dto.model_id = model_id
+                version_dto.version_major = version_array[0]
+                version_dto.version_minor = version_array[1]
+                version_dto.version_patch = version_array[2]
+                version_id = MLModelVersionService.create_version(version_dto)
+
+                prediction_id = PredictionService.create(model_id, version_id, payload)
+                return {"prediction_id": prediction_id}, 200
+            except DataError as e:
+                current_app.logger.error(f'Error validating request: {str(e)}')
+                return str(e), 400
+            except Exception as e:
+                error_msg = f'Unhandled error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {"error": error_msg}
         except NotFound:
             return {"error": "model not found"}, 404
 
