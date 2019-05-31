@@ -235,11 +235,13 @@ class PredictionAPI(Resource):
             except Exception as e:
                 error_msg = f'Unhandled error: {str(e)}'
                 current_app.logger.error(error_msg)
-                return {"error": error_msg}
+                return {"error": error_msg}, 500
         except NotFound:
             return {"error": "model not found"}, 404
-
-            # validate predictions
-
-            # save it
-
+        except DataError as e:
+            current_app.logger.error(f'Error validating request: {str(e)}')
+            return str(e), 400
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
