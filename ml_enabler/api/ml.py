@@ -186,8 +186,20 @@ class MLModelAPI(Resource):
 
 class GetAllModels(Resource):
     """ Methods to fetch many ML models """
-
     def get(self):
+        """
+        Get all ML models
+        ---
+        produces:
+            - application/json
+        responses:
+            200:
+                description: List of ML models
+            404:
+                description: No models found
+            500:
+                description: Internal Server Error
+        """
         try:
             ml_models = MLModelService.get_all()
             return ml_models, 200
@@ -203,6 +215,43 @@ class PredictionAPI(Resource):
     """ Methods to manage ML predictions """
 
     def post(self, model_id):
+        """
+        Store predictions for an ML Model
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: body
+              name: body
+              required: true
+              type: string
+              description: JSON object of predictions
+              schema:
+                properties:
+                    modelId:
+                        type: integer
+                        description: ML Model ID
+                        required: true
+                    version:
+                        type: string
+                        description: semver version of the Model
+                        required: true
+                    dockerhub_hash:
+                        type: string
+                        description: dockerhub hash
+                        required: false
+                    bbox:
+                        type: array of floats
+                        description: BBOX of the predictions
+                        required: true
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
         try:
             payload = request.get_json()
             print(payload)
