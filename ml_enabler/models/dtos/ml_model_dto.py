@@ -1,5 +1,5 @@
 from schematics import Model
-from schematics.types import StringType, BaseType, IntType, DateTimeType
+from schematics.types import StringType, BaseType, IntType, DateTimeType, ListType, FloatType
 
 
 class MLModelDTO(Model):
@@ -10,7 +10,6 @@ class MLModelDTO(Model):
     name = StringType(required=True)
     source = StringType(required=True)
     dockerhub_url = StringType(serialized_name='dockerhubUrl')
-    dockerhub_hash = StringType(serialized_name='dockerhubHash')
 
 
 class PredictionDTO(Model):
@@ -19,6 +18,18 @@ class PredictionDTO(Model):
     prediction_id = IntType(serialized_name='predictionsId')
     created = DateTimeType()
     model_id = IntType(serialized_name='modelId', required=True)
-    version = IntType(required=True)
-    bbox = BaseType(required=True)
+    version_id = IntType(serialized_name='versionId', required=True)
+    dockerhub_hash = StringType(serialized_name='dockerhubHash')
+    bbox = ListType(FloatType, required=True)
     predictions = BaseType(required=True)
+
+
+class MLModelVersionDTO(Model):
+    """ Describes JSON of a ML model version """
+
+    version_id = IntType(serialized_name='versionId')
+    created = DateTimeType()
+    model_id = IntType(serialized_name='modelId', required=True)
+    version_major = IntType(serialized_name='versionMajor', required=True)
+    version_minor = IntType(serialized_name='versionMinor', required=True)
+    version_patch = IntType(serialized_name='versionPatch', required=True)

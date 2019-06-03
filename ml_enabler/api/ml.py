@@ -1,8 +1,9 @@
 from flask_restful import Resource, request, current_app
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
-from ml_enabler.services.ml_model_service import MLModelService
-from ml_enabler.models.utils import NotFound
+from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
+from ml_enabler.services.prediction_service import PredictionService
+from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array
 from sqlalchemy.exc import IntegrityError
 
 
@@ -181,3 +182,115 @@ class MLModelAPI(Resource):
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}
+
+
+class GetAllModels(Resource):
+    """ Methods to fetch many ML models """
+    def get(self):
+        """
+        Get all ML models
+        ---
+        produces:
+            - application/json
+        responses:
+            200:
+                description: List of ML models
+            404:
+                description: No models found
+            500:
+                description: Internal Server Error
+        """
+        try:
+            ml_models = MLModelService.get_all()
+            return ml_models, 200
+        except NotFound:
+            return {"error": "no models found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}
+
+
+class PredictionAPI(Resource):
+    """ Methods to manage ML predictions """
+
+    def post(self, model_id):
+        """
+        Store predictions for an ML Model
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: body
+              name: body
+              required: true
+              type: string
+              description: JSON object of predictions
+              schema:
+                properties:
+                    modelId:
+                        type: integer
+                        description: ML Model ID
+                        required: true
+                    version:
+                        type: string
+                        description: semver version of the Model
+                        required: true
+                    dockerhub_hash:
+                        type: string
+                        description: dockerhub hash
+                        required: false
+                    bbox:
+                        type: array of floats
+                        description: BBOX of the predictions
+                        required: true
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+        try:
+            payload = request.get_json()
+            print(payload)
+            version = payload['version']
+
+            # check if this model exists
+            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
+
+            # check if the version is registered
+            model_version = MLModelVersionService.get_version_by_model_version(model_id, version)
+            prediction_id = PredictionService.create(model_id, model_version.version_id, payload)
+            return {"prediction_id": prediction_id}, 200
+
+        except VersionNotFound:
+            # if not, add it
+            try:
+                version_array = version_to_array(version)
+                version_dto = MLModelVersionDTO()
+                version_dto.model_id = model_id
+                version_dto.version_major = version_array[0]
+                version_dto.version_minor = version_array[1]
+                version_dto.version_patch = version_array[2]
+                version_id = MLModelVersionService.create_version(version_dto)
+
+                prediction_id = PredictionService.create(model_id, version_id, payload)
+                return {"prediction_id": prediction_id}, 200
+            except DataError as e:
+                current_app.logger.error(f'Error validating request: {str(e)}')
+                return str(e), 400
+            except Exception as e:
+                error_msg = f'Unhandled error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {"error": error_msg}, 500
+        except NotFound:
+            return {"error": "model not found"}, 404
+        except DataError as e:
+            current_app.logger.error(f'Error validating request: {str(e)}')
+            return str(e), 400
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
