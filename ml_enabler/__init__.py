@@ -36,8 +36,7 @@ def init_routes(app):
     api.add_resource(GetAllModels, '/model/all', methods=['GET'])
     api.add_resource(MLModelAPI, '/model', endpoint="post", methods=['POST'])
     api.add_resource(MLModelAPI, '/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
-    api.add_resource(PredictionAPI, '/prediction/<int:model_id>', methods=['POST'])
-
+    api.add_resource(PredictionAPI, '/prediction/<int:model_id>', methods=['POST', 'GET'])
 
 if __name__ == '__main__':
     app = create_app()

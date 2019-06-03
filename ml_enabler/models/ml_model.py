@@ -1,5 +1,5 @@
 from ml_enabler import db
-from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, ST_GeomFromText
+from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, ST_GeomFromText, ST_Intersects, ST_MakeEnvelope
 from geoalchemy2 import Geometry
 from sqlalchemy.dialects import postgresql
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
@@ -41,9 +41,26 @@ class Prediction(db.Model):
         """
         Gets predictions for a specified ML Model
         :param model_id: ml model ID in scope
-        :return: predictions if found otherwise None
+        :return predictions if found otherwise None
         """
         return Prediction.query.filter_by(model_id=model_id)
+
+    @staticmethod
+    def get_predictions_in_bbox(model_id: int, bbox: list):
+        """
+        Fetch prediction IDs for the specified model intersecting the given bbox
+        :param model_id, bbox
+        :return list of prediction ids
+        """
+
+        query = db.session.query(Prediction).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
+
+        return query.all()
+
+    def get_prediction_tiles(self, tiles: list)
+        """
+        Get predictions for the give list of tiles
+        """
 
     def delete(self):
         """ Deletes the current model from the DB """

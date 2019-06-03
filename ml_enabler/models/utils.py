@@ -14,6 +14,10 @@ class VersionNotFound(Exception):
     pass
 
 
+class PredictionsNotFound(Exception):
+    """ Custom exception to indicate that no predictions were found """
+
+
 def timestamp():
     """ Used in SQL Alchemy models to ensure we refresh
     timestamp when new models initialised"""
@@ -37,7 +41,26 @@ class ST_GeomFromText(GenericFunction):
     type = Geometry
 
 
+class ST_Intersects(GenericFunction):
+    """ Exposes PostGIS ST_Intersects function """
+    name = 'ST_Intersects'
+    type = Geometry
+
+
+class ST_MakeEnvelope(GenericFunction):
+    """ Exposes PostGIS ST_MakeEnvelope function """
+    name = 'ST_MakeEnvelope'
+    type = Geometry
+
+
 def bbox_to_polygon_wkt(bbox: list):
     """ Get a polygon from the bbox """
 
     return box(bbox[0], bbox[1], bbox[2], bbox[3]).wkt
+
+
+def bbox_str_to_list(bbox: str):
+    """ Parse the bbox query param and return a list of floats """
+
+    bboxList = bbox.split(',')
+    return list(map(float, bboxList))

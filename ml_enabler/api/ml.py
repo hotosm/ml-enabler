@@ -294,3 +294,22 @@ class PredictionAPI(Resource):
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
+
+    def get(self, model_id):
+        """
+        Fetch predictions for a model and supplied bbox
+        """
+        try:
+            bbox = request.args.get('bbox', '')
+            if (bbox is None or bbox == ''):
+                return {"error": 'A bbox is required    '}, 400
+
+            # check if this model exists
+            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
+
+            predictions = PredictionService.get(ml_model_dto.model_id, bbox)
+            return predictions, 200
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
