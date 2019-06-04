@@ -21,6 +21,7 @@ class PredictionDTO(Model):
     version_id = IntType(serialized_name='versionId', required=True)
     dockerhub_hash = StringType(serialized_name='dockerhubHash')
     bbox = ListType(FloatType, required=True)
+    tile_zoom = IntType(serialized_name='tileZoom', required=True)
     predictions = BaseType(required=True)
 
 

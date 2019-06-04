@@ -18,6 +18,7 @@ class Prediction(db.Model):
                           nullable=False)
     dockerhub_hash = db.Column(db.String)
     bbox = db.Column(Geometry('POLYGON', srid=4326))
+    tile_zoom = db.Column(db.Integer, nullable=False)
     predictions = db.Column(postgresql.JSONB, nullable=False)
 
     def create(self, prediction_dto: PredictionDTO):
@@ -27,6 +28,7 @@ class Prediction(db.Model):
         self.version_id = prediction_dto.version_id
         self.dockerhub_hash = prediction_dto.dockerhub_hash
         self.bbox = ST_GeomFromText(bbox_to_polygon_wkt(prediction_dto.bbox), 4326)
+        self.tile_zoom = prediction_dto.tile_zoom
         self.predictions = prediction_dto.predictions
 
         db.session.add(self)
@@ -53,19 +55,25 @@ class Prediction(db.Model):
         :return list of prediction ids
         """
 
-        query = db.session.query(Prediction).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
+        query = db.session.query(Prediction.id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
 
         return query.all()
-
-    def get_prediction_tiles(self, tiles: list)
-        """
-        Get predictions for the give list of tiles
-        """
 
     def delete(self):
         """ Deletes the current model from the DB """
         db.session.delete(self)
         db.session.commit()
+
+    @staticmethod
+    def get_prediction_tiles(prediction_id: int):
+        """
+        Get predictions for the give list of tiles
+        """
+
+        # query example
+        # prediction = db.session.query(Prediction.id, Prediction.predictions['a'], Prediction.predictions['b'], Prediction.predictions['z']).filter(Prediction.id == 4).all()
+
+        # print(prediction)
 
 
 class MLModel(db.Model):
