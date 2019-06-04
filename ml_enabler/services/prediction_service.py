@@ -20,7 +20,8 @@ class PredictionService():
         prediction_dto.model_id = model_id
         prediction_dto.version_id = version_id
         prediction_dto.bbox = payload['bbox']
-        prediction_dto.predictions = dict(payload['predictions'])
+        prediction_dto.tile_zoom = payload['tileZoom']
+        prediction_dto.predictions = payload['predictions']
         prediction_dto.validate()
 
         new_prediction = Prediction()
@@ -38,14 +39,14 @@ class PredictionService():
         """
 
         boundingBox = bbox_str_to_list(bbox)
-        bboxTiles = tiles(boundingBox[0], boundingBox[1], boundingBox[2], boundingBox[3], 6)
         prediction_ids = Prediction.get_predictions_in_bbox(model_id, boundingBox)
 
         if (len(prediction_ids) == 0):
             raise PredictionsNotFound('Predictions not found')
 
         for prediction in prediction_ids:
-            print(prediction)
-            Prediction.get_prediction_tiles(prediction.id)
-        #     # fetch tiles
-
+            print(prediction.id, prediction.tile_zoom)
+            bboxTiles = tiles(boundingBox[0], boundingBox[1], boundingBox[2], boundingBox[3], prediction.tile_zoom)
+            Prediction.get_prediction_tiles(prediction.id, bboxTiles)
+            # for tile in bboxTiles:
+            #     print(tile.x)

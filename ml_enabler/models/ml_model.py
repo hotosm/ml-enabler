@@ -55,7 +55,7 @@ class Prediction(db.Model):
         :return list of prediction ids
         """
 
-        query = db.session.query(Prediction.id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
+        query = db.session.query(Prediction.id, Prediction.tile_zoom).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
 
         return query.all()
 
@@ -65,15 +65,17 @@ class Prediction(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_prediction_tiles(prediction_id: int):
+    def get_prediction_tiles(prediction_id: int, tiles):
         """
         Get predictions for the give list of tiles
         """
 
         # query example
+
+        pred_query = [f'Prediction.predictions({tile.x}/{tile.y}/{tile.z})' for tile in tiles]
         # prediction = db.session.query(Prediction.id, Prediction.predictions['a'], Prediction.predictions['b'], Prediction.predictions['z']).filter(Prediction.id == 4).all()
 
-        # print(prediction)
+        print(pred_query)
 
 
 class MLModel(db.Model):
