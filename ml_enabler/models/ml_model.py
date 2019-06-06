@@ -5,7 +5,7 @@ from sqlalchemy.dialects import postgresql
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 
 
-class PredictionTiles(db.Model):
+class PredictionTile(db.Model):
     """ Store individual tile predictions """
     __tablename__ = 'prediction_tiles'
 
