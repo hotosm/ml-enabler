@@ -21,7 +21,6 @@ class PredictionService():
         prediction_dto.version_id = version_id
         prediction_dto.bbox = payload['bbox']
         prediction_dto.tile_zoom = payload['tileZoom']
-        prediction_dto.predictions = payload['predictions']
         prediction_dto.validate()
 
         new_prediction = Prediction()
@@ -38,15 +37,15 @@ class PredictionService():
         :returns predictions
         """
 
-        boundingBox = bbox_str_to_list(bbox)
-        prediction_ids = Prediction.get_predictions_in_bbox(model_id, boundingBox)
+        # boundingBox = bbox_str_to_list(bbox)
+        # prediction_ids = Prediction.get_predictions_in_bbox(model_id, boundingBox)
 
-        if (len(prediction_ids) == 0):
-            raise PredictionsNotFound('Predictions not found')
+        # if (len(prediction_ids) == 0):
+        #     raise PredictionsNotFound('Predictions not found')
 
-        for prediction in prediction_ids:
-            print(prediction.id, prediction.tile_zoom)
-            bboxTiles = tiles(boundingBox[0], boundingBox[1], boundingBox[2], boundingBox[3], prediction.tile_zoom)
-            Prediction.get_prediction_tiles(prediction.id, bboxTiles)
+        # for prediction in prediction_ids:
+        #     print(prediction.id, prediction.tile_zoom)
+        #     bboxTiles = tiles(boundingBox[0], boundingBox[1], boundingBox[2], boundingBox[3], prediction.tile_zoom)
+        #     Prediction.get_prediction_tiles(prediction.id, bboxTiles)
             # for tile in bboxTiles:
             #     print(tile.x)

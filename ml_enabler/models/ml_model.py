@@ -5,6 +5,18 @@ from sqlalchemy.dialects import postgresql
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 
 
+class PredictionTiles(db.Model):
+    """ Store individual tile predictions """
+    __tablename__ = 'prediction_tiles'
+
+    id = db.Column(db.Integer, primary_key=True)
+    prediction_id = db.Column(db.BigInteger, db.ForeignKey(
+                        'predictions.id', name='fk_predictions'), nullable=False)
+    quadkey = db.Column(db.String, nullable=False)
+    centroid = db.Column(Geometry('POINT', srid=4326))
+    predictions = db.Column(postgresql.JSONB, nullable=False)
+
+
 class Prediction(db.Model):
     """ Predictions from a model at a given time """
     __tablename__ = 'predictions'
@@ -19,7 +31,6 @@ class Prediction(db.Model):
     dockerhub_hash = db.Column(db.String)
     bbox = db.Column(Geometry('POLYGON', srid=4326))
     tile_zoom = db.Column(db.Integer, nullable=False)
-    predictions = db.Column(postgresql.JSONB, nullable=False)
 
     def create(self, prediction_dto: PredictionDTO):
         """ Creates and saves the current model to the DB """
@@ -29,7 +40,6 @@ class Prediction(db.Model):
         self.dockerhub_hash = prediction_dto.dockerhub_hash
         self.bbox = ST_GeomFromText(bbox_to_polygon_wkt(prediction_dto.bbox), 4326)
         self.tile_zoom = prediction_dto.tile_zoom
-        self.predictions = prediction_dto.predictions
 
         db.session.add(self)
         db.session.commit()
@@ -64,18 +74,18 @@ class Prediction(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    @staticmethod
-    def get_prediction_tiles(prediction_id: int, tiles):
-        """
-        Get predictions for the give list of tiles
-        """
+    # @staticmethod
+    # def get_prediction_tiles(prediction_id: int, tiles):
+    #     """
+    #     Get predictions for the give list of tiles
+    #     """
 
-        # query example
+    #     # query example
 
-        pred_query = [f'Prediction.predictions({tile.x}/{tile.y}/{tile.z})' for tile in tiles]
-        # prediction = db.session.query(Prediction.id, Prediction.predictions['a'], Prediction.predictions['b'], Prediction.predictions['z']).filter(Prediction.id == 4).all()
+    #     pred_query = [f'Prediction.predictions({tile.x}/{tile.y}/{tile.z})' for tile in tiles]
+    #     # prediction = db.session.query(Prediction.id, Prediction.predictions['a'], Prediction.predictions['b'], Prediction.predictions['z']).filter(Prediction.id == 4).all()
 
-        print(pred_query)
+    #     print(pred_query)
 
 
 class MLModel(db.Model):
