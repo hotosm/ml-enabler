@@ -19,6 +19,7 @@ class PredictionDTO(Model):
     created = DateTimeType()
     model_id = IntType(serialized_name='modelId', required=True)
     version_id = IntType(serialized_name='versionId', required=True)
+    version_string = StringType(serialized_name='versionString')
     dockerhub_hash = StringType(serialized_name='dockerhubHash')
     bbox = ListType(FloatType, required=True)
     tile_zoom = IntType(serialized_name='tileZoom', required=True)

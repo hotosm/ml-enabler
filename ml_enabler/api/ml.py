@@ -3,7 +3,7 @@ from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, P
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
 from ml_enabler.services.prediction_service import PredictionService
-from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array
+from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array, PredictionsNotFound
 from sqlalchemy.exc import IntegrityError
 
 
@@ -302,14 +302,30 @@ class PredictionAPI(Resource):
         try:
             bbox = request.args.get('bbox', '')
             if (bbox is None or bbox == ''):
-                return {"error": 'A bbox is required    '}, 400
+                return {"error": 'A bbox is required'}, 400
 
             # check if this model exists
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
 
             predictions = PredictionService.get(ml_model_dto.model_id, bbox)
             return predictions, 200
+        except PredictionsNotFound:
+            return {"error": "Predictions not found"}, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
+
+
+class PredictionTileAPI(Resource):
+    """
+    Methods to manage tile predictions
+    """
+
+    def post(self, prediction_id):
+        """
+        Submit tile level predictions
+        ---
+        """
+        # try:
+        #     prediction = 

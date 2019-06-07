@@ -1,6 +1,7 @@
 from ml_enabler import db
 from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, ST_GeomFromText, ST_Intersects, ST_MakeEnvelope
 from geoalchemy2 import Geometry
+from geoalchemy2.functions import ST_AsText, ST_Envelope, ST_AsGeoJSON
 from sqlalchemy.dialects import postgresql
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 
@@ -49,6 +50,16 @@ class Prediction(db.Model):
         db.session.commit()
 
     @staticmethod
+    def get(prediction_id: int):
+        """
+        Get prediction with the given ID
+        :param prediction_id
+        :return prediction if found otherwise None
+        """
+
+        return Prediction.query.get(prediction_id)
+
+    @staticmethod
     def get_predictions_by_model(model_id: int):
         """
         Gets predictions for a specified ML Model
@@ -56,6 +67,7 @@ class Prediction(db.Model):
         :return predictions if found otherwise None
         """
         return Prediction.query.filter_by(model_id=model_id)
+
 
     @staticmethod
     def get_predictions_in_bbox(model_id: int, bbox: list):
@@ -65,14 +77,29 @@ class Prediction(db.Model):
         :return list of prediction ids
         """
 
-        query = db.session.query(Prediction.id, Prediction.tile_zoom).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
 
+        print(query)
         return query.all()
 
     def delete(self):
         """ Deletes the current model from the DB """
         db.session.delete(self)
         db.session.commit()
+
+    def as_dto(self):
+        """ Return the prediction as a schematic """
+
+        version = MLModelVersion.get(self.version_id)
+        version_dto = version.as_dto()
+        prediction_dto = PredictionDTO()
+        prediction_dto.prediction_id = self.id
+        prediction_dto.model_id = self.model_id
+        prediction_dto.created = self.created
+        prediction_dto.version_id = self.version_id
+        prediction_dto.version_string = f'{version_dto.version_major}.{version_dto.version_minor}.{version_dto.version_patch}'
+        prediction_dto.bbox 
+        return prediction_dto
 
     # @staticmethod
     # def get_prediction_tiles(prediction_id: int, tiles):
@@ -180,6 +207,10 @@ class MLModelVersion(db.Model):
     def save(self):
         """ Save changes to the db """
         db.session.commit()
+
+    @staticmethod
+    def get(version_id: int):
+        return MLModelVersion.query.get(version_id)
 
     @staticmethod
     def get_version(model_id: int, version_major: int, version_minor: int, version_patch: int):

@@ -1,4 +1,5 @@
 import datetime
+import json
 from shapely.geometry import box
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import GenericFunction
@@ -53,6 +54,13 @@ class ST_MakeEnvelope(GenericFunction):
     type = Geometry
 
 
+class ST_AsText(GenericFunction):
+    """ Exposes PostGIS ST_AsText function """
+    name = 'ST_AsText'
+    type = Geometry
+
+
+
 def bbox_to_polygon_wkt(bbox: list):
     """ Get a polygon from the bbox """
 
@@ -64,3 +72,10 @@ def bbox_str_to_list(bbox: str):
 
     bboxList = bbox.split(',')
     return list(map(float, bboxList))
+
+def geojson_to_bbox(geojson):
+    """ Convert geojson to bbox list """
+
+    polygon = json.loads(geojson)
+    bbox = [polygon['coordinates'][0][0][0], polygon['coordinates'][0][0][1], polygon['coordinates'][0][2][0], polygon['coordinates'][0][2][1]]
+    return bbox
