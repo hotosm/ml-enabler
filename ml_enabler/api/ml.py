@@ -2,7 +2,7 @@ from flask_restful import Resource, request, current_app
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
-from ml_enabler.services.prediction_service import PredictionService
+from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array, PredictionsNotFound
 from sqlalchemy.exc import IntegrityError
 
@@ -327,5 +327,17 @@ class PredictionTileAPI(Resource):
         Submit tile level predictions
         ---
         """
-        # try:
-        #     prediction = 
+        try:
+            prediction_dto = PredictionService.get_prediction_by_id(prediction_id)
+            data = request.get_json()
+            if (len(data['predictions']) == 0):
+                return {"error": "Error validating request"}, 400
+
+            PredictionTileService.create(prediction_dto, data)
+
+        except PredictionsNotFound:
+            return {"error": "Prediction not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500

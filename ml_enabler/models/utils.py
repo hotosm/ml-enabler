@@ -1,6 +1,6 @@
 import datetime
 import json
-from shapely.geometry import box
+from shapely.geometry import box, Point
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import GenericFunction
 
@@ -60,7 +60,6 @@ class ST_AsText(GenericFunction):
     type = Geometry
 
 
-
 def bbox_to_polygon_wkt(bbox: list):
     """ Get a polygon from the bbox """
 
@@ -79,3 +78,9 @@ def geojson_to_bbox(geojson):
     polygon = json.loads(geojson)
     bbox = [polygon['coordinates'][0][0][0], polygon['coordinates'][0][0][1], polygon['coordinates'][0][2][0], polygon['coordinates'][0][2][1]]
     return bbox
+
+
+def point_list_to_wkt(centroid: list):
+    """ Convert a python list x,y to WKT """
+
+    return f'SRID=4326;{Point(centroid[0], centroid[1]).wkt}'

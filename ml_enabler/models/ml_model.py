@@ -1,10 +1,9 @@
 from ml_enabler import db
-from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, ST_GeomFromText, ST_Intersects, ST_MakeEnvelope
+from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, ST_GeomFromText, ST_Intersects, ST_MakeEnvelope, geojson_to_bbox
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_AsText, ST_Envelope, ST_AsGeoJSON
 from sqlalchemy.dialects import postgresql
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
-
 
 class PredictionTile(db.Model):
     """ Store individual tile predictions """
@@ -56,8 +55,8 @@ class Prediction(db.Model):
         :param prediction_id
         :return prediction if found otherwise None
         """
-
-        return Prediction.query.get(prediction_id)
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.id == prediction_id)
+        return query.one()
 
     @staticmethod
     def get_predictions_by_model(model_id: int):
@@ -87,18 +86,22 @@ class Prediction(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def as_dto(self):
+    def as_dto(prediction):
         """ Return the prediction as a schematic """
 
-        version = MLModelVersion.get(self.version_id)
-        version_dto = version.as_dto()
         prediction_dto = PredictionDTO()
-        prediction_dto.prediction_id = self.id
-        prediction_dto.model_id = self.model_id
-        prediction_dto.created = self.created
-        prediction_dto.version_id = self.version_id
+        version = MLModelVersion.get(prediction[6])
+        version_dto = version.as_dto()
+
+        prediction_dto.prediction_id = prediction[0]
+        prediction_dto.created = prediction[1]
+        prediction_dto.dockerhub_hash = prediction[2]
+        prediction_dto.bbox = geojson_to_bbox(prediction[3])
+        prediction_dto.model_id = prediction[4]
+        prediction_dto.tile_zoom = prediction[5]
+        prediction_dto.version_id = prediction[6]
         prediction_dto.version_string = f'{version_dto.version_major}.{version_dto.version_minor}.{version_dto.version_patch}'
-        prediction_dto.bbox 
+
         return prediction_dto
 
     # @staticmethod

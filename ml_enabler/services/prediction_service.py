@@ -1,10 +1,10 @@
 from flask import current_app
-from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction
+from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
-from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array, bbox_str_to_list, PredictionsNotFound, geojson_to_bbox
+from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array, bbox_str_to_list, PredictionsNotFound, geojson_to_bbox, point_list_to_wkt
 from sqlalchemy.orm.exc import NoResultFound
 from mercantile import tiles
-
+from ml_enabler import db
 
 class PredictionService():
     @staticmethod
@@ -27,6 +27,18 @@ class PredictionService():
         new_prediction = Prediction()
         new_prediction.create(prediction_dto)
         return new_prediction.id
+
+    @staticmethod
+    def get_prediction_by_id(prediction_id: int):
+        """
+        Get a prediction by ID
+        """
+
+        prediction = Prediction.get(prediction_id)
+        if prediction:
+            return Prediction.as_dto(prediction)
+        else:
+            raise PredictionsNotFound
 
     @staticmethod
     def get(model_id: int, bbox: list):
@@ -68,3 +80,15 @@ class PredictionService():
         #     Prediction.get_prediction_tiles(prediction.id, bboxTiles)
             # for tile in bboxTiles:
             #     print(tile.x)
+
+
+class PredictionTileService():
+    @staticmethod
+    def create(prediction: PredictionDTO, data):
+        # FIXME: should avoid this loop and get the cli to send data in the right format.
+        for tile in data['predictions']:
+            tile['centroid'] = point_list_to_wkt(tile['centroid'])
+            tile['prediction_id'] = prediction.prediction_id
+
+        connection = db.engine.connect()
+        connection.execute(PredictionTile.__table__.insert(), data['predictions'])
