@@ -297,7 +297,28 @@ class PredictionAPI(Resource):
 
     def get(self, model_id):
         """
-        Fetch predictions for a model and supplied bbox
+        Fetch predictions for a model within supplied bbox
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: query
+              name: bbox
+              description: bbox in the wsen format. Comma separated floats
+              required: true
+              type: string
+        responses:
+            200:
+                description: List of all predictions for the model within supplied bbox
+            404:
+                description: No predictions found
+            500:
+                description: Internal Server Error
         """
         try:
             bbox = request.args.get('bbox', '')
@@ -326,6 +347,48 @@ class PredictionTileAPI(Resource):
         """
         Submit tile level predictions
         ---
+        produces:
+            - application/json
+        parameters:
+            - in: body
+              name: body
+              required: true
+              type: string
+              description: JSON object of predictions
+              schema:
+                properties:
+                    predictionId:
+                        type: integer
+                        description: Prediction ID
+                        required: true
+                    predictions:
+                        type: array
+                        items:
+                            type: object
+                            schema:
+                                properties:
+                                    quadkey:
+                                        type: string
+                                        description: quadkey of the tile
+                                        required: true
+                                    centroid:
+                                        type: array
+                                        items:
+                                            type: float
+                                        required: true
+                                    predictions:
+                                        type: object
+                                        schema:
+                                            properties:
+                                                ml_prediction:
+                                                    type: float
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
         """
         try:
             prediction_dto = PredictionService.get_prediction_by_id(prediction_id)
@@ -349,7 +412,35 @@ class MLModelTilesAPI(Resource):
     """
     def get(self, model_id):
         """
-        Get aggregated prediction tile for a model within the supplied bbox and tile size
+        Get aggregated prediction tile for a model
+        within the supplied bbox and tile size
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: query
+              name: bbox
+              description: bbox in the wsen format. Comma separated floats
+              required: true
+              type: string
+            - in: query
+              name: zoom
+              description: zoom level for specifying aggregate tile size
+              required: true
+              type: integer
+        responses:
+            200:
+                description: List of all predictions for the model
+                within supplied bbox
+            404:
+                description: No predictions found
+            500:
+                description: Internal Server Error
         """
         try:
             bbox = request.args.get('bbox', '')
