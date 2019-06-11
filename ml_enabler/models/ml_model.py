@@ -3,7 +3,11 @@ from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, ST_GeomFromT
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_AsText, ST_Envelope, ST_AsGeoJSON
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.sql import func
+from sqlalchemy.sql.expression import cast
+import sqlalchemy
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
+
 
 class PredictionTile(db.Model):
     """ Store individual tile predictions """
@@ -15,6 +19,10 @@ class PredictionTile(db.Model):
     quadkey = db.Column(db.String, nullable=False)
     centroid = db.Column(Geometry('POINT', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
+
+    @staticmethod
+    def get_tiles_by_quadkey(prediction_id: int, quadkeys: tuple, zoom: int):
+        return db.session.query(func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'), func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction')).filter(PredictionTile.prediction_id == prediction_id).filter(func.substr(PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
 
 
 class Prediction(db.Model):
@@ -78,7 +86,6 @@ class Prediction(db.Model):
 
         query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
 
-        print(query)
         return query.all()
 
     def delete(self):

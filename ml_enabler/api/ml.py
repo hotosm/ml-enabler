@@ -341,3 +341,34 @@ class PredictionTileAPI(Resource):
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
+
+
+class MLModelTilesAPI(Resource):
+    """
+    Methods to manage prediction tiles at the model level
+    """
+    def get(self, model_id):
+        """
+        Get aggregated prediction tile for a model within the supplied bbox and tile size
+        """
+        try:
+            bbox = request.args.get('bbox', '')
+            zoom = request.args.get('zoom', '')
+            if (bbox is None or bbox == ''):
+                return {"error": 'A bbox is required'}, 400
+
+            if (zoom is None or zoom == ''):
+                return {"error": 'Zoom level is required for aggregation'}
+
+            # check if this model exists
+            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
+            tiles = PredictionTileService.get_aggregated_tiles(
+                    ml_model_dto.model_id, bbox, zoom)
+            return tiles, 200
+
+        except NotFound:
+            return {"error": "Model not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500

@@ -1,5 +1,6 @@
 import datetime
 import json
+import mercantile
 from shapely.geometry import box, Point
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import GenericFunction
@@ -84,3 +85,18 @@ def point_list_to_wkt(centroid: list):
     """ Convert a python list x,y to WKT """
 
     return f'SRID=4326;{Point(centroid[0], centroid[1]).wkt}'
+
+
+def bbox_to_quadkeys(bbox: list, zoom: int):
+    """ Find all quadkeys in a bbox """
+    tiles = mercantile.tiles(bbox[0], bbox[1], bbox[2], bbox[3], int(zoom))
+    quadkeys = []
+    for tile in tiles:
+        quadkeys.append(mercantile.quadkey(tile))
+
+    return quadkeys
+
+
+def tuple_to_dict(t):
+    """ Convert the results tuple to dict """
+    return {"quadkey": t[0], "avg": t[1]}

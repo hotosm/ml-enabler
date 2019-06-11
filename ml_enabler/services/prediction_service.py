@@ -1,9 +1,8 @@
 from flask import current_app
 from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
-from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array, bbox_str_to_list, PredictionsNotFound, geojson_to_bbox, point_list_to_wkt
+from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array, bbox_str_to_list, PredictionsNotFound, geojson_to_bbox, point_list_to_wkt, bbox_to_quadkeys, tuple_to_dict
 from sqlalchemy.orm.exc import NoResultFound
-from mercantile import tiles
 from ml_enabler import db
 
 class PredictionService():
@@ -74,12 +73,6 @@ class PredictionService():
             data.append(prediction_dto.to_primitive())
 
         return data
-        # for prediction in prediction_ids:
-        #     print(prediction.id, prediction.tile_zoom)
-        #     bboxTiles = tiles(boundingBox[0], boundingBox[1], boundingBox[2], boundingBox[3], prediction.tile_zoom)
-        #     Prediction.get_prediction_tiles(prediction.id, bboxTiles)
-            # for tile in bboxTiles:
-            #     print(tile.x)
 
 
 class PredictionTileService():
@@ -87,8 +80,27 @@ class PredictionTileService():
     def create(prediction: PredictionDTO, data):
         # FIXME: should avoid this loop and get the cli to send data in the right format.
         for tile in data['predictions']:
-            tile['centroid'] = point_list_to_wkt(tile['centroid'])
+            tile['centroid'] = point_list_to_wkt(tile['center'])
             tile['prediction_id'] = prediction.prediction_id
 
+        print(data)
         connection = db.engine.connect()
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
+
+    @staticmethod
+    def get_aggregated_tiles(model_id: int, bbox: list, zoom: int):
+        # get predictions within this bbox
+        predictions = PredictionService.get(model_id, bbox)
+
+        # find quadkeys for the given bbox
+        boundingBox = bbox_str_to_list(bbox)
+        quadkeys = bbox_to_quadkeys(boundingBox, zoom)
+        print(tuple(quadkeys))
+        prediction_tiles = {}
+        for prediction in predictions:
+            # query all tiles within those quadkeys and aggregate
+            tiles = list(map(tuple_to_dict, PredictionTile.get_tiles_by_quadkey
+                         (prediction['predictionsId'], tuple(quadkeys), zoom)))
+            prediction_tiles[prediction['predictionsId']] = tiles
+
+        return prediction_tiles
