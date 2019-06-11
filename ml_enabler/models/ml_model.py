@@ -75,7 +75,6 @@ class Prediction(db.Model):
         """
         return Prediction.query.filter_by(model_id=model_id)
 
-
     @staticmethod
     def get_predictions_in_bbox(model_id: int, bbox: list):
         """
@@ -84,7 +83,7 @@ class Prediction(db.Model):
         :return list of prediction ids
         """
 
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(Prediction.created.desc()).limit(1)
 
         return query.all()
 

@@ -91,11 +91,10 @@ class PredictionTileService():
     def get_aggregated_tiles(model_id: int, bbox: list, zoom: int):
         # get predictions within this bbox
         predictions = PredictionService.get(model_id, bbox)
-
+        print(predictions)
         # find quadkeys for the given bbox
         boundingBox = bbox_str_to_list(bbox)
         quadkeys = bbox_to_quadkeys(boundingBox, zoom)
-        print(tuple(quadkeys))
         prediction_tiles = {}
         for prediction in predictions:
             # query all tiles within those quadkeys and aggregate
