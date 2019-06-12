@@ -86,7 +86,6 @@ class PredictionTileService():
             tile['centroid'] = point_list_to_wkt(tile['center'])
             tile['prediction_id'] = prediction.prediction_id
 
-        print(data)
         connection = db.engine.connect()
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
 
