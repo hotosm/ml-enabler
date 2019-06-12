@@ -254,7 +254,6 @@ class PredictionAPI(Resource):
         """
         try:
             payload = request.get_json()
-            print(payload)
             version = payload['version']
 
             # check if this model exists
