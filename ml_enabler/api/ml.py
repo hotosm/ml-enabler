@@ -2,8 +2,8 @@ from flask_restful import Resource, request, current_app
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
-from ml_enabler.services.prediction_service import PredictionService
-from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array
+from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
+from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array, PredictionsNotFound
 from sqlalchemy.exc import IntegrityError
 
 
@@ -254,7 +254,6 @@ class PredictionAPI(Resource):
         """
         try:
             payload = request.get_json()
-            print(payload)
             version = payload['version']
 
             # check if this model exists
@@ -290,6 +289,175 @@ class PredictionAPI(Resource):
         except DataError as e:
             current_app.logger.error(f'Error validating request: {str(e)}')
             return str(e), 400
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
+
+    def get(self, model_id):
+        """
+        Fetch predictions for a model within supplied bbox
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: query
+              name: bbox
+              description: bbox in the wsen format. Comma separated floats
+              required: true
+              type: string
+        responses:
+            200:
+                description: List of all predictions for the model within supplied bbox
+            404:
+                description: No predictions found
+            500:
+                description: Internal Server Error
+        """
+        try:
+            bbox = request.args.get('bbox', '')
+            if (bbox is None or bbox == ''):
+                return {"error": 'A bbox is required'}, 400
+
+            # check if this model exists
+            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
+
+            predictions = PredictionService.get(ml_model_dto.model_id, bbox)
+            return predictions, 200
+        except PredictionsNotFound:
+            return {"error": "Predictions not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
+
+
+class PredictionTileAPI(Resource):
+    """
+    Methods to manage tile predictions
+    """
+
+    def post(self, prediction_id):
+        """
+        Submit tile level predictions
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: body
+              name: body
+              required: true
+              type: string
+              description: JSON object of predictions
+              schema:
+                properties:
+                    predictionId:
+                        type: integer
+                        description: Prediction ID
+                        required: true
+                    predictions:
+                        type: array
+                        items:
+                            type: object
+                            schema:
+                                properties:
+                                    quadkey:
+                                        type: string
+                                        description: quadkey of the tile
+                                        required: true
+                                    centroid:
+                                        type: array
+                                        items:
+                                            type: float
+                                        required: true
+                                    predictions:
+                                        type: object
+                                        schema:
+                                            properties:
+                                                ml_prediction:
+                                                    type: float
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+        try:
+            prediction_dto = PredictionService.get_prediction_by_id(prediction_id)
+            data = request.get_json()
+            if (len(data['predictions']) == 0):
+                return {"error": "Error validating request"}, 400
+
+            PredictionTileService.create(prediction_dto, data)
+
+        except PredictionsNotFound:
+            return {"error": "Prediction not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
+
+
+class MLModelTilesAPI(Resource):
+    """
+    Methods to manage prediction tiles at the model level
+    """
+    def get(self, model_id):
+        """
+        Get aggregated prediction tile for a model
+        within the supplied bbox and tile size
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: query
+              name: bbox
+              description: bbox in the wsen format. Comma separated floats
+              required: true
+              type: string
+            - in: query
+              name: zoom
+              description: zoom level for specifying aggregate tile size
+              required: true
+              type: integer
+        responses:
+            200:
+                description: List of all predictions for the model
+                within supplied bbox
+            404:
+                description: No predictions found
+            500:
+                description: Internal Server Error
+        """
+        try:
+            bbox = request.args.get('bbox', '')
+            zoom = request.args.get('zoom', '')
+            if (bbox is None or bbox == ''):
+                return {"error": 'A bbox is required'}, 400
+
+            if (zoom is None or zoom == ''):
+                return {"error": 'Zoom level is required for aggregation'}
+
+            # check if this model exists
+            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
+            tiles = PredictionTileService.get_aggregated_tiles(
+                    ml_model_dto.model_id, bbox, zoom)
+            return tiles, 200
+
+        except NotFound:
+            return {"error": "Model not found"}, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)

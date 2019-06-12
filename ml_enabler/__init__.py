@@ -28,7 +28,7 @@ def init_routes(app):
     api = Api(app)
 
     # import apis
-    from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, PredictionAPI
+    from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, PredictionAPI, PredictionTileAPI, MLModelTilesAPI
     from ml_enabler.api.swagger import SwaggerDocsAPI
 
     api.add_resource(SwaggerDocsAPI, '/docs')
@@ -36,7 +36,9 @@ def init_routes(app):
     api.add_resource(GetAllModels, '/model/all', methods=['GET'])
     api.add_resource(MLModelAPI, '/model', endpoint="post", methods=['POST'])
     api.add_resource(MLModelAPI, '/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
-    api.add_resource(PredictionAPI, '/prediction/<int:model_id>', methods=['POST'])
+    api.add_resource(PredictionAPI, '/model/<int:model_id>/prediction', methods=['POST', 'GET'])
+    api.add_resource(PredictionTileAPI, '/model/prediction/<int:prediction_id>/tiles', methods=['POST'])
+    api.add_resource(MLModelTilesAPI, '/model/<int:model_id>/tiles', methods=['GET'])
 
 
 if __name__ == '__main__':
