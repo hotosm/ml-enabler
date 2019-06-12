@@ -1,12 +1,14 @@
 from ml_enabler import db
-from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, ST_GeomFromText, ST_Intersects, ST_MakeEnvelope, geojson_to_bbox
+from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, \
+     ST_GeomFromText, ST_Intersects, ST_MakeEnvelope, geojson_to_bbox
 from geoalchemy2 import Geometry
-from geoalchemy2.functions import ST_AsText, ST_Envelope, ST_AsGeoJSON
+from geoalchemy2.functions import ST_Envelope, ST_AsGeoJSON
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import func
 from sqlalchemy.sql.expression import cast
 import sqlalchemy
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, \
+    MLModelVersionDTO, PredictionDTO
 
 
 class PredictionTile(db.Model):
@@ -15,10 +17,17 @@ class PredictionTile(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     prediction_id = db.Column(db.BigInteger, db.ForeignKey(
-                        'predictions.id', name='fk_predictions'), nullable=False)
+                        'predictions.id', name='fk_predictions'),
+                        nullable=False)
     quadkey = db.Column(db.String, nullable=False)
     centroid = db.Column(Geometry('POINT', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
+
+    prediction_tiles_quadkey_idx = db.Index('prediction_tiles_quadkey_idx',
+                                            'prediction_tiles.quadkey',
+                                            postgresql_ops={
+                                                'quadkey': 'text_pattern_ops'
+                                                })
 
     @staticmethod
     def get_tiles_by_quadkey(prediction_id: int, quadkeys: tuple, zoom: int):
@@ -76,14 +85,25 @@ class Prediction(db.Model):
         return Prediction.query.filter_by(model_id=model_id)
 
     @staticmethod
-    def get_predictions_in_bbox(model_id: int, bbox: list):
+    def get_latest_predictions_in_bbox(model_id: int, bbox: list):
         """
-        Fetch prediction IDs for the specified model intersecting the given bbox
+        Fetch latest predictions for the specified model intersecting the given bbox
         :param model_id, bbox
-        :return list of prediction ids
+        :return list of predictions
         """
 
         query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(Prediction.created.desc()).limit(1)
+
+        return query.all()
+
+    def get_all_predictions_in_bbox(model_id: int, bbox: list):
+        """
+        Fetch all predictions for the specified model intersecting the given
+        bbox
+        :param model_id, bbox
+        :return list of predictions
+        """
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
 
         return query.all()
 
@@ -109,19 +129,6 @@ class Prediction(db.Model):
         prediction_dto.version_string = f'{version_dto.version_major}.{version_dto.version_minor}.{version_dto.version_patch}'
 
         return prediction_dto
-
-    # @staticmethod
-    # def get_prediction_tiles(prediction_id: int, tiles):
-    #     """
-    #     Get predictions for the give list of tiles
-    #     """
-
-    #     # query example
-
-    #     pred_query = [f'Prediction.predictions({tile.x}/{tile.y}/{tile.z})' for tile in tiles]
-    #     # prediction = db.session.query(Prediction.id, Prediction.predictions['a'], Prediction.predictions['b'], Prediction.predictions['z']).filter(Prediction.id == 4).all()
-
-    #     print(pred_query)
 
 
 class MLModel(db.Model):

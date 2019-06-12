@@ -40,7 +40,7 @@ class PredictionService():
             raise PredictionsNotFound
 
     @staticmethod
-    def get(model_id: int, bbox: list):
+    def get(model_id: int, bbox: list, latest=False):
         """
         Fetch latest predictions from a model for the given bbox
         :params model_id, bbox
@@ -50,7 +50,10 @@ class PredictionService():
         """
 
         boundingBox = bbox_str_to_list(bbox)
-        predictions = Prediction.get_predictions_in_bbox(model_id, boundingBox)
+        if (latest):
+            predictions = Prediction.get_latest_predictions_in_bbox(model_id, boundingBox)
+        else:
+            predictions = Prediction.get_all_predictions_in_bbox(model_id, boundingBox)
 
         if (len(predictions) == 0):
             raise PredictionsNotFound('Predictions not found')
@@ -90,7 +93,7 @@ class PredictionTileService():
     @staticmethod
     def get_aggregated_tiles(model_id: int, bbox: list, zoom: int):
         # get predictions within this bbox
-        predictions = PredictionService.get(model_id, bbox)
+        predictions = PredictionService.get(model_id, bbox, latest=True)
         print(predictions)
         # find quadkeys for the given bbox
         boundingBox = bbox_str_to_list(bbox)
