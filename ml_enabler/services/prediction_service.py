@@ -1,7 +1,9 @@
 from flask import current_app
 from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
-from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array, bbox_str_to_list, PredictionsNotFound, geojson_to_bbox, point_list_to_wkt, bbox_to_quadkeys, tuple_to_dict
+from ml_enabler.models.utils import NotFound, VersionNotFound,\
+    version_to_array, bbox_str_to_list, PredictionsNotFound, geojson_to_bbox,\
+    point_list_to_wkt, bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt
 from sqlalchemy.orm.exc import NoResultFound
 from ml_enabler import db
 
@@ -49,11 +51,10 @@ class PredictionService():
         :returns predictions
         """
 
-        boundingBox = bbox_str_to_list(bbox)
         if (latest):
-            predictions = Prediction.get_latest_predictions_in_bbox(model_id, boundingBox)
+            predictions = Prediction.get_latest_predictions_in_bbox(model_id, bbox)
         else:
-            predictions = Prediction.get_all_predictions_in_bbox(model_id, boundingBox)
+            predictions = Prediction.get_all_predictions_in_bbox(model_id, bbox)
 
         if (len(predictions) == 0):
             raise PredictionsNotFound('Predictions not found')
@@ -92,7 +93,8 @@ class PredictionTileService():
     @staticmethod
     def get_aggregated_tiles(model_id: int, bbox: list, zoom: int):
         # get predictions within this bbox
-        predictions = PredictionService.get(model_id, bbox, latest=True)
+        boundingBox = bbox_str_to_list(bbox)
+        predictions = PredictionService.get(model_id, boundingBox, latest=True)
         print(predictions)
         # find quadkeys for the given bbox
         boundingBox = bbox_str_to_list(bbox)
@@ -105,3 +107,15 @@ class PredictionTileService():
             prediction_tiles[prediction['predictionsId']] = tiles
 
         return prediction_tiles
+
+    @staticmethod
+    def get_aggregated_tiles_geojson(model_id: int, bbox: list, geojson: dict):
+
+        # and get the latest prediction
+        prediction = PredictionService.get(model_id, bbox, latest=True)
+        print(prediction)
+        # for each geojson feature, find the tiles and aggregate
+        for feature in geojson['features']:
+            print(polygon_to_wkt(feature['geometry']))
+            tiles = PredictionTile.get_tiles_in_polygon(prediction[0]['predictionsId'], polygon_to_wkt(feature['geometry']))
+            print(tiles)

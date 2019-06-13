@@ -1,7 +1,7 @@
 import datetime
 import json
 import mercantile
-from shapely.geometry import box, Point
+from shapely.geometry import box, Point, shape
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import GenericFunction
 
@@ -61,6 +61,12 @@ class ST_AsText(GenericFunction):
     type = Geometry
 
 
+class ST_Within(GenericFunction):
+    """ Exposes the PostGIS St_Within function """
+    name = 'ST_Within'
+    type = Geometry
+
+
 def bbox_to_polygon_wkt(bbox: list):
     """ Get a polygon from the bbox """
 
@@ -73,8 +79,9 @@ def bbox_str_to_list(bbox: str):
     bboxList = bbox.split(',')
     return list(map(float, bboxList))
 
+
 def geojson_to_bbox(geojson):
-    """ Convert geojson to bbox list """
+    """ Convert polygon geojson to bbox list """
 
     polygon = json.loads(geojson)
     bbox = [polygon['coordinates'][0][0][0], polygon['coordinates'][0][0][1], polygon['coordinates'][0][2][0], polygon['coordinates'][0][2][1]]
@@ -100,3 +107,40 @@ def bbox_to_quadkeys(bbox: list, zoom: int):
 def tuple_to_dict(t):
     """ Convert the results tuple to dict """
     return {"quadkey": t[0], "avg": t[1]}
+
+
+def geojson_bounds(geojson):
+    """
+    Get the bounds of a geojson feature collection
+    Based on https://github.com/Luqqk/geojson-bbox/blob/master/gbbox/geojson_bbox.py
+    """
+
+    # flatten the coordinates
+    # coords = []
+    coords = list(flatten([f['geometry']['coordinates']
+                  for f in geojson['features']]))
+    # for f in geojson['features']:
+    #     value = f['geometry']['coordinates']
+    #     coords.append(flatten(value))
+
+    return [min(coords[::2]), min(coords[1::2]),
+            max(coords[::2]), max(coords[1::2])]
+
+
+def flatten(value):
+    """
+    Helper function to flatten coordinates
+    """
+    for val in value:
+        if isinstance(val, list):
+            for subval in flatten(val):
+                yield subval
+        else:
+            yield val
+
+
+def polygon_to_wkt(geojson):
+    """
+    Convert a geojson polygon to wkt
+    """
+    return f'SRID=4326;{shape(geojson).wkt}'

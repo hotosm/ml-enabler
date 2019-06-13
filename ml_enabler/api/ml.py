@@ -3,8 +3,10 @@ from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, P
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
-from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array, PredictionsNotFound
+from ml_enabler.models.utils import NotFound, VersionNotFound, \
+    version_to_array, PredictionsNotFound, geojson_bounds, bbox_str_to_list
 from sqlalchemy.exc import IntegrityError
+import geojson
 
 
 class StatusCheckAPI(Resource):
@@ -327,7 +329,8 @@ class PredictionAPI(Resource):
             # check if this model exists
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
 
-            predictions = PredictionService.get(ml_model_dto.model_id, bbox)
+            boundingBox = bbox_str_to_list(bbox)
+            predictions = PredictionService.get(ml_model_dto.model_id, boundingBox)
             return predictions, 200
         except PredictionsNotFound:
             return {"error": "Predictions not found"}, 404
@@ -462,3 +465,26 @@ class MLModelTilesAPI(Resource):
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
+
+
+class MLModelTilesGeojsonAPI(Resource):
+    """
+    Methods to manage prediction tile aggregation for GeoJSON data
+    """
+
+    def post(self, model_id: int):
+
+        try:
+            # FIXME - validate the geojson
+            data = geojson.FeatureCollection(request.get_json()['features'])
+
+            # check if the model exists
+            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
+
+            # get the bbox the geojson
+            bbox = geojson_bounds(data)
+            prediction_tile_geojson = PredictionTileService.get_aggregated_tiles_geojson(ml_model_dto.model_id, bbox, data)
+
+
+        except NotFound:
+            return {"error": "Model not found"}, 404

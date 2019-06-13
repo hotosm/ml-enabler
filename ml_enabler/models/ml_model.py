@@ -2,7 +2,7 @@ from ml_enabler import db
 from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, \
      ST_GeomFromText, ST_Intersects, ST_MakeEnvelope, geojson_to_bbox
 from geoalchemy2 import Geometry
-from geoalchemy2.functions import ST_Envelope, ST_AsGeoJSON
+from geoalchemy2.functions import ST_Envelope, ST_AsGeoJSON, ST_Within
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import func
 from sqlalchemy.sql.expression import cast
@@ -32,6 +32,12 @@ class PredictionTile(db.Model):
     @staticmethod
     def get_tiles_by_quadkey(prediction_id: int, quadkeys: tuple, zoom: int):
         return db.session.query(func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'), func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction')).filter(PredictionTile.prediction_id == prediction_id).filter(func.substr(PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
+
+
+    @staticmethod
+    def get_tiles_in_polygon(prediction_id: int, polygon: str):
+        return db.session.query(PredictionTile.id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').all()
+
 
 
 class Prediction(db.Model):
