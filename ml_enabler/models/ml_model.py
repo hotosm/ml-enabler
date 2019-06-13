@@ -36,8 +36,7 @@ class PredictionTile(db.Model):
 
     @staticmethod
     def get_tiles_in_polygon(prediction_id: int, polygon: str):
-        return db.session.query(PredictionTile.id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').all()
-
+        return db.session.query(func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float))).filter(PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
 
 
 class Prediction(db.Model):

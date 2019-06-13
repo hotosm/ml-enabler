@@ -484,7 +484,11 @@ class MLModelTilesGeojsonAPI(Resource):
             # get the bbox the geojson
             bbox = geojson_bounds(data)
             prediction_tile_geojson = PredictionTileService.get_aggregated_tiles_geojson(ml_model_dto.model_id, bbox, data)
-
+            return prediction_tile_geojson, 200
 
         except NotFound:
             return {"error": "Model not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500

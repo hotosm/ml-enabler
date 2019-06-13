@@ -117,5 +117,9 @@ class PredictionTileService():
         # for each geojson feature, find the tiles and aggregate
         for feature in geojson['features']:
             print(polygon_to_wkt(feature['geometry']))
-            tiles = PredictionTile.get_tiles_in_polygon(prediction[0]['predictionsId'], polygon_to_wkt(feature['geometry']))
-            print(tiles)
+            tile_aggregate = PredictionTile.get_tiles_in_polygon(prediction[0]['predictionsId'], polygon_to_wkt(feature['geometry']))
+            if (len(tile_aggregate) > 0):
+                print(type(tile_aggregate))
+                feature['properties']['ml_prediction'] = tile_aggregate[0]
+
+        return geojson
