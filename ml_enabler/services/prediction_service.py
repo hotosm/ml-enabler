@@ -7,6 +7,7 @@ from ml_enabler.models.utils import NotFound, VersionNotFound,\
 from sqlalchemy.orm.exc import NoResultFound
 from ml_enabler import db
 
+
 class PredictionService():
     @staticmethod
     def create(model_id: int, version_id: int, payload: dict) -> int:
@@ -82,11 +83,6 @@ class PredictionService():
 class PredictionTileService():
     @staticmethod
     def create(prediction: PredictionDTO, data):
-        # FIXME: should avoid this loop and get the cli to send data in the right format.
-        for tile in data['predictions']:
-            tile['centroid'] = point_list_to_wkt(tile['center'])
-            tile['prediction_id'] = prediction.prediction_id
-
         connection = db.engine.connect()
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
 
@@ -113,13 +109,10 @@ class PredictionTileService():
 
         # and get the latest prediction
         prediction = PredictionService.get(model_id, bbox, latest=True)
-        print(prediction)
         # for each geojson feature, find the tiles and aggregate
         for feature in geojson['features']:
-            print(polygon_to_wkt(feature['geometry']))
             tile_aggregate = PredictionTile.get_tiles_in_polygon(prediction[0]['predictionsId'], polygon_to_wkt(feature['geometry']))
             if (len(tile_aggregate) > 0):
-                print(type(tile_aggregate))
                 feature['properties']['ml_prediction'] = tile_aggregate[0]
 
         return geojson

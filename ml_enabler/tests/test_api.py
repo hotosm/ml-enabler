@@ -3,8 +3,8 @@ from ml_enabler.tests.base import BaseTestCase
 from ml_enabler.tests.factories import MLModelFactory, MLModelVersionFactory, \
     PredictionFactory
 from ml_enabler.models.ml_model import MLModel, Prediction
-from ml_enabler.tests.fixtures import tiles
-from ml_enabler.tests.utils import create_prediction
+from ml_enabler.tests.fixtures import tiles, geojson
+from ml_enabler.tests.utils import create_prediction, create_prediction_tiles
 
 class StatusTest(BaseTestCase):
     def test_status(self):
@@ -64,3 +64,17 @@ class PredictionTileAPITest(BaseTestCase):
                                     data=json.dumps(payload),
                                     content_type='application/json')
         assert(response.status_code == 200)
+
+    def test_geojson_post(self):
+
+        prediction = create_prediction()
+        create_prediction_tiles(prediction.id)
+
+        payload = geojson.get_geojson()
+
+        response = self.client.post(f'model/{prediction.model_id}/tiles/geojson',
+                                    data=json.dumps(payload),
+                                    content_type='application/json')
+
+        assert(response.status_code == 200)
+        assert(len(response.get_json()['features']) == 3)
