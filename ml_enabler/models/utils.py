@@ -61,12 +61,6 @@ class ST_AsText(GenericFunction):
     type = Geometry
 
 
-class ST_Within(GenericFunction):
-    """ Exposes the PostGIS St_Within function """
-    name = 'ST_Within'
-    type = Geometry
-
-
 def bbox_to_polygon_wkt(bbox: list):
     """ Get a polygon from the bbox """
 
