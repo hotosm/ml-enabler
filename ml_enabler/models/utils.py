@@ -110,12 +110,8 @@ def geojson_bounds(geojson):
     """
 
     # flatten the coordinates
-    # coords = []
     coords = list(flatten([f['geometry']['coordinates']
                   for f in geojson['features']]))
-    # for f in geojson['features']:
-    #     value = f['geometry']['coordinates']
-    #     coords.append(flatten(value))
 
     return [min(coords[::2]), min(coords[1::2]),
             max(coords[::2]), max(coords[1::2])]
