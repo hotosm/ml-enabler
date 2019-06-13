@@ -473,7 +473,28 @@ class MLModelTilesGeojsonAPI(Resource):
     """
 
     def post(self, model_id: int):
-
+        """
+        Aggregate ml predictions for polygons in the supplied GeoJSON
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: body
+              name: body
+              required: true
+              type: string
+              description: GeoJSON FeatureCollection of Polygons
+        responses:
+            200:
+                description: GeoJSON FeatureCollection with prediction data in
+                properties
+            404:
+                description: Model not found
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
         try:
             # FIXME - validate the geojson
             data = geojson.FeatureCollection(request.get_json()['features'])
