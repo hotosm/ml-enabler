@@ -53,7 +53,13 @@ class PredictionService():
         """
 
         if (latest):
-            predictions = Prediction.get_latest_predictions_in_bbox(model_id, bbox)
+            # get the latest version
+            latest_version = MLModelVersion.get_latest_version(model_id)
+            if (latest_version is None):
+                raise PredictionsNotFound('Predictions not found')
+            else:
+                version_id = latest_version.id
+                predictions = Prediction.get_latest_predictions_in_bbox(model_id, version_id, bbox)
         else:
             predictions = Prediction.get_all_predictions_in_bbox(model_id, bbox)
 
