@@ -90,14 +90,16 @@ class Prediction(db.Model):
         return Prediction.query.filter_by(model_id=model_id)
 
     @staticmethod
-    def get_latest_predictions_in_bbox(model_id: int, bbox: list):
+    def get_latest_predictions_in_bbox(model_id: int, version_id: int, bbox: list):
         """
-        Fetch latest predictions for the specified model intersecting the given bbox
-        :param model_id, bbox
+        Fetch latest predictions for the specified model intersecting
+        the given bbox
+
+        :param model_id, version_id, bbox
         :return list of predictions
         """
 
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(Prediction.created.desc()).limit(1)
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(Prediction.version_id==version_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(Prediction.created.desc()).limit(1)
 
         return query.all()
 
@@ -236,6 +238,10 @@ class MLModelVersion(db.Model):
     @staticmethod
     def get_version(model_id: int, version_major: int, version_minor: int, version_patch: int):
         return MLModelVersion.query.filter_by(model_id=model_id, version_major=version_major, version_minor=version_minor, version_patch=version_patch).one()
+
+    @staticmethod
+    def get_latest_version(model_id: int):
+        return MLModelVersion.query.filter_by(model_id=model_id).order_by(MLModelVersion.version_major.desc(), MLModelVersion.version_minor.desc(), MLModelVersion.version_patch.desc()).first()
 
     def as_dto(self):
         version_dto = MLModelVersionDTO()

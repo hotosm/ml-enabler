@@ -1,7 +1,7 @@
 from ml_enabler.tests.base import BaseTestCase
 from ml_enabler.tests.factories import MLModelFactory, MLModelVersionFactory, \
     PredictionFactory
-from ml_enabler.models.ml_model import MLModel, Prediction
+from ml_enabler.models.ml_model import MLModel, Prediction, MLModelVersion
 
 
 class MLModelTestCase(BaseTestCase):
@@ -29,3 +29,27 @@ class PredictionTestCase(BaseTestCase):
         self.db.session.add(prediction)
         self.db.session.commit()
         assert self.db.session.query(Prediction).count() == 1
+
+
+class MLModelVersionTestCase(BaseTestCase):
+    def test_latest_version(self):
+
+        # create the model
+        ml_model = MLModelFactory()
+        self.db.session.add(ml_model)
+        self.db.session.commit()
+
+        # create two different versions
+        version1 = MLModelVersionFactory(model_id=ml_model.id,
+                                         version_major=1,
+                                         version_minor=0,
+                                         version_patch=0)
+        version2 = MLModelVersionFactory(model_id=ml_model.id,
+                                         version_major=2,
+                                         version_minor=0,
+                                         version_patch=0)
+        self.db.session.add(version1, version2)
+        self.db.session.commit()
+
+        latest_version = MLModelVersion.get_latest_version(ml_model.id).version_major
+        assert(latest_version == 2)
