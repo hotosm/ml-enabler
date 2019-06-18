@@ -437,8 +437,7 @@ class MLModelTilesAPI(Resource):
               type: integer
         responses:
             200:
-                description: List of all predictions for the model
-                within supplied bbox
+                description: List of all predictions for the model within supplied bbox
             404:
                 description: No predictions found
             500:
@@ -486,8 +485,7 @@ class MLModelTilesGeojsonAPI(Resource):
               description: GeoJSON FeatureCollection of Polygons
         responses:
             200:
-                description: GeoJSON FeatureCollection with prediction data in
-                properties
+                description: GeoJSON FeatureCollection with prediction data in properties
             404:
                 description: Model not found
             400:
