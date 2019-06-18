@@ -1,6 +1,7 @@
 from ml_enabler import db
-from ml_enabler.models.utils import timestamp, bbox_to_polygon_wkt, \
-     ST_GeomFromText, ST_Intersects, ST_MakeEnvelope, geojson_to_bbox
+from ml_enabler.models.utils import timestamp, \
+     ST_GeomFromText, ST_Intersects, ST_MakeEnvelope
+from ml_enabler.utils import bbox_to_polygon_wkt, geojson_to_bbox
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_Envelope, ST_AsGeoJSON, ST_Within
 from sqlalchemy.dialects import postgresql
