@@ -170,12 +170,15 @@ class MLModel(db.Model):
         """
         Gets specified ML Model
         :param model_id: ml model ID in scope
-        :return: ML Model if found otherwise None
+        :return ML Model if found otherwise None
         """
         return MLModel.query.get(model_id)
 
     @staticmethod
     def get_all():
+        """
+        Get all models in the database
+        """
         return MLModel.query.all()
 
     def delete(self):
@@ -184,6 +187,9 @@ class MLModel(db.Model):
         db.session.commit()
 
     def as_dto(self):
+        """
+        Convert the model to it's dto
+        """
         model_dto = MLModelDTO()
         model_dto.model_id = self.id
         model_dto.name = self.name
@@ -233,17 +239,35 @@ class MLModelVersion(db.Model):
 
     @staticmethod
     def get(version_id: int):
+        """
+        Get a version using the id
+        :param version_id
+        :return version or None
+        """
         return MLModelVersion.query.get(version_id)
 
     @staticmethod
     def get_version(model_id: int, version_major: int, version_minor: int, version_patch: int):
+        """
+        Get a version object for the supplied and corresponding semver
+        :param model_id, version_major, version_minor, version_patch
+        :return version or None
+        """
         return MLModelVersion.query.filter_by(model_id=model_id, version_major=version_major, version_minor=version_minor, version_patch=version_patch).one()
 
     @staticmethod
     def get_latest_version(model_id: int):
+        """
+        Get the latest version of a given model
+        :param model_id
+        :return version or None
+        """
         return MLModelVersion.query.filter_by(model_id=model_id).order_by(MLModelVersion.version_major.desc(), MLModelVersion.version_minor.desc(), MLModelVersion.version_patch.desc()).first()
 
     def as_dto(self):
+        """
+        Convert the version object to it's DTO
+        """
         version_dto = MLModelVersionDTO()
         version_dto.version_id = self.id
         version_dto.model_id = self.model_id
