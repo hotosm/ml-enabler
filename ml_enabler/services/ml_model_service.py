@@ -18,7 +18,7 @@ class MLModelService():
     def subscribe_ml_model(ml_model_dto: MLModelDTO) -> int:
         """
         Subscribes an ML Model by saving it in the database
-        :param ml_model_dto
+        :params ml_model_dto
 
         :raises DataError
         :returns ID of the ml model
@@ -33,7 +33,7 @@ class MLModelService():
     def delete_ml_model(model_id: int):
         """
         Deletes ML model and associated predictions
-        :param model_id
+        :params model_id
         """
         ml_model = MLModel.get(model_id)
         if ml_model:
@@ -45,7 +45,7 @@ class MLModelService():
     def get_ml_model_by_id(model_id: int):
         """
         Get an ML Model for a given ID
-        :param model_id
+        :params model_id
 
         :raises NotFound
         :returns ML Model
@@ -79,7 +79,7 @@ class MLModelService():
     def update_ml_model(updated_ml_model_dto: MLModelDTO) -> int:
         """
         Update an existing ML Model
-        :param model_id
+        :params model_id
 
         :raises NotFound
         :returns model_id
@@ -98,7 +98,7 @@ class MLModelVersionService():
     def get_version_by_model_version(model_id: int, version: str):
         """
         Get the version of the given model
-        :param model_id, version
+        :params model_id, version
 
         :raises NotFound
         :returns MLModelVersion
@@ -114,7 +114,7 @@ class MLModelVersionService():
     def create_version(version_dto: MLModelVersionDTO) -> int:
         """
         Create a new version of an ML Model
-        :param version_dto
+        :params version_dto
 
         :raises DataError
         :returns version ID
