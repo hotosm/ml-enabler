@@ -1,7 +1,7 @@
 from ml_enabler.models.ml_model import MLModelVersion, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
-from ml_enabler.models.utils import bbox_str_to_list, PredictionsNotFound, geojson_to_bbox,\
-    bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt
+from ml_enabler.models.utils import PredictionsNotFound
+from ml_enabler.utils import bbox_str_to_list, bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt, geojson_to_bbox
 from ml_enabler import db
 
 
@@ -106,7 +106,6 @@ class PredictionTileService():
         # get predictions within this bbox
         boundingBox = bbox_str_to_list(bbox)
         predictions = PredictionService.get(model_id, boundingBox, latest=True)
-        print(predictions)
         # find quadkeys for the given bbox
         boundingBox = bbox_str_to_list(bbox)
         quadkeys = bbox_to_quadkeys(boundingBox, zoom)

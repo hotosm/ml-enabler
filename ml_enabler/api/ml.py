@@ -461,6 +461,8 @@ class MLModelTilesAPI(Resource):
 
         except NotFound:
             return {"error": "Model not found"}, 404
+        except PredictionsNotFound:
+            return {"error": "No predictions for this bbox"}, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
@@ -508,6 +510,8 @@ class MLModelTilesGeojsonAPI(Resource):
 
         except NotFound:
             return {"error": "Model not found"}, 404
+        except PredictionsNotFound:
+            return {"error": "No predictions for this bbox"}, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)

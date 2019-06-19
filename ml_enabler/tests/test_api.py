@@ -77,3 +77,18 @@ class PredictionTileAPITest(BaseTestCase):
 
         assert(response.status_code == 200)
         assert(len(response.get_json()['features']) == 3)
+
+    def test_get(self):
+
+        prediction = create_prediction()
+        create_prediction_tiles(prediction.id)
+        response = self.client.get(f'model/{prediction.model_id}/tiles?bbox=10.013795,53.5225,10.048885,53.540843&zoom=18')
+        assert(response.status_code == 200)
+
+    def test_get_outside_bbox(self):
+
+        prediction = create_prediction()
+        create_prediction_tiles(prediction.id)
+        response = self.client.get(f'model/{prediction.model_id}/tiles?bbox=10.05,53.52,10.08,53.54&zoom=18')
+        assert(response.get_json() == {'error': 'No predictions for this bbox'})
+        assert(response.status_code == 404)
