@@ -32,12 +32,15 @@ class PredictionTile(db.Model):
 
     @staticmethod
     def get_tiles_by_quadkey(prediction_id: int, quadkeys: tuple, zoom: int):
-        return db.session.query(func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'), func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction')).filter(PredictionTile.prediction_id == prediction_id).filter(func.substr(PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
-
+        return db.session.query(func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'),
+                                func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String),
+                                         sqlalchemy.Float)).label('ml_prediction')).filter(PredictionTile.prediction_id == prediction_id).filter(func.substr(
+                                             PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
 
     @staticmethod
     def get_aggregate_for_polygon(prediction_id: int, polygon: str):
-        return db.session.query(func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float))).filter(PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
+        return db.session.query(func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float))).filter(
+            PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
 
 
 class Prediction(db.Model):
@@ -78,7 +81,9 @@ class Prediction(db.Model):
         :param prediction_id
         :return prediction if found otherwise None
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.id == prediction_id)
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash,
+                                 ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
+                                 Prediction.version_id).filter(Prediction.id == prediction_id)
         return query.one()
 
     @staticmethod
@@ -100,7 +105,11 @@ class Prediction(db.Model):
         :return list of predictions
         """
 
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(Prediction.version_id==version_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(Prediction.created.desc()).limit(1)
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+                                 Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(
+                                     Prediction.version_id == version_id).filter(ST_Intersects(
+                                         Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(
+                                             Prediction.created.desc()).limit(1)
 
         return query.all()
 
@@ -111,7 +120,10 @@ class Prediction(db.Model):
         :param model_id, bbox
         :return list of predictions
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+                                 Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(
+                                     Prediction.model_id == model_id).filter(
+                                         ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
 
         return query.all()
 
@@ -171,12 +183,15 @@ class MLModel(db.Model):
         """
         Gets specified ML Model
         :param model_id: ml model ID in scope
-        :return: ML Model if found otherwise None
+        :return ML Model if found otherwise None
         """
         return MLModel.query.get(model_id)
 
     @staticmethod
     def get_all():
+        """
+        Get all models in the database
+        """
         return MLModel.query.all()
 
     def delete(self):
@@ -185,6 +200,9 @@ class MLModel(db.Model):
         db.session.commit()
 
     def as_dto(self):
+        """
+        Convert the model to it's dto
+        """
         model_dto = MLModelDTO()
         model_dto.model_id = self.id
         model_dto.name = self.name
@@ -234,17 +252,36 @@ class MLModelVersion(db.Model):
 
     @staticmethod
     def get(version_id: int):
+        """
+        Get a version using the id
+        :param version_id
+        :return version or None
+        """
         return MLModelVersion.query.get(version_id)
 
     @staticmethod
     def get_version(model_id: int, version_major: int, version_minor: int, version_patch: int):
+        """
+        Get a version object for the supplied and corresponding semver
+        :param model_id, version_major, version_minor, version_patch
+        :return version or None
+        """
         return MLModelVersion.query.filter_by(model_id=model_id, version_major=version_major, version_minor=version_minor, version_patch=version_patch).one()
 
     @staticmethod
     def get_latest_version(model_id: int):
-        return MLModelVersion.query.filter_by(model_id=model_id).order_by(MLModelVersion.version_major.desc(), MLModelVersion.version_minor.desc(), MLModelVersion.version_patch.desc()).first()
+        """
+        Get the latest version of a given model
+        :param model_id
+        :return version or None
+        """
+        return MLModelVersion.query.filter_by(model_id=model_id).order_by(MLModelVersion.version_major.desc(), MLModelVersion.version_minor.desc(),
+                                                                          MLModelVersion.version_patch.desc()).first()
 
     def as_dto(self):
+        """
+        Convert the version object to it's DTO
+        """
         version_dto = MLModelVersionDTO()
         version_dto.version_id = self.id
         version_dto.model_id = self.model_id

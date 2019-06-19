@@ -1,5 +1,5 @@
 from flask_restful import Resource, request, current_app
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
@@ -263,7 +263,7 @@ class PredictionAPI(Resource):
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
 
             # check if the version is registered
-            model_version = MLModelVersionService.get_version_by_model_version(model_id, version)
+            model_version = MLModelVersionService.get_version_by_model_version(ml_model_dto.model_id, version)
             prediction_id = PredictionService.create(model_id, model_version.version_id, payload)
             return {"prediction_id": prediction_id}, 200
 
@@ -438,8 +438,7 @@ class MLModelTilesAPI(Resource):
               type: integer
         responses:
             200:
-                description: List of all predictions for the model
-                within supplied bbox
+                description: List of all predictions for the model within supplied bbox
             404:
                 description: No predictions found
             500:
@@ -487,8 +486,7 @@ class MLModelTilesGeojsonAPI(Resource):
               description: GeoJSON FeatureCollection of Polygons
         responses:
             200:
-                description: GeoJSON FeatureCollection with prediction data in
-                properties
+                description: GeoJSON FeatureCollection with prediction data in properties
             404:
                 description: Model not found
             400:

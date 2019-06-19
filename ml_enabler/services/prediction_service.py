@@ -1,10 +1,7 @@
-from flask import current_app
-from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction, PredictionTile
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
-from ml_enabler.models.utils import NotFound, VersionNotFound, \
-    PredictionsNotFound
-from ml_enabler.utils import bbox_to_quadkeys, tuple_to_dict, \
-    polygon_to_wkt, geojson_to_bbox, version_to_array, bbox_str_to_list
+from ml_enabler.models.ml_model import MLModelVersion, Prediction, PredictionTile
+from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
+from ml_enabler.models.utils import bbox_str_to_list, PredictionsNotFound, geojson_to_bbox,\
+    bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt
 from ml_enabler import db
 
 
@@ -34,6 +31,8 @@ class PredictionService():
     def get_prediction_by_id(prediction_id: int):
         """
         Get a prediction by ID
+        :params prediction_id
+        :returns prediction
         """
 
         prediction = Prediction.get(prediction_id)
@@ -89,11 +88,21 @@ class PredictionService():
 class PredictionTileService():
     @staticmethod
     def create(prediction: PredictionDTO, data):
+        """
+        Bulk inserts prediction tiles
+        :params prediction, data
+        :returns None
+        """
         connection = db.engine.connect()
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
 
     @staticmethod
     def get_aggregated_tiles(model_id: int, bbox: list, zoom: int):
+        """
+        Get aggregated predictions at the specified zoom level for the supplied bbox
+        :params model_id, bbox, zoom
+        :returns list of tiles with predictions
+        """
         # get predictions within this bbox
         boundingBox = bbox_str_to_list(bbox)
         predictions = PredictionService.get(model_id, boundingBox, latest=True)
@@ -112,8 +121,12 @@ class PredictionTileService():
 
     @staticmethod
     def get_aggregated_tiles_geojson(model_id: int, bbox: list, geojson: dict):
-
-        # and get the latest prediction
+        """
+        For the given geojson, find predictions for each polygon and return the geojson
+        :param model_id, bbox, geojson
+        :returns geojson
+        """
+        # get the latest prediction
         prediction = PredictionService.get(model_id, bbox, latest=True)
         # for each geojson feature, find the tiles and aggregate
         for feature in geojson['features']:

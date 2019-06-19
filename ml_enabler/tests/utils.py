@@ -1,8 +1,9 @@
 from ml_enabler.tests.factories import MLModelFactory, MLModelVersionFactory, \
     PredictionFactory
-from ml_enabler.models.ml_model import MLModel, Prediction, PredictionTile
+from ml_enabler.models.ml_model import PredictionTile
 from ml_enabler import db
 from ml_enabler.tests.fixtures import tiles
+
 
 def create_prediction():
     ml_model = MLModelFactory()
