@@ -1,10 +1,9 @@
 import json
 from ml_enabler.tests.base import BaseTestCase
-from ml_enabler.tests.factories import MLModelFactory, MLModelVersionFactory, \
-    PredictionFactory
-from ml_enabler.models.ml_model import MLModel, Prediction
+from ml_enabler.tests.factories import MLModelFactory
 from ml_enabler.tests.fixtures import tiles, geojson
 from ml_enabler.tests.utils import create_prediction, create_prediction_tiles
+
 
 class StatusTest(BaseTestCase):
     def test_status(self):

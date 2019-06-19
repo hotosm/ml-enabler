@@ -31,12 +31,15 @@ class PredictionTile(db.Model):
 
     @staticmethod
     def get_tiles_by_quadkey(prediction_id: int, quadkeys: tuple, zoom: int):
-        return db.session.query(func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'), func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction')).filter(PredictionTile.prediction_id == prediction_id).filter(func.substr(PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
-
+        return db.session.query(func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'),
+                                func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String),
+                                         sqlalchemy.Float)).label('ml_prediction')).filter(PredictionTile.prediction_id == prediction_id).filter(func.substr(
+                                             PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
 
     @staticmethod
     def get_aggregate_for_polygon(prediction_id: int, polygon: str):
-        return db.session.query(func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float))).filter(PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
+        return db.session.query(func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float))).filter(
+            PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
 
 
 class Prediction(db.Model):
@@ -77,7 +80,9 @@ class Prediction(db.Model):
         :param prediction_id
         :return prediction if found otherwise None
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.id == prediction_id)
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash,
+                                 ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
+                                 Prediction.version_id).filter(Prediction.id == prediction_id)
         return query.one()
 
     @staticmethod
@@ -99,7 +104,11 @@ class Prediction(db.Model):
         :return list of predictions
         """
 
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(Prediction.version_id==version_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(Prediction.created.desc()).limit(1)
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+                                 Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(
+                                     Prediction.version_id == version_id).filter(ST_Intersects(
+                                         Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(
+                                             Prediction.created.desc()).limit(1)
 
         return query.all()
 
@@ -110,7 +119,10 @@ class Prediction(db.Model):
         :param model_id, bbox
         :return list of predictions
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+                                 Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(
+                                     Prediction.model_id == model_id).filter(
+                                         ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
 
         return query.all()
 
@@ -262,7 +274,8 @@ class MLModelVersion(db.Model):
         :param model_id
         :return version or None
         """
-        return MLModelVersion.query.filter_by(model_id=model_id).order_by(MLModelVersion.version_major.desc(), MLModelVersion.version_minor.desc(), MLModelVersion.version_patch.desc()).first()
+        return MLModelVersion.query.filter_by(model_id=model_id).order_by(MLModelVersion.version_major.desc(), MLModelVersion.version_minor.desc(),
+                                                                          MLModelVersion.version_patch.desc()).first()
 
     def as_dto(self):
         """

@@ -1,3 +1,4 @@
+# flake8:noqa
 def get_geojson():
     return {
     "type": "FeatureCollection",
