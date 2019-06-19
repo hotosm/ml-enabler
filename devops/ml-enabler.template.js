@@ -231,10 +231,10 @@ const Resources = {
 		Type: 'AWS::RDS::DBInstance',
 	    Properties: {
 	        Engine: 'postgres',
-	        DBName: "mlenabler",
+	        DBName: cf.ref("DatabaseName"),
 	        EngineVersion: '11.2',
-	        MasterUsername: "mlenabler",
-	        MasterUserPassword: "mlenabler",
+	        MasterUsername: cf.ref("DatabaseUser"),
+	        MasterUserPassword: cf.ref("DatabasePassword"),
 	        AllocatedStorage: cf.ref('DatabaseSize'),
 	        BackupRetentionPeriod: 10,
 	        StorageType: 'gp2',
