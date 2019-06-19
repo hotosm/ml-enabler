@@ -90,4 +90,5 @@ class PredictionTileAPITest(BaseTestCase):
         prediction = create_prediction()
         create_prediction_tiles(prediction.id)
         response = self.client.get(f'model/{prediction.model_id}/tiles?bbox=10.05,53.52,10.08,53.54&zoom=18')
+        assert(response.get_json() == {'error': 'No predictions for this bbox'})
         assert(response.status_code == 404)
