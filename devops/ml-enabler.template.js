@@ -57,14 +57,16 @@ const Resources = {
 			Memory: cf.ref("ContainerMemory"),
 			NetworkMode: "awsvpc",
 			RequiresCompatibilities: ["FARGATE"],
-			// ExecutionRoleArn: "AWS::NoValue",
-			// TaskRoleArn: "AWS::NoValue",
+			Tags: [
+				{
+					Key: "Name",
+					Value: cf.stackName
+				}
+			]
 			ContainerDefinitions: [
 				{
 					Name: "app",
 					Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
-					// Cpu: 256,
-					// Memory: 512,
 					PortMappings: [
 						{
 							ContainerPort: 5000
@@ -101,8 +103,6 @@ const Resources = {
 				{
 					Name: "migration",
 					Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
-					// Cpu: 256, //cf.ref("ContainerCpu"),
-					// Memory: 512,
 					Environment: [
 						{
 							Name:"POSTGRES_DB",
@@ -142,7 +142,6 @@ const Resources = {
 	},
 	MLEnablerService: {
 		Type: "AWS::ECS::Service",
-		//DependsOn: cf.ref("MLEnablerALB"),
 		Properties: {
 			ServiceName: cf.join("-", [cf.stackName, "Service"]),
 			Cluster: cf.ref("MLEnablerECSCluster"),
