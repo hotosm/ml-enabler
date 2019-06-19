@@ -1,4 +1,4 @@
-wfrom flask import current_app
+from flask import current_app
 from ml_enabler.models.ml_model import MLModel, MLModelVersion
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO
 from ml_enabler.models.utils import NotFound, VersionNotFound, version_to_array
