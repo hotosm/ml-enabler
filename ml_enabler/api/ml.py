@@ -4,7 +4,8 @@ from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
-    version_to_array, PredictionsNotFound, geojson_bounds, bbox_str_to_list
+    PredictionsNotFound
+from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list
 from sqlalchemy.exc import IntegrityError
 import geojson
 

@@ -1,4 +1,4 @@
-from ml_enabler.models.utils import geojson_bounds, polygon_to_wkt
+from ml_enabler.utils import geojson_bounds, polygon_to_wkt
 from ml_enabler.tests.base import BaseTestCase
 
 
