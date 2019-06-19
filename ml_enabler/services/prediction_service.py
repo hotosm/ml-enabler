@@ -1,10 +1,7 @@
-from flask import current_app
-from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction, PredictionTile
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
-from ml_enabler.models.utils import NotFound, VersionNotFound,\
-    version_to_array, bbox_str_to_list, PredictionsNotFound, geojson_to_bbox,\
-    point_list_to_wkt, bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt
-from sqlalchemy.orm.exc import NoResultFound
+from ml_enabler.models.ml_model import MLModelVersion, Prediction, PredictionTile
+from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
+from ml_enabler.models.utils import bbox_str_to_list, PredictionsNotFound, geojson_to_bbox,\
+    bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt
 from ml_enabler import db
 
 

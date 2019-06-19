@@ -1,5 +1,5 @@
 from schematics import Model
-from schematics.types import StringType, BaseType, IntType, DateTimeType, ListType, FloatType
+from schematics.types import StringType, IntType, DateTimeType, ListType, FloatType
 
 
 class MLModelDTO(Model):

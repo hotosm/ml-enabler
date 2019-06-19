@@ -4,7 +4,7 @@ import factory.fuzzy
 from factory.alchemy import SQLAlchemyModelFactory
 from ml_enabler import db
 from ml_enabler.models.ml_model import Prediction, MLModel, \
-    MLModelVersion, PredictionTile
+    MLModelVersion
 
 
 class MLModelFactory(SQLAlchemyModelFactory):
