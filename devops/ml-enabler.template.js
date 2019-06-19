@@ -62,7 +62,7 @@ const Resources = {
 					Key: "Name",
 					Value: cf.stackName
 				}
-			]
+			],
 			ContainerDefinitions: [
 				{
 					Name: "app",
