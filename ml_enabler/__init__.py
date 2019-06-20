@@ -33,15 +33,15 @@ def init_routes(app):
         MLModelTilesGeojsonAPI
     from ml_enabler.api.swagger import SwaggerDocsAPI
 
-    api.add_resource(SwaggerDocsAPI, '/docs')
     api.add_resource(StatusCheckAPI, '/')
-    api.add_resource(GetAllModels, '/model/all', methods=['GET'])
-    api.add_resource(MLModelAPI, '/model', endpoint="post", methods=['POST'])
-    api.add_resource(MLModelAPI, '/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
-    api.add_resource(PredictionAPI, '/model/<int:model_id>/prediction', methods=['POST', 'GET'])
-    api.add_resource(PredictionTileAPI, '/model/prediction/<int:prediction_id>/tiles', methods=['POST'])
-    api.add_resource(MLModelTilesAPI, '/model/<int:model_id>/tiles', methods=['GET'])
-    api.add_resource(MLModelTilesGeojsonAPI, '/model/<int:model_id>/tiles/geojson', methods=['POST'])
+    api.add_resource(SwaggerDocsAPI, '/v1/docs')
+    api.add_resource(GetAllModels, '/v1/model/all', methods=['GET'])
+    api.add_resource(MLModelAPI, '/v1/model', endpoint="post", methods=['POST'])
+    api.add_resource(MLModelAPI, '/v1/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
+    api.add_resource(PredictionAPI, '/v1/model/<int:model_id>/prediction', methods=['POST', 'GET'])
+    api.add_resource(PredictionTileAPI, '/v1/model/prediction/<int:prediction_id>/tiles', methods=['POST'])
+    api.add_resource(MLModelTilesAPI, '/v1/model/<int:model_id>/tiles', methods=['GET'])
+    api.add_resource(MLModelTilesGeojsonAPI, '/v1/model/<int:model_id>/tiles/geojson', methods=['POST'])
 
 
 if __name__ == '__main__':

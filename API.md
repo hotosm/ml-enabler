@@ -1,17 +1,17 @@
-# ML Enabler API 
+# ML Enabler API v1
 
 The API endpoints are documented in detail via [Swagger](/docs). The following are the available endpoints.
 
 ## GET /
 Health check endpoint
 
-## GET /docs
+## GET v1/docs
 See documentation
 
-## GET /model/all
+## GET v1/model/all
 Get all models
 
-## POST /model
+## POST v1/model
 
 Subscribe a model with the ML Enabler. The following is an example payload.
 
@@ -26,12 +26,12 @@ Response is the ID of the model
 
 ```
 
-## GET /model/<int:model_id>
+## GET v1/model/<int:model_id>
 
 Fetch information about a model with the `id`
 
 
-## PUT /model/<int:model_id>
+## PUT v1/model/<int:model_id>
 
 Modify model information. The payload looks like:
 
@@ -43,11 +43,11 @@ Modify model information. The payload looks like:
 }
 ```
 
-## DELETE /model/<int:model_id>
+## DELETE v1/model/<int:model_id>
 
 Delete the model
 
-## POST /model/<int:model_id>/prediction
+## POST v1/model/<int:model_id>/prediction
 
 Create predictions of a model. The payload looks like:
 
@@ -60,12 +60,12 @@ Create predictions of a model. The payload looks like:
 }
 ```
 
-## GET /model/<int:model_id>/prediction
+## GET v1/model/<int:model_id>/prediction
 
 Fetch predictions of a model within the supplied bbox. For example, `model/1/prediction?bbox=5.53,47.23,15.38,54.96`, will fetch all prediction within that bbox. The response is an array of prediction objects.
 
 
-## POST /model/prediction/<int:prediction_id>/tiles
+## POST v1/model/prediction/<int:prediction_id>/tiles
 
 Submit a JSON of tiles ideally from ml-enabler-cli. The payload looks like:
 
@@ -83,7 +83,7 @@ Submit a JSON of tiles ideally from ml-enabler-cli. The payload looks like:
 
 ```
 
-## GET /model/<int:id>/tiles
+## GET v1/model/<int:id>/tiles
 
 Fetch prediction tiles for the model within the give bbox. The aggregation is dependent on the zoom level. For example: `/model/1/tiles?bbox=10.013795,53.5225,10.048885,53.540843&zoom=14`, will fetch the prediction tiles in the bbox and return aggregated values at z14. This uses the latest prediction of the model.
 
@@ -132,7 +132,7 @@ The response looks like:
 }
 ```
 
-## POST /model/<int:id>/tiles/geojson
+## POST v1/model/<int:id>/tiles/geojson
 
 For a GeoJSON feature collection of polygons, get predictions for each polygon from the model. This uses the latest prediction of the model.
 
