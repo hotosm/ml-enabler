@@ -1,6 +1,7 @@
 from shapely.geometry import box, Point, shape
 import mercantile
 import json
+import geojson
 
 
 def version_to_array(version: str):
@@ -87,3 +88,23 @@ def polygon_to_wkt(geojson):
     Convert a geojson polygon to wkt
     """
     return f'SRID=4326;{shape(geojson).wkt}'
+
+
+class InvalidGeojson(Exception):
+    """ Custom exception for invalid GeoJSON"""
+    pass
+
+
+def validate_geojson(data):
+    """
+    Validate geojson
+    """
+
+    if not (isinstance(data, dict)):
+        return False
+
+    if not isinstance(data.get('features'), list):
+        return False
+
+    gj = geojson.FeatureCollection([geojson.Feature(f) for f in data['features']])
+    return gj.is_valid

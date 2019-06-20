@@ -5,7 +5,7 @@ from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionS
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
     PredictionsNotFound
-from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list
+from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson
 from sqlalchemy.exc import IntegrityError
 import geojson
 
@@ -498,7 +498,9 @@ class MLModelTilesGeojsonAPI(Resource):
         """
         try:
             # FIXME - validate the geojson
-            data = geojson.FeatureCollection(request.get_json()['features'])
+            data = request.get_json()
+            if validate_geojson(data) is False:
+                raise InvalidGeojson
 
             # check if the model exists
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
@@ -508,6 +510,8 @@ class MLModelTilesGeojsonAPI(Resource):
             prediction_tile_geojson = PredictionTileService.get_aggregated_tiles_geojson(ml_model_dto.model_id, bbox, data)
             return prediction_tile_geojson, 200
 
+        except InvalidGeojson:
+            return {"error": "Invalid GeoJSON"}, 400
         except NotFound:
             return {"error": "Model not found"}, 404
         except PredictionsNotFound:
