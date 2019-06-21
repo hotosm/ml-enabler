@@ -1,6 +1,6 @@
 # ml-enabler
 
-A service that integrates ML models to applications like Tasking Manager. _work in progress_
+A service that integrates ML models to applications like Tasking Manager.
 
 ## Background
 Machine Learning has proven to be very successful to make mapping fast with high quality. With a diverse set of models and tools, it is hard to integrate them to existing tools like Tasking Manager and iD. HOT is developing ml-enabler to enable AI-assist to existing mapping tools.
@@ -10,33 +10,33 @@ ml-enabler is two projects:
 2. ml-enabler-cli ([repo](https://github.com/hotosm/ml-enabler-cli)) - CLI for interacting with models and subscribe them to the ml-enabler-api
 
 The API uses the following terms:
-* Model
+* **Model** --
 A model is a machine learning model. With ml-enabler, we use the [TFService](https://www.tensorflow.org/tfx/tutorials/serving/rest_simple) convention of publishing models. This allows to spin up containers of the model for prediction and query the data for storage. For an example of a complete implementation, see Development Seed's [looking-glass](https://github.com/developmentseed/looking-glass-pub/). ml-enabler-api can store data from several versions of the same model.
 
-* Prediction
+* **Prediction** --
 A prediction is a set of results from an ML Model for a bounding box (region) and at a specific tile level. For results that are not at tile level, the ml-enabler-cli will ensure this is aggregated a granular yet performant level. Predictions are tied to specific versions of a model.
 
-* Prediction tiles
+* **Prediction tiles** --
 Prediction tiles are the results of the prediction. The tiles are indexed using quadkeys for easy spatial search.
 
 ## Using this API
 
 See [API.md](/API.md)
 
-## Setup
+## Development Setup
 
 ### Using Docker
-0. Create ml_enabler.env
-1. docker-compose build
-2. docker-compose up
+1. Copy `example.env` to `ml_enabler.env`
+1. Run `docker-compose build`
+2. Run `docker-compose up`
 
-### Manual setup
+### Manual
 1. Create a virtualenv - `python3 -m venv venv`
 3. Enable the virtualenv `./venv/bin/activate`
 4. Install dependencies `pip install -r requirements.txt`
-5. Setup Database:
-  * Setup database. If you're on a mac use Postgres.app, or use docker
-  * Copy example.env to `ml_enabler.env` and add database configurations
+5. Setup the database:
+  * Setup database. If you're on a Mac use Postgres.app, or use docker
+  * Copy `example.env` to `ml_enabler.env` and add database configuration
   * Initialize tables `flask db upgrade`
 6. Start the app 
   * `export FLASK_APP="ml_enabler"`
@@ -45,12 +45,8 @@ See [API.md](/API.md)
 
 ### Tests
 
-Create a database for your tests:
-
-    createdb ml_enabler_test
-    echo 'CREATE EXTENSION postgis' | psql -d ml_enabler_test
-
-Run tests with:
-
-    python3 -m unittest discover ml_enabler/tests/
+1. Create a database for your tests:
+  * `createdb ml_enabler_test`
+  * Enabler postgis `echo 'CREATE EXTENSION postgis' | psql -d ml_enabler_test`
+2. Run tests with `python3 -m unittest discover ml_enabler/tests/`
 
