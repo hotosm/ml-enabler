@@ -1,4 +1,4 @@
-from ml_enabler.utils import geojson_bounds, polygon_to_wkt, bbox_to_quadkeys
+from ml_enabler.utils import geojson_bounds, polygon_to_wkt, bbox_to_quadkeys, validate_geojson
 from ml_enabler.tests.base import BaseTestCase
 
 
@@ -111,3 +111,83 @@ class UtilsTest(BaseTestCase):
         bbox = [25.1696, 54.5162, 25.3811, 54.7103]
         zoom = 14
         assert(len(bbox_to_quadkeys(bbox, zoom)) == 176)
+
+    def test_validate_geojson(self):
+        valid_geojson = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [
+                                    25.169677734375,
+                                    54.635697306063854
+                                ],
+                                [
+                                    25.32623291015625,
+                                    54.635697306063854
+                                ],
+                                [
+                                    25.32623291015625,
+                                    54.71034215072395
+                                ],
+                                [
+                                    25.169677734375,
+                                    54.71034215072395
+                                ],
+                                [
+                                    25.169677734375,
+                                    54.635697306063854
+                                ]
+                            ]
+                        ]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [
+                                    25.2410888671875,
+                                    54.5162988390112
+                                ],
+                                [
+                                    25.38116455078125,
+                                    54.5162988390112
+                                ],
+                                [
+                                    25.38116455078125,
+                                    54.5800215520618
+                                ],
+                                [
+                                    25.2410888671875,
+                                    54.5800215520618
+                                ],
+                                [
+                                    25.2410888671875,
+                                    54.5162988390112
+                                ]
+                            ]
+                        ]
+                    }
+                }
+            ]
+        }
+
+        assert(validate_geojson(valid_geojson) is True)
+
+    def test_validate_geojson_invalid(self):
+        invalid = {
+            'FeatureCollection': {
+                'features': []
+            }
+        }
+
+        assert(validate_geojson(invalid) is False)
