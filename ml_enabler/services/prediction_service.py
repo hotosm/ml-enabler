@@ -132,5 +132,6 @@ class PredictionTileService():
             tile_aggregate = PredictionTile.get_aggregate_for_polygon(prediction[0]['predictionsId'], polygon_to_wkt(feature['geometry']))
             if (len(tile_aggregate) > 0):
                 feature['properties']['ml_prediction'] = tile_aggregate[0]
+                feature['properties']['osm_building_area'] = tile_aggregate[1]
 
         return geojson
