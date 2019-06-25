@@ -54,7 +54,7 @@ def bbox_to_quadkeys(bbox: list, zoom: int):
 
 def tuple_to_dict(t):
     """ Convert the results tuple to dict """
-    return {"quadkey": t[0], "avg": t[1]}
+    return {"quadkey": t[0], "ml_prediction": t[1], "osm_building_area": t[2]}
 
 
 def geojson_bounds(geojson):

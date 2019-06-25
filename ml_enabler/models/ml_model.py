@@ -34,12 +34,17 @@ class PredictionTile(db.Model):
     def get_tiles_by_quadkey(prediction_id: int, quadkeys: tuple, zoom: int):
         return db.session.query(func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'),
                                 func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String),
-                                         sqlalchemy.Float)).label('ml_prediction')).filter(PredictionTile.prediction_id == prediction_id).filter(func.substr(
-                                             PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
+                                         sqlalchemy.Float)).label('ml_prediction'),
+                                func.avg(cast(cast(PredictionTile.predictions['osm_building_area'], sqlalchemy.String),
+                                         sqlalchemy.Float)).label('osm_building_area')).filter(PredictionTile.prediction_id == prediction_id).filter(
+                                             func.substr(
+                                              PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
 
     @staticmethod
     def get_aggregate_for_polygon(prediction_id: int, polygon: str):
-        return db.session.query(func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float))).filter(
+        return db.session.query(func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction'),
+                                func.avg(cast(cast(PredictionTile.predictions['osm_building_area'],
+                                         sqlalchemy.String), sqlalchemy.Float)).label('osm_building_area')).filter(
             PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
 
 
