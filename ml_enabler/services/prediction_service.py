@@ -112,6 +112,9 @@ class PredictionTileService():
         prediction_tiles = {}
         for prediction in predictions:
             # query all tiles within those quadkeys and aggregate
+            if int(prediction['tileZoom']) < int(zoom):
+                raise ValueError('Aggregate zoom level is lower than prediction zoom')
+
             tiles = list(map(tuple_to_dict, PredictionTile.get_tiles_by_quadkey
                          (prediction['predictionsId'], tuple(quadkeys), zoom)))
             prediction_tiles[prediction['predictionsId']] = tiles

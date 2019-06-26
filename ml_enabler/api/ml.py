@@ -463,6 +463,8 @@ class MLModelTilesAPI(Resource):
             return {"error": "Model not found"}, 404
         except PredictionsNotFound:
             return {"error": "No predictions for this bbox"}, 404
+        except ValueError as e:
+            return {"error": str(e)}, 400
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
