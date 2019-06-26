@@ -98,7 +98,10 @@ class Prediction(db.Model):
         :param model_id: ml model ID in scope
         :return predictions if found otherwise None
         """
-        return Prediction.query.filter_by(model_id=model_id)
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash,
+                                 ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
+                                 Prediction.version_id).filter(Prediction.model_id == model_id)
+        return query.all()
 
     @staticmethod
     def get_latest_predictions_in_bbox(model_id: int, version_id: int, bbox: list):
@@ -137,8 +140,9 @@ class Prediction(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    @staticmethod
     def as_dto(prediction):
-        """ Return the prediction as a schematic """
+        """ Static method to convert the prediction result as a schematic """
 
         prediction_dto = PredictionDTO()
         version = MLModelVersion.get(prediction[6])

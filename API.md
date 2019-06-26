@@ -60,6 +60,11 @@ Create predictions of a model. The payload looks like:
 }
 ```
 
+## GET v1/model/<int:model_id>/prediction/all
+
+Fetch all predictions of the given model. The response is an array of prediction objects.
+
+
 ## GET v1/model/<int:model_id>/prediction
 
 Fetch predictions of a model within the supplied bbox. For example, `model/1/prediction?bbox=5.53,47.23,15.38,54.96`, will fetch all prediction within that bbox. The response is an array of prediction objects.

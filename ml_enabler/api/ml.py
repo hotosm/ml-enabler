@@ -341,6 +341,41 @@ class PredictionAPI(Resource):
             return {"error": error_msg}, 500
 
 
+class GetAllPredictions(Resource):
+    def get(self, model_id):
+        """
+        Fetch all predictions for a model
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+        responses:
+            200:
+                description: List of all predictions for the model
+            404:
+                description: No predictions found
+            500:
+                description: Internal Server Error
+        """
+        try:
+            # check if this model exists
+            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
+
+            predictions = PredictionService.get_all_by_model(ml_model_dto.model_id)
+            return predictions, 200
+        except PredictionsNotFound:
+            return {"error": "Predictions not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
+
+
 class PredictionTileAPI(Resource):
     """
     Methods to manage tile predictions
