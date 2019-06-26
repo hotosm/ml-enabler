@@ -81,7 +81,6 @@ class PredictionService():
         :raises PredictionsNotFound
         """
         predictions = Prediction.get_predictions_by_model(model_id)
-        print(predictions)
         prediction_dtos = []
         for prediction in predictions:
             print(prediction)
