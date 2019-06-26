@@ -67,22 +67,27 @@ class PredictionService():
 
         data = []
         for prediction in predictions:
-            prediction_dto = PredictionDTO()
-            version = MLModelVersion.get(prediction[6])
-            version_dto = version.as_dto()
-
-            prediction_dto.prediction_id = prediction[0]
-            prediction_dto.created = prediction[1]
-            prediction_dto.dockerhub_hash = prediction[2]
-            prediction_dto.bbox = geojson_to_bbox(prediction[3])
-            prediction_dto.model_id = prediction[4]
-            prediction_dto.tile_zoom = prediction[5]
-            prediction_dto.version_id = prediction[6]
-            prediction_dto.version_string = f'{version_dto.version_major}.{version_dto.version_minor}.{version_dto.version_patch}'
-
+            prediction_dto = Prediction.as_dto(prediction)
             data.append(prediction_dto.to_primitive())
 
         return data
+
+    @staticmethod
+    def get_all_by_model(model_id: int):
+        """
+        Fetch all predictions of the given model
+        :params model_id
+        :returns predictions
+        :raises PredictionsNotFound
+        """
+        predictions = Prediction.get_predictions_by_model(model_id)
+        print(predictions)
+        prediction_dtos = []
+        for prediction in predictions:
+            print(prediction)
+            prediction_dtos.append(Prediction.as_dto(prediction).to_primitive())
+
+        return prediction_dtos
 
 
 class PredictionTileService():
