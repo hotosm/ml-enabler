@@ -115,6 +115,11 @@ workflows:
       - deploy-ecs:
           requires: 
             - publish-tag
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
           elb_subnets: ELB_SUBNETS
           container_cpu: CONTAINER_CPU
           container_memory: CONTAINER_MEMORY
