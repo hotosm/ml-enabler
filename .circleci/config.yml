@@ -6,6 +6,7 @@ executors:
       # IMAGE_TAG: ${CIRCLE_TAG/v/''}
     docker:
       - image: circleci/buildpack-deps:stretch
+    working_directory: ~/ml-enabler
 jobs:
   build:
     executor: docker-publisher
@@ -88,7 +89,9 @@ jobs:
             echo "export JSON_CONFIG='{\"ImageTag\":\"$IMAGE_TAG\", \"ELBSubnets\":\"${<< parameters.elb_subnets >>}\", \"ContainerCpu\":\"${<< parameters.container_cpu >>}\", \"ContainerMemory\":\"${<< parameters.container_memory >>}\", \"SSLCertificateIdentifier\":\"${<< parameters.ssl_cert >>}\", \"DatabaseSize\":\"${<< parameters.db_size >>}\", \"DatabaseName\":\"${<< parameters.db_name >>}\", \"DatabaseUser\":\"${<< parameters.db_user >>}\", \"DatabasePassword\":\"${<< parameters.db_password >>}\"}'" >> $BASH_ENV
       - deploy:
           name: Deploy to CloudFormation
-          command: cfn-config update production devops/ml-enabler.template.js -f -c hot-cfn-config -t hot-cfn-config -r $AWS_REGION -p "$JSON_CONFIG"
+          command: |
+            export NODE_PATH=/usr/lib/node_modules
+            cfn-config update production devops/ml-enabler.template.js -f -c hot-cfn-config -t hot-cfn-config -r $AWS_REGION -p "$JSON_CONFIG"
 
 workflows:
   version: 2
