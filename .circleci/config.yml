@@ -74,6 +74,13 @@ jobs:
         type: env_var_name
     steps:
       - run:
+          name: Install Dependencies
+          command: |
+            sudo apt-get update
+            curl -sL https://deb.nodesource.com/setup_10.x | sudo bash -
+            sudo apt-get install -y nodejs
+            sudo npm install -g @mapbox/cfn-config @mapbox/cloudfriend
+      - run:
           name: Set Environment Variables
           command: |
             IMAGE_TAG=${CIRCLE_TAG/v/''}
