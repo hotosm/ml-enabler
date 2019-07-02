@@ -73,6 +73,7 @@ jobs:
       db_password:
         type: env_var_name
     steps:
+      - checkout
       - run:
           name: Install Dependencies
           command: |
