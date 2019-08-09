@@ -96,8 +96,20 @@ const Resources = {
             {
               Name: "FLASK_APP",
               Value: "ml_enabler"
+            },
+            {
+              Name: "ECS_LOG_LEVEL",
+              Value: "debug"
             }
           ],
+          LogConfiguration: {
+            LogDriver: "awslogs",
+            Options: {
+              "awslogs-group": cf.join("-", ["awslogs", cf.stackName]),
+              "awslogs-region": "us-east-1",
+              "awslogs-stream-prefix": cf.join("-", ["awslogs", cf.stackName])
+            }
+          },
           Essential: true
         },
         {
