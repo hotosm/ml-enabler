@@ -83,7 +83,8 @@ Submit a JSON of tiles ideally from ml-enabler-cli. The payload looks like:
     "predictions": {"ml_prediction": 65536.0},
     "centroid": "SRID=4326;POINT (10.01266479492188 53.54030739150021)", 
     "prediction_id": prediction_id
-    }}
+    }
+  ]
 }
 
 ```
