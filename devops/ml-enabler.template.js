@@ -57,6 +57,7 @@ const Resources = {
       Memory: cf.ref("ContainerMemory"),
       NetworkMode: "awsvpc",
       RequiresCompatibilities: ["FARGATE"],
+      ExecutionRoleArn: cf.ref("MLEnablerExecutionRole"),
       Tags: [
         {
           Key: "Name",
@@ -146,10 +147,37 @@ const Resources = {
               ContainerPort: 5432
             }
           ],
+          LogConfiguration: {
+            LogDriver: "awslogs",
+            Options: {
+              "awslogs-group": cf.join("-", ["awslogs", cf.stackName]),
+              "awslogs-region": "us-east-1",
+              "awslogs-stream-prefix": cf.join("-", ["awslogs", cf.stackName])
+            }
+          },
           Command: ["flask","db", "upgrade"],
           Essential: false
         }
       ]
+    }
+  },
+  MLEnablerExecutionRole: {
+    Type: 'AWS::IAM::Role',
+    Properties: {
+      AssumeRolePolicyDocument: {
+        Version: "2012-10-17",
+        Statement: [{
+          Effect: "Allow",
+          Principal: {
+             Service: [ "ecs-tasks.amazonaws.com" ]
+          },
+          Action: [ "sts:AssumeRole" ]
+        }]
+      },
+      ManagedPolicyArns: [
+        "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+      ],
+      RoleName: cf.join('-', [cf.stackName, 'ecsTaskExecutionRole'])
     }
   },
   MLEnablerService: {
@@ -177,6 +205,13 @@ const Resources = {
           ContainerPort: 5000,
           TargetGroupArn: cf.ref("MLEnablerTargetGroup")
         }]
+      }
+    },
+    MLEnablerCloudwatchLogGroup:{
+      Type: "AWS::Logs::LogGroup",
+      Properties: {
+        LogGroupName: cf.join("-", ["awslogs", cf.stackName]),
+        RetentionInDays: 30
       }
     },
     MLEnablerTargetGroup: {
