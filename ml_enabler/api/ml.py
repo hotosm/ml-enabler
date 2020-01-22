@@ -444,6 +444,50 @@ class PredictionTileAPI(Resource):
             return {"error": error_msg}, 500
 
 
+class MLModelWMSAPI(Resource):
+    """
+    Methods to return raster tiles showing tile based prediction values
+    """
+
+    def get(self, model_id, x, y, z):
+        """
+        Return a raster tile for the given model predictions
+        ---
+        produces:
+            - image/png
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: path
+              name: x
+              description: X coordinate of the tile
+              required: true
+              type: integer
+            - in: path
+              name: y
+              description: Y coordinate of the tile
+              required: true
+              type: integer
+            - in: path
+              name: z
+              description: Z coordinate of the tile
+              required: true
+              type: integer
+        responses:
+            200:
+                description: Return a tile for the given model
+            404:
+                description: No predictions found
+            500:
+                description: Internal Server Error
+        """
+
+        return {"error": "NOT IMPLEMENTED"}, 500
+
+
 class MLModelTilesAPI(Resource):
     """
     Methods to manage prediction tiles at the model level
