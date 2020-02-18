@@ -1,7 +1,6 @@
 const cf = require("@mapbox/cloudfriend");
 const tfserving = require('./tfserving');
 
-// Why am I getting a 504 error? Do I need- security groups and ECSRoles? probably
 const Parameters = {
     ImageTag: {
         Description: "The tag for the docker hub image",
@@ -13,7 +12,7 @@ const Parameters = {
     },
     ContainerCpu: {
         Description: "How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations",
-        Default: 512,
+        Default: 1024,
         Type: "Number"
     },
     ContainerMemory: {
@@ -24,10 +23,6 @@ const Parameters = {
     SSLCertificateIdentifier: {
         Type: 'String',
         Description: 'SSL certificate for HTTPS protocol'
-    },
-    DatabaseName: {
-        Type: "String",
-        Description: "Name of the Database"
     },
     DatabaseUser: {
         Type: "String",
@@ -40,6 +35,12 @@ const Parameters = {
 };
 
 const Resources = {
+    MLEnablerVPC: {
+        "Type" : "AWS::EC2::VPC",
+        "Properties" : {
+            "CidrBlock" : "10.0.0.0/16"
+        }
+    },
     MLEnablerECSCluster: {
         Type: "AWS::ECS::Cluster",
         Properties: {
@@ -62,11 +63,11 @@ const Resources = {
                 Name: "app",
                 Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
                 PortMappings: [{
-                        ContainerPort: 5000
+                    ContainerPort: 5000
                 }],
                 Environment: [{
                     Name:"POSTGRES_DB",
-                    Value: cf.ref("DatabaseName")
+                    Value: 'mlenabler'
                 },{
                     Name:"POSTGRES_USER",
                     Value: cf.ref("DatabaseUser")
@@ -100,7 +101,7 @@ const Resources = {
                 Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
                 Environment: [{
                     Name:"POSTGRES_DB",
-                    Value: cf.ref("DatabaseName")
+                    Value: 'mlenabler'
                 },{
                     Name:"POSTGRES_USER",
                     Value: cf.ref("DatabaseUser")
@@ -136,9 +137,9 @@ const Resources = {
             DesiredCount: 1,
             NetworkConfiguration: {
                 AwsvpcConfiguration: {
-                    AssignPublicIp : "ENABLED",
-                    SecurityGroups : [ cf.importValue(cf.join("-", ["hotosm-network-production-production-ec2s-security-group", cf.region])) ],
-                    Subnets : cf.split(",", cf.ref("ELBSubnets"))
+                    AssignPublicIp: "ENABLED",
+                    SecurityGroups: cf.ref('MLEnablerServiceSecurityGroup'),
+                    Subnets: cf.split(",", cf.ref("ELBSubnets"))
                 }
             },
             LoadBalancers: [{
@@ -148,12 +149,18 @@ const Resources = {
             }]
         }
     },
+    MLEnablerServiceSecurityGroup: {
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Properties" : {
+            VpcId: cf.ref('MLEnablerVPC')
+        }
+    },
     MLEnablerTargetGroup: {
         Type: "AWS::ElasticLoadBalancingV2::TargetGroup",
         Properties: {
             Port: 5000,
             Protocol: "HTTP",
-            VpcId: cf.importValue(cf.join("-", ["hotosm-network-production", "default-vpc", cf.region])),
+            VpcId: cf.ref('MLEnablerVPC'),
             TargetType: "ip",
             Matcher: {
                 HttpCode: "200,202,302,304"
@@ -164,9 +171,15 @@ const Resources = {
         Type: "AWS::ElasticLoadBalancingV2::LoadBalancer",
         Properties: {
             Name: cf.stackName,
-            SecurityGroups: [ cf.importValue(cf.join("-", ["hotosm-network-production-production-elbs-security-group", cf.region])) ],
+            SecurityGroups: cf.ref('MLEnablerALBSecurityGroup'),
             Subnets: cf.split(",", cf.ref("ELBSubnets")),
             Type: "application"
+        }
+    },
+    MLEnablerALBSecurityGroup: {
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Properties" : {
+            VpcId: cf.ref('MLEnablerVPC')
         }
     },
     MLEnablerHTTPSListener: {
@@ -207,7 +220,7 @@ const Resources = {
         Type: 'AWS::RDS::DBInstance',
         Properties: {
             Engine: 'postgres',
-            DBName: cf.ref("DatabaseName"),
+            DBName: 'mlenabler',
             EngineVersion: '11.2',
             MasterUsername: cf.ref("DatabaseUser"),
             MasterUserPassword: cf.ref("DatabasePassword"),
@@ -216,7 +229,19 @@ const Resources = {
             BackupRetentionPeriod: 10,
             StorageType: 'gp2',
             DBInstanceClass: 'db.m4.xlarge',
-            VPCSecurityGroups: [cf.importValue(cf.join('-', ['hotosm-network-production-production-ec2s-security-group', cf.region]))],
+            DBSecurityGroupIngress: [ cf.ref('RDSSecurityGroup') ]
+        }
+    },
+    "MLEnablerRDSSecurityGroup": {
+        Type : "AWS::RDS::DBSecurityGroup",
+        Properties : {
+            DBSecurityGroupIngress : [ cf.ref('RDSSecurityGroupIngress') ]
+        }
+    },
+    MLEnablerRDSSecurityGroupIngress: {
+        Type : "AWS::RDS::DBSecurityGroupIngress",
+        Properties : {
+            EC2SecurityGroupName : cf.ref('MLEnablerServiceSecurityGroup')
         }
     }
 };

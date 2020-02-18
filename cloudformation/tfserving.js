@@ -1,4 +1,4 @@
-const cf = require('@mapbox/cloudformation');
+const cf = require('@mapbox/cloudfriend');
 
 const Parameters = {
     GitSha: {
