@@ -34,23 +34,21 @@ const Resources = {
     MLEnablerVPC: {
         "Type" : "AWS::EC2::VPC",
         "Properties" : {
-            "CidrBlock" : "10.0.0.0/16"
+            "CidrBlock" : "10.1.0.0/16"
         }
     },
     MLEnablerSubA: {
         "Type" : "AWS::EC2::Subnet",
         "Properties" : {
             VpcId: cf.ref('MLEnablerVPC'),
-            CidrBlock: "10.0.0.0/24",
-            AvailabilityZone: "us-east-1a",
+            CidrBlock: "10.1.10.0/24"
         }
     },
     MLEnablerSubB: {
         "Type" : "AWS::EC2::Subnet",
         "Properties" : {
             VpcId: cf.ref('MLEnablerVPC'),
-            CidrBlock: "10.0.0.0/24",
-            AvailabilityZone: "us-east-1b",
+            CidrBlock: "10.1.20.0/24"
         }
     },
     MLEnablerECSCluster: {
