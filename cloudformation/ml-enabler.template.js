@@ -152,6 +152,7 @@ const Resources = {
     MLEnablerServiceSecurityGroup: {
         "Type" : "AWS::EC2::SecurityGroup",
         "Properties" : {
+            GroupDescription: cf.join("-", [cf.stackName, "ec2-sg"]),
             VpcId: cf.ref('MLEnablerVPC')
         }
     },
@@ -171,7 +172,7 @@ const Resources = {
         Type: "AWS::ElasticLoadBalancingV2::LoadBalancer",
         Properties: {
             Name: cf.stackName,
-            SecurityGroups: cf.ref('MLEnablerALBSecurityGroup'),
+            SecurityGroups: [ cf.ref('MLEnablerALBSecurityGroup') ],
             Subnets: cf.split(",", cf.ref("ELBSubnets")),
             Type: "application"
         }
@@ -179,6 +180,7 @@ const Resources = {
     MLEnablerALBSecurityGroup: {
         "Type" : "AWS::EC2::SecurityGroup",
         "Properties" : {
+            GroupDescription: cf.join("-", [cf.stackName, "alb-sg"]),
             VpcId: cf.ref('MLEnablerVPC')
         }
     },
@@ -235,12 +237,14 @@ const Resources = {
     "MLEnablerRDSSecurityGroup": {
         Type : "AWS::RDS::DBSecurityGroup",
         Properties : {
+            GroupDescription: cf.join("-", [cf.stackName, "rds-sg"]),
             DBSecurityGroupIngress : [ cf.ref('MLEnablerRDSSecurityGroupIngress') ]
         }
     },
     MLEnablerRDSSecurityGroupIngress: {
         Type : "AWS::RDS::DBSecurityGroupIngress",
         Properties : {
+            DBSecurityGroupName: cf.join("-", [cf.stackName, "rds-sg-ingress"]),
             EC2SecurityGroupName : cf.ref('MLEnablerServiceSecurityGroup')
         }
     }
