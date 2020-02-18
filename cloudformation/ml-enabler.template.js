@@ -1,4 +1,5 @@
 const cf = require("@mapbox/cloudfriend");
+const tfserving = require('./tfserving');
 
 // Why am I getting a 504 error? Do I need- security groups and ECSRoles? probably
 const Parameters = {
@@ -23,11 +24,6 @@ const Parameters = {
     SSLCertificateIdentifier: {
         Type: 'String',
         Description: 'SSL certificate for HTTPS protocol'
-    },
-    DatabaseSize: {
-        Type: "String",
-        Default: "10",
-        Description: "Size of the database, in GB"
     },
     DatabaseName: {
         Type: "String",
@@ -58,99 +54,75 @@ const Resources = {
             Memory: cf.ref("ContainerMemory"),
             NetworkMode: "awsvpc",
             RequiresCompatibilities: ["FARGATE"],
-            Tags: [
-                {
-                    Key: "Name",
-                    Value: cf.stackName
-                }
-            ],
-            ContainerDefinitions: [
-                {
-                    Name: "app",
-                    Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
-                    PortMappings: [
-                        {
-                            ContainerPort: 5000
-                        }
-                    ],
-                    Environment: [
-                        {
-                            Name:"POSTGRES_DB",
-                            Value: cf.ref("DatabaseName")
-                        },
-                        {
-                            Name:"POSTGRES_USER",
-                            Value: cf.ref("DatabaseUser")
-                        },
-                        {
-                            Name:"POSTGRES_PASSWORD",
-                            Value: cf.ref("DatabasePassword")
-                        },
-                        {
-                            Name:"POSTGRES_ENDPOINT",
-                            Value: cf.getAtt("MLEnablerRDS", "Endpoint.Address")
-                        },
-                        {
-                            Name:"POSTGRES_PORT",
-                            Value: "5432"
-                        },
-                        {
-                            Name: "FLASK_APP",
-                            Value: "ml_enabler"
-                        },
-                        {
-                            Name: "ECS_LOG_LEVEL",
-                            Value: "debug"
-                        }
-                    ],
-                    LogConfiguration: {
-                        LogDriver: "awslogs",
-                        Options: {
-                            "awslogs-group": cf.join("-", ["awslogs", cf.stackName]),
-                            "awslogs-region": "us-east-1",
-                            "awslogs-stream-prefix": cf.join("-", ["awslogs", cf.stackName])
-                        }
-                    },
-                    Essential: true
+            Tags: [{
+                Key: "Name",
+                Value: cf.stackName
+            }],
+            ContainerDefinitions: [{
+                Name: "app",
+                Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
+                PortMappings: [{
+                        ContainerPort: 5000
+                }],
+                Environment: [{
+                    Name:"POSTGRES_DB",
+                    Value: cf.ref("DatabaseName")
+                },{
+                    Name:"POSTGRES_USER",
+                    Value: cf.ref("DatabaseUser")
+                },{
+                    Name:"POSTGRES_PASSWORD",
+                    Value: cf.ref("DatabasePassword")
+                },{
+                    Name:"POSTGRES_ENDPOINT",
+                    Value: cf.getAtt("MLEnablerRDS", "Endpoint.Address")
+                },{
+                    Name:"POSTGRES_PORT",
+                    Value: "5432"
+                },{
+                    Name: "FLASK_APP",
+                    Value: "ml_enabler"
+                },{
+                    Name: "ECS_LOG_LEVEL",
+                    Value: "debug"
+                }],
+                LogConfiguration: {
+                    LogDriver: "awslogs",
+                    Options: {
+                        "awslogs-group": cf.join("-", ["awslogs", cf.stackName]),
+                        "awslogs-region": "us-east-1",
+                        "awslogs-stream-prefix": cf.join("-", ["awslogs", cf.stackName])
+                    }
                 },
-                {
-                    Name: "migration",
-                    Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
-                    Environment: [
-                        {
-                            Name:"POSTGRES_DB",
-                            Value: cf.ref("DatabaseName")
-                        },
-                        {
-                            Name:"POSTGRES_USER",
-                            Value: cf.ref("DatabaseUser")
-                        },
-                        {
-                            Name:"POSTGRES_PASSWORD",
-                            Value: cf.ref("DatabasePassword")
-                        },
-                        {
-                            Name:"POSTGRES_ENDPOINT",
-                            Value: cf.getAtt("MLEnablerRDS", "Endpoint.Address")
-                        },
-                        {
-                            Name:"POSTGRES_PORT",
-                            Value: "5432"
-                        },
-                        {
-                            Name: "FLASK_APP",
-                            Value: "ml_enabler"
-                        }
-                    ],
-                    PortMappings: [
-                        {
-                            ContainerPort: 5432
-                        }
-                    ],
-                    Command: ["flask","db", "upgrade"],
-                    Essential: false
-                }
-            ]
+                Essential: true
+            },{
+                Name: "migration",
+                Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
+                Environment: [{
+                    Name:"POSTGRES_DB",
+                    Value: cf.ref("DatabaseName")
+                },{
+                    Name:"POSTGRES_USER",
+                    Value: cf.ref("DatabaseUser")
+                },{
+                    Name:"POSTGRES_PASSWORD",
+                    Value: cf.ref("DatabasePassword")
+                },{
+                    Name:"POSTGRES_ENDPOINT",
+                    Value: cf.getAtt("MLEnablerRDS", "Endpoint.Address")
+                },{
+                    Name:"POSTGRES_PORT",
+                    Value: "5432"
+                },{
+                    Name: "FLASK_APP",
+                    Value: "ml_enabler"
+                }],
+                PortMappings: [{
+                    ContainerPort: 5432
+                }],
+                Command: ["flask","db", "upgrade"],
+                Essential: false
+            }]
         }
     },
     MLEnablerService: {
@@ -165,11 +137,7 @@ const Resources = {
             NetworkConfiguration: {
                 AwsvpcConfiguration: {
                     AssignPublicIp : "ENABLED",
-                    SecurityGroups : [
-                        cf.importValue(
-                            cf.join("-", ["hotosm-network-production-production-ec2s-security-group", cf.region])
-                        )
-                    ],
+                    SecurityGroups : [ cf.importValue(cf.join("-", ["hotosm-network-production-production-ec2s-security-group", cf.region])) ],
                     Subnets : cf.split(",", cf.ref("ELBSubnets"))
                 }
             },
@@ -196,11 +164,7 @@ const Resources = {
         Type: "AWS::ElasticLoadBalancingV2::LoadBalancer",
         Properties: {
             Name: cf.stackName,
-            SecurityGroups: [
-                cf.importValue(
-                    cf.join("-", ["hotosm-network-production-production-elbs-security-group", cf.region])
-                )
-            ],
+            SecurityGroups: [ cf.importValue(cf.join("-", ["hotosm-network-production-production-elbs-security-group", cf.region])) ],
             Subnets: cf.split(",", cf.ref("ELBSubnets")),
             Type: "application"
         }
@@ -247,7 +211,8 @@ const Resources = {
             EngineVersion: '11.2',
             MasterUsername: cf.ref("DatabaseUser"),
             MasterUserPassword: cf.ref("DatabasePassword"),
-            AllocatedStorage: cf.ref('DatabaseSize'),
+            AllocatedStorage: 10,
+            MaxAllocatedStorage: 100,
             BackupRetentionPeriod: 10,
             StorageType: 'gp2',
             DBInstanceClass: 'db.m4.xlarge',
@@ -256,4 +221,5 @@ const Resources = {
     }
 };
 
+//module.exports = cf.merge({ Parameters, Resources }, tfserving;
 module.exports = { Parameters, Resources };
