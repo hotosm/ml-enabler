@@ -229,13 +229,13 @@ const Resources = {
             BackupRetentionPeriod: 10,
             StorageType: 'gp2',
             DBInstanceClass: 'db.m4.xlarge',
-            DBSecurityGroupIngress: [ cf.ref('RDSSecurityGroup') ]
+            DBSecurityGroupIngress: [ cf.ref('MLEnablerRDSSecurityGroup') ]
         }
     },
     "MLEnablerRDSSecurityGroup": {
         Type : "AWS::RDS::DBSecurityGroup",
         Properties : {
-            DBSecurityGroupIngress : [ cf.ref('RDSSecurityGroupIngress') ]
+            DBSecurityGroupIngress : [ cf.ref('MLEnablerRDSSecurityGroupIngress') ]
         }
     },
     MLEnablerRDSSecurityGroupIngress: {
