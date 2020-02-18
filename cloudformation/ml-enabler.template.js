@@ -6,10 +6,6 @@ const Parameters = {
         Description: "The tag for the docker hub image",
         Type: "String"
     },
-    ELBSubnets: {
-        Description: "ELB subnets",
-        Type: "String"
-    },
     ContainerCpu: {
         Description: "How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations",
         Default: 1024,
@@ -39,6 +35,22 @@ const Resources = {
         "Type" : "AWS::EC2::VPC",
         "Properties" : {
             "CidrBlock" : "10.0.0.0/16"
+        }
+    },
+    MLEnablerSubA: {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+            VpcId: cf.ref('MLEnablerVPC'),
+            CidrBlock: "10.0.0.0/24",
+            AvailabilityZone: "us-east-1a",
+        }
+    },
+    MLEnablerSubB: {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+            VpcId: cf.ref('MLEnablerVPC'),
+            CidrBlock: "10.0.0.0/24",
+            AvailabilityZone: "us-east-1b",
         }
     },
     MLEnablerECSCluster: {
@@ -139,7 +151,10 @@ const Resources = {
                 AwsvpcConfiguration: {
                     AssignPublicIp: "ENABLED",
                     SecurityGroups: cf.ref('MLEnablerServiceSecurityGroup'),
-                    Subnets: cf.split(",", cf.ref("ELBSubnets"))
+                    Subnets: [
+                        cf.ref('MLEnablerSubA'),
+                        cf.ref('MLEnablerSubB')
+                    ]
                 }
             },
             LoadBalancers: [{
@@ -172,9 +187,12 @@ const Resources = {
         Type: "AWS::ElasticLoadBalancingV2::LoadBalancer",
         Properties: {
             Name: cf.stackName,
+            Type: "application",
             SecurityGroups: [ cf.ref('MLEnablerALBSecurityGroup') ],
-            Subnets: cf.split(",", cf.ref("ELBSubnets")),
-            Type: "application"
+            Subnets: [
+                cf.ref('MLEnablerSubA'),
+                cf.ref('MLEnablerSubB')
+            ]
         }
     },
     MLEnablerALBSecurityGroup: {
