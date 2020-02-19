@@ -266,8 +266,9 @@ const Resources = {
             Protocol: 'HTTPS'
         }
     },
-    MLEnablerHTTPListener: {
+    MLEnablerHTTPListenerRedirect: {
         Type: 'AWS::ElasticLoadBalancingV2::Listener',
+        Condition: 'HasSSL',
         Properties: {
             DefaultActions: [{
                 Type: 'redirect',
@@ -279,6 +280,19 @@ const Resources = {
                     Query: '#{query}',
                     StatusCode: 'HTTP_301'
                 }
+            }],
+            LoadBalancerArn: cf.ref('MLEnablerELB'),
+            Port: 80,
+            Protocol: 'HTTP'
+        }
+    },
+    MLEnablerHTTPListener: {
+        Type: 'AWS::ElasticLoadBalancingV2::Listener',
+        Condition: 'HasNoSSL',
+        Properties: {
+            DefaultActions: [{
+                Type: 'forward',
+                TargetGroupArn: cf.ref('MLEnablerTargetGroup')
             }],
             LoadBalancerArn: cf.ref('MLEnablerELB'),
             Port: 80,
@@ -333,7 +347,8 @@ const Mappings = {
 }
 
 const Conditions = {
-    HasSSL: cf.notEquals(cf.ref('SSLCertificateIdentifier'), '')
+    HasSSL: cf.notEquals(cf.ref('SSLCertificateIdentifier'), ''),
+    HasNoSSL: cf.equals(cf.ref('SSLCertificateIdentifier'), '')
 }
 
 const ml = {
