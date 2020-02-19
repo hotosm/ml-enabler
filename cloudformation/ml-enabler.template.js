@@ -247,21 +247,28 @@ const Resources = {
             BackupRetentionPeriod: 10,
             StorageType: 'gp2',
             DBInstanceClass: 'db.m4.xlarge',
-            DBSecurityGroupIngress: [ cf.ref('MLEnablerRDSSecurityGroup') ]
+            DBSecurityGroupIngress: [ cf.ref('MLEnablerRDSSecurityGroup') ],
+            DBSubnetGroupName: cf.ref('MLEnablerRDSSubnet')
+        }
+    },
+    MLEnablerRDSSubnet: {
+        "Type" : "AWS::RDS::DBSubnetGroup",
+        "Properties" : {
+            "DBSubnetGroupDescription": cf.join("-", [cf.stackName, "rds-subnets"]),
+            "SubnetIds": [
+                cf.ref('MLEnablerSubA'),
+                cf.ref('MLEnablerSubB')
+            ]
         }
     },
     "MLEnablerRDSSecurityGroup": {
         Type : "AWS::RDS::DBSecurityGroup",
         Properties : {
             GroupDescription: cf.join("-", [cf.stackName, "rds-sg"]),
-            DBSecurityGroupIngress : [ cf.ref('MLEnablerRDSSecurityGroupIngress') ]
-        }
-    },
-    MLEnablerRDSSecurityGroupIngress: {
-        Type : "AWS::RDS::DBSecurityGroupIngress",
-        Properties : {
-            DBSecurityGroupName: cf.join("-", [cf.stackName, "rds-sg-ingress"]),
-            EC2SecurityGroupName : cf.ref('MLEnablerServiceSecurityGroup')
+            DBSecurityGroupIngress: {
+                EC2VpcId: cf.ref('MLEnablerVPC'),
+                EC2SecurityGroupId: cf.getAtt('MLEnablerServiceSecurityGroup', 'GroupId')
+            }
         }
     }
 };
