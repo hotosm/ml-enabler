@@ -1,204 +1,204 @@
-const cf = require("@mapbox/cloudfriend");
+const cf = require('@mapbox/cloudfriend');
 const tfserving = require('./tfserving');
 
 const Parameters = {
     ImageTag: {
-        Description: "The tag for the docker hub image",
-        Type: "String"
+        Description: 'The tag for the docker hub image',
+        Type: 'String'
     },
     ContainerCpu: {
-        Description: "How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations",
+        Description: 'How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations',
         Default: 1024,
-        Type: "Number"
+        Type: 'Number'
     },
     ContainerMemory: {
-        Description: "How much memory in megabytes to give to the container. See aws docs for acceptable cpu/mem combinations",
+        Description: 'How much memory in megabytes to give to the container. See aws docs for acceptable cpu/mem combinations',
         Default: 1024,
-        Type: "Number"
+        Type: 'Number'
     },
     SSLCertificateIdentifier: {
         Type: 'String',
         Description: 'SSL certificate for HTTPS protocol'
     },
     DatabaseUser: {
-        Type: "String",
-        Description: "Database Username"
+        Type: 'String',
+        Description: 'Database Username'
     },
     DatabasePassword: {
-        Type: "String",
-        Description: "Database User Password"
+        Type: 'String',
+        Description: 'Database User Password'
     }
 };
 
 const Resources = {
     MLEnablerVPC: {
-        "Type" : "AWS::EC2::VPC",
-        "Properties" : {
-            "CidrBlock" : "10.1.0.0/16"
+        'Type' : 'AWS::EC2::VPC',
+        'Properties' : {
+            'CidrBlock' : '10.1.0.0/16'
         }
     },
     MLEnablerSubA: {
-        "Type" : "AWS::EC2::Subnet",
-        "Properties" : {
+        'Type' : 'AWS::EC2::Subnet',
+        'Properties' : {
             AvailabilityZone: cf.findInMap('AWSRegion2AZ', cf.region, '1'),
             VpcId: cf.ref('MLEnablerVPC'),
-            CidrBlock: "10.1.10.0/24"
+            CidrBlock: '10.1.10.0/24'
         }
     },
     MLEnablerSubB: {
-        "Type" : "AWS::EC2::Subnet",
-        "Properties" : {
+        'Type' : 'AWS::EC2::Subnet',
+        'Properties' : {
             AvailabilityZone: cf.findInMap('AWSRegion2AZ', cf.region, '2'),
             VpcId: cf.ref('MLEnablerVPC'),
-            CidrBlock: "10.1.20.0/24"
+            CidrBlock: '10.1.20.0/24'
         }
     },
     MLEnablerInternetGateway: {
-        "Type" : "AWS::EC2::InternetGateway"
+        'Type' : 'AWS::EC2::InternetGateway'
     },
     MLEnablerVPCIG: {
-        "Type" : "AWS::EC2::VPCGatewayAttachment",
-        "Properties" : {
-            "InternetGatewayId" : cf.ref('MLEnablerInternetGateway'),
-            "VpcId" : cf.ref('MLEnablerVPC')
+        'Type' : 'AWS::EC2::VPCGatewayAttachment',
+        'Properties' : {
+            'InternetGatewayId' : cf.ref('MLEnablerInternetGateway'),
+            'VpcId' : cf.ref('MLEnablerVPC')
         }
     },
     MLEnablerRouteTable: {
-        "Type" : "AWS::EC2::RouteTable",
-        "Properties" : {
-            "VpcId" : cf.ref('MLEnablerVPC')
+        'Type' : 'AWS::EC2::RouteTable',
+        'Properties' : {
+            'VpcId' : cf.ref('MLEnablerVPC')
         }
     },
     MLEnablerSubAAssoc: {
-        "Type" : "AWS::EC2::SubnetRouteTableAssociation",
-        "Properties" : {
-            "RouteTableId": cf.ref('MLEnablerRouteTable'),
-            "SubnetId": cf.ref('MLEnablerSubA')
+        'Type' : 'AWS::EC2::SubnetRouteTableAssociation',
+        'Properties' : {
+            'RouteTableId': cf.ref('MLEnablerRouteTable'),
+            'SubnetId': cf.ref('MLEnablerSubA')
         }
     },
     MLEnablerSubBAssoc: {
-        "Type" : "AWS::EC2::SubnetRouteTableAssociation",
-        "Properties" : {
-            "RouteTableId": cf.ref('MLEnablerRouteTable'),
-            "SubnetId": cf.ref('MLEnablerSubB')
+        'Type' : 'AWS::EC2::SubnetRouteTableAssociation',
+        'Properties' : {
+            'RouteTableId': cf.ref('MLEnablerRouteTable'),
+            'SubnetId': cf.ref('MLEnablerSubB')
         }
     },
     MLEnablerECSCluster: {
-        Type: "AWS::ECS::Cluster",
+        Type: 'AWS::ECS::Cluster',
         Properties: {
-            ClusterName: cf.join("-", [cf.stackName, "cluster"])
+            ClusterName: cf.join('-', [cf.stackName, 'cluster'])
         }
     },
     MLEnablerTaskRole: {
-        "Type": "AWS::IAM::Role",
-        "Properties": {
-            "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Principal": {
-                        "Service": "ec2.amazonaws.com"
+        'Type': 'AWS::IAM::Role',
+        'Properties': {
+            'AssumeRolePolicyDocument': {
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Effect': 'Allow',
+                    'Principal': {
+                        'Service': 'ec2.amazonaws.com'
                     },
-                    "Action": "sts:AssumeRole"
+                    'Action': 'sts:AssumeRole'
                 }]
             },
-            "ManagedPolicyArns": [ "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy" ],
-            "Path": "/service-role/"
+            'ManagedPolicyArns': [ 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy' ],
+            'Path': '/service-role/'
         }
     },
     MLEnablerTaskDefinition: {
-        Type: "AWS::ECS::TaskDefinition",
+        Type: 'AWS::ECS::TaskDefinition',
         Properties: {
             Family: cf.stackName,
-            Cpu: cf.ref("ContainerCpu"),
-            Memory: cf.ref("ContainerMemory"),
-            NetworkMode: "awsvpc",
-            RequiresCompatibilities: ["FARGATE"],
+            Cpu: cf.ref('ContainerCpu'),
+            Memory: cf.ref('ContainerMemory'),
+            NetworkMode: 'awsvpc',
+            RequiresCompatibilities: ['FARGATE'],
             Tags: [{
-                Key: "Name",
+                Key: 'Name',
                 Value: cf.stackName
             }],
             ExecutionRoleArn: cf.getAtt('MLEnablerTaskRole', 'Arn'),
             ContainerDefinitions: [{
-                Name: "app",
-                Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
+                Name: 'app',
+                Image: cf.join(':', ['hotosm/ml-enabler', cf.ref('ImageTag')]),
                 PortMappings: [{
                     ContainerPort: 5000
                 }],
                 Environment: [{
-                    Name:"POSTGRES_DB",
+                    Name:'POSTGRES_DB',
                     Value: 'mlenabler'
                 },{
-                    Name:"POSTGRES_USER",
-                    Value: cf.ref("DatabaseUser")
+                    Name:'POSTGRES_USER',
+                    Value: cf.ref('DatabaseUser')
                 },{
-                    Name:"POSTGRES_PASSWORD",
-                    Value: cf.ref("DatabasePassword")
+                    Name:'POSTGRES_PASSWORD',
+                    Value: cf.ref('DatabasePassword')
                 },{
-                    Name:"POSTGRES_ENDPOINT",
-                    Value: cf.getAtt("MLEnablerRDS", "Endpoint.Address")
+                    Name:'POSTGRES_ENDPOINT',
+                    Value: cf.getAtt('MLEnablerRDS', 'Endpoint.Address')
                 },{
-                    Name:"POSTGRES_PORT",
-                    Value: "5432"
+                    Name:'POSTGRES_PORT',
+                    Value: '5432'
                 },{
-                    Name: "FLASK_APP",
-                    Value: "ml_enabler"
+                    Name: 'FLASK_APP',
+                    Value: 'ml_enabler'
                 },{
-                    Name: "ECS_LOG_LEVEL",
-                    Value: "debug"
+                    Name: 'ECS_LOG_LEVEL',
+                    Value: 'debug'
                 }],
                 LogConfiguration: {
-                    LogDriver: "awslogs",
+                    LogDriver: 'awslogs',
                     Options: {
-                        "awslogs-group": cf.join("-", ["awslogs", cf.stackName]),
-                        "awslogs-region": "us-east-1",
-                        "awslogs-stream-prefix": cf.join("-", ["awslogs", cf.stackName])
+                        'awslogs-group': cf.join('-', ['awslogs', cf.stackName]),
+                        'awslogs-region': 'us-east-1',
+                        'awslogs-stream-prefix': cf.join('-', ['awslogs', cf.stackName])
                     }
                 },
                 Essential: true
             },{
-                Name: "migration",
-                Image: cf.join(":", ["hotosm/ml-enabler", cf.ref("ImageTag")]),
+                Name: 'migration',
+                Image: cf.join(':', ['hotosm/ml-enabler', cf.ref('ImageTag')]),
                 Environment: [{
-                    Name:"POSTGRES_DB",
+                    Name:'POSTGRES_DB',
                     Value: 'mlenabler'
                 },{
-                    Name:"POSTGRES_USER",
-                    Value: cf.ref("DatabaseUser")
+                    Name:'POSTGRES_USER',
+                    Value: cf.ref('DatabaseUser')
                 },{
-                    Name:"POSTGRES_PASSWORD",
-                    Value: cf.ref("DatabasePassword")
+                    Name:'POSTGRES_PASSWORD',
+                    Value: cf.ref('DatabasePassword')
                 },{
-                    Name:"POSTGRES_ENDPOINT",
-                    Value: cf.getAtt("MLEnablerRDS", "Endpoint.Address")
+                    Name:'POSTGRES_ENDPOINT',
+                    Value: cf.getAtt('MLEnablerRDS', 'Endpoint.Address')
                 },{
-                    Name:"POSTGRES_PORT",
-                    Value: "5432"
+                    Name:'POSTGRES_PORT',
+                    Value: '5432'
                 },{
-                    Name: "FLASK_APP",
-                    Value: "ml_enabler"
+                    Name: 'FLASK_APP',
+                    Value: 'ml_enabler'
                 }],
                 PortMappings: [{
                     ContainerPort: 5432
                 }],
-                Command: ["flask","db", "upgrade"],
+                Command: ['flask','db', 'upgrade'],
                 Essential: false
             }]
         }
     },
     MLEnablerService: {
-        Type: "AWS::ECS::Service",
+        Type: 'AWS::ECS::Service',
         Properties: {
-            ServiceName: cf.join("-", [cf.stackName, "Service"]),
-            Cluster: cf.ref("MLEnablerECSCluster"),
-            TaskDefinition: cf.ref("MLEnablerTaskDefinition"),
-            LaunchType: "FARGATE",
+            ServiceName: cf.join('-', [cf.stackName, 'Service']),
+            Cluster: cf.ref('MLEnablerECSCluster'),
+            TaskDefinition: cf.ref('MLEnablerTaskDefinition'),
+            LaunchType: 'FARGATE',
             HealthCheckGracePeriodSeconds: 300,
             DesiredCount: 1,
             NetworkConfiguration: {
                 AwsvpcConfiguration: {
-                    AssignPublicIp: "ENABLED",
-                    SecurityGroups: cf.ref('MLEnablerServiceSecurityGroup'),
+                    AssignPublicIp: 'ENABLED',
+                    SecurityGroups: [ cf.ref('MLEnablerServiceSecurityGroup') ],
                     Subnets: [
                         cf.ref('MLEnablerSubA'),
                         cf.ref('MLEnablerSubB')
@@ -206,36 +206,36 @@ const Resources = {
                 }
             },
             LoadBalancers: [{
-                ContainerName: "app",
+                ContainerName: 'app',
                 ContainerPort: 5000,
-                TargetGroupArn: cf.ref("MLEnablerTargetGroup")
+                TargetGroupArn: cf.ref('MLEnablerTargetGroup')
             }]
         }
     },
     MLEnablerServiceSecurityGroup: {
-        "Type" : "AWS::EC2::SecurityGroup",
-        "Properties" : {
-            GroupDescription: cf.join("-", [cf.stackName, "ec2-sg"]),
+        'Type' : 'AWS::EC2::SecurityGroup',
+        'Properties' : {
+            GroupDescription: cf.join('-', [cf.stackName, 'ec2-sg']),
             VpcId: cf.ref('MLEnablerVPC')
         }
     },
     MLEnablerTargetGroup: {
-        Type: "AWS::ElasticLoadBalancingV2::TargetGroup",
+        Type: 'AWS::ElasticLoadBalancingV2::TargetGroup',
         Properties: {
             Port: 5000,
-            Protocol: "HTTP",
+            Protocol: 'HTTP',
             VpcId: cf.ref('MLEnablerVPC'),
-            TargetType: "ip",
+            TargetType: 'ip',
             Matcher: {
-                HttpCode: "200,202,302,304"
+                HttpCode: '200,202,302,304'
             }
         }
     },
     MLEnablerELB: {
-        Type: "AWS::ElasticLoadBalancingV2::LoadBalancer",
+        Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer',
         Properties: {
             Name: cf.stackName,
-            Type: "application",
+            Type: 'application',
             SecurityGroups: [ cf.ref('MLEnablerELBSecurityGroup') ],
             Subnets: [
                 cf.ref('MLEnablerSubA'),
@@ -244,9 +244,9 @@ const Resources = {
         }
     },
     MLEnablerELBSecurityGroup: {
-        "Type" : "AWS::EC2::SecurityGroup",
-        "Properties" : {
-            GroupDescription: cf.join("-", [cf.stackName, "alb-sg"]),
+        'Type' : 'AWS::EC2::SecurityGroup',
+        'Properties' : {
+            GroupDescription: cf.join('-', [cf.stackName, 'alb-sg']),
             VpcId: cf.ref('MLEnablerVPC')
         }
     },
@@ -291,8 +291,8 @@ const Resources = {
             Engine: 'postgres',
             DBName: 'mlenabler',
             EngineVersion: '11.2',
-            MasterUsername: cf.ref("DatabaseUser"),
-            MasterUserPassword: cf.ref("DatabasePassword"),
+            MasterUsername: cf.ref('DatabaseUser'),
+            MasterUserPassword: cf.ref('DatabasePassword'),
             AllocatedStorage: 10,
             MaxAllocatedStorage: 100,
             BackupRetentionPeriod: 10,
@@ -303,19 +303,19 @@ const Resources = {
         }
     },
     MLEnablerRDSSubnet: {
-        "Type" : "AWS::RDS::DBSubnetGroup",
-        "Properties" : {
-            "DBSubnetGroupDescription": cf.join("-", [cf.stackName, "rds-subnets"]),
-            "SubnetIds": [
+        'Type' : 'AWS::RDS::DBSubnetGroup',
+        'Properties' : {
+            'DBSubnetGroupDescription': cf.join('-', [cf.stackName, 'rds-subnets']),
+            'SubnetIds': [
                 cf.ref('MLEnablerSubA'),
                 cf.ref('MLEnablerSubB')
             ]
         }
     },
-    "MLEnablerRDSSecurityGroup": {
-        Type : "AWS::RDS::DBSecurityGroup",
+    'MLEnablerRDSSecurityGroup': {
+        Type : 'AWS::RDS::DBSecurityGroup',
         Properties : {
-            GroupDescription: cf.join("-", [cf.stackName, "rds-sg"]),
+            GroupDescription: cf.join('-', [cf.stackName, 'rds-sg']),
             EC2VpcId: cf.ref('MLEnablerVPC'),
             DBSecurityGroupIngress: {
                 EC2SecurityGroupId: cf.getAtt('MLEnablerServiceSecurityGroup', 'GroupId')
@@ -325,10 +325,10 @@ const Resources = {
 };
 
 const Mappings = {
-    "AWSRegion2AZ" : {
-        "us-east-1" : { "1" : "us-east-1b", "2" : "us-east-1c", "3" : "us-east-1d", "4" : "us-east-1e" },
-        "us-west-1" : { "1" : "us-west-1b", "2" : "us-west-1c" },
-        "us-west-2" : { "1" : "us-west-2a", "2" : "us-west-2b", "3" : "us-west-2c"  }
+    'AWSRegion2AZ' : {
+        'us-east-1' : { '1' : 'us-east-1b', '2' : 'us-east-1c', '3' : 'us-east-1d', '4' : 'us-east-1e' },
+        'us-west-1' : { '1' : 'us-west-1b', '2' : 'us-west-1c' },
+        'us-west-2' : { '1' : 'us-west-2a', '2' : 'us-west-2b', '3' : 'us-west-2c'  }
     }
 }
 
