@@ -2,9 +2,9 @@ const cf = require('@mapbox/cloudfriend');
 const tfserving = require('./tfserving');
 
 const Parameters = {
-    ImageTag: {
-        Description: 'The tag for the docker hub image',
-        Type: 'String'
+    GitSha: {
+        Type: "String",
+        Description: "Gitsha to Deploy"
     },
     ContainerCpu: {
         Description: 'How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations',
@@ -97,7 +97,7 @@ const Resources = {
                 'Statement': [{
                     'Effect': 'Allow',
                     'Principal': {
-                        'Service': 'ec2.amazonaws.com'
+                        'Service': 'ecs-tasks.amazonaws.com'
                     },
                     'Action': 'sts:AssumeRole'
                 }]
@@ -121,7 +121,7 @@ const Resources = {
             ExecutionRoleArn: cf.getAtt('MLEnablerTaskRole', 'Arn'),
             ContainerDefinitions: [{
                 Name: 'app',
-                Image: cf.join(':', ['hotosm/ml-enabler', cf.ref('ImageTag')]),
+                Image: cf.join([cf.accountId, '.dkr.ecr.', cf.region, '.amazonaws.com/ml-enabler:', cf.ref('GitSha')])
                 PortMappings: [{
                     ContainerPort: 5000
                 }],
@@ -158,7 +158,7 @@ const Resources = {
                 Essential: true
             },{
                 Name: 'migration',
-                Image: cf.join(':', ['hotosm/ml-enabler', cf.ref('ImageTag')]),
+                Image: cf.join([cf.accountId, '.dkr.ecr.', cf.region, '.amazonaws.com/ml-enabler:', cf.ref('GitSha')])
                 Environment: [{
                     Name:'POSTGRES_DB',
                     Value: 'mlenabler'
