@@ -34,7 +34,11 @@ const Resources = {
     MLEnablerVPC: {
         'Type' : 'AWS::EC2::VPC',
         'Properties' : {
-            'CidrBlock' : '172.31.0.0/16'
+            'CidrBlock' : '172.31.0.0/16',
+            Tags: [{
+                Key: 'Name',
+                Value: cf.join('-', [cf.stackName, 'vpc'])
+            }]
         }
     },
     MLEnablerSubA: {
@@ -143,6 +147,7 @@ const Resources = {
             },
             'ManagedPolicyArns': [
                 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
+                'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role',
                 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly'
             ],
             'Path': '/service-role/'
@@ -193,8 +198,9 @@ const Resources = {
                     LogDriver: 'awslogs',
                     Options: {
                         'awslogs-group': cf.join('-', ['awslogs', cf.stackName]),
-                        'awslogs-region': 'us-east-1',
-                        'awslogs-stream-prefix': cf.join('-', ['awslogs', cf.stackName])
+                        'awslogs-region': cf.region,
+                        'awslogs-stream-prefix': cf.join('-', ['awslogs', cf.stackName]),
+                        'awslogs-create-group': true
                     }
                 },
                 Essential: true
