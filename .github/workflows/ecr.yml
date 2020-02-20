@@ -9,7 +9,7 @@ jobs:
             - uses: actions/checkout@v1
 
             - name: Docker Build
-              run: docker build -t $GITHUB_SHA .
+              run: docker build -t base .
 
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v1
