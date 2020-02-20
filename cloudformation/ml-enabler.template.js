@@ -145,6 +145,19 @@ const Resources = {
                     'Action': 'sts:AssumeRole'
                 }]
             },
+            Policies: [{
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Action": [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents",
+                        "logs:DescribeLogStreams"
+                    ],
+                    "Resource": [ "arn:aws:logs:*:*:*" ]
+                }]
+            }],
             'ManagedPolicyArns': [
                 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
                 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role',
