@@ -3,8 +3,8 @@ const tfserving = require('./tfserving');
 
 const Parameters = {
     GitSha: {
-        Type: "String",
-        Description: "Gitsha to Deploy"
+        Type: 'String',
+        Description: 'Gitsha to Deploy'
     },
     ContainerCpu: {
         Description: 'How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations',
@@ -34,7 +34,7 @@ const Resources = {
     MLEnablerVPC: {
         'Type' : 'AWS::EC2::VPC',
         'Properties' : {
-            'CidrBlock' : '10.1.0.0/16'
+            'CidrBlock' : '172.31.0.0/16'
         }
     },
     MLEnablerSubA: {
@@ -42,7 +42,8 @@ const Resources = {
         'Properties' : {
             AvailabilityZone: cf.findInMap('AWSRegion2AZ', cf.region, '1'),
             VpcId: cf.ref('MLEnablerVPC'),
-            CidrBlock: '10.1.10.0/24'
+            CidrBlock: '172.31.1.0/24',
+            MapPublicIpOnLaunch: true
         }
     },
     MLEnablerSubB: {
@@ -50,11 +51,21 @@ const Resources = {
         'Properties' : {
             AvailabilityZone: cf.findInMap('AWSRegion2AZ', cf.region, '2'),
             VpcId: cf.ref('MLEnablerVPC'),
-            CidrBlock: '10.1.20.0/24'
+            CidrBlock: '172.31.2.0/24',
+            MapPublicIpOnLaunch: true
         }
     },
     MLEnablerInternetGateway: {
-        'Type' : 'AWS::EC2::InternetGateway'
+        'Type' : 'AWS::EC2::InternetGateway',
+        Properties: {
+            Tags: [{
+                Key: 'Name',
+                Value: cf.join('-', [cf.stackName, 'gateway'])
+            },{
+                Key: 'Network',
+                Value: 'Public'
+            }]
+        }
     },
     MLEnablerVPCIG: {
         'Type' : 'AWS::EC2::VPCGatewayAttachment',
@@ -66,7 +77,20 @@ const Resources = {
     MLEnablerRouteTable: {
         'Type' : 'AWS::EC2::RouteTable',
         'Properties' : {
-            'VpcId' : cf.ref('MLEnablerVPC')
+            VpcId : cf.ref('MLEnablerVPC'),
+            Tags: [{
+                Key: 'Network',
+                Value: 'Public'
+            }]
+        }
+    },
+    PublicRoute: {
+        Type: 'AWS::EC2::Route',
+        DependsOn:  'MLEnablerVPCIG',
+        Properties: {
+            RouteTableId: cf.ref('MLEnablerRouteTable'),
+            DestinationCidrBlock: '0.0.0.0/0',
+            GatewayId: cf.ref('MLEnablerInternetGateway')
         }
     },
     MLEnablerSubAAssoc: {
@@ -81,6 +105,21 @@ const Resources = {
         'Properties' : {
             'RouteTableId': cf.ref('MLEnablerRouteTable'),
             'SubnetId': cf.ref('MLEnablerSubB')
+        }
+    },
+    MLEnablerNatGateway: {
+        Type: 'AWS::EC2::NatGateway',
+        DependsOn: 'MLEnablerNatPublicIP',
+        Properties:  {
+            AllocationId: cf.getAtt('MLEnablerNatPublicIP', 'AllocationId'),
+            SubnetId: cf.ref('MLEnablerSubA')
+        }
+    },
+    MLEnablerNatPublicIP: {
+        Type: 'AWS::EC2::EIP',
+        DependsOn: 'MLEnablerVPC',
+        Properties: {
+            Domain: 'vpc'
         }
     },
     MLEnablerECSCluster: {
@@ -102,7 +141,10 @@ const Resources = {
                     'Action': 'sts:AssumeRole'
                 }]
             },
-            'ManagedPolicyArns': [ 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy' ],
+            'ManagedPolicyArns': [
+                'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
+                'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly'
+            ],
             'Path': '/service-role/'
         }
     },
@@ -121,7 +163,7 @@ const Resources = {
             ExecutionRoleArn: cf.getAtt('MLEnablerTaskRole', 'Arn'),
             ContainerDefinitions: [{
                 Name: 'app',
-                Image: cf.join([cf.accountId, '.dkr.ecr.', cf.region, '.amazonaws.com/ml-enabler:', cf.ref('GitSha')])
+                Image: cf.join([cf.accountId, '.dkr.ecr.', cf.region, '.amazonaws.com/ml-enabler:', cf.ref('GitSha')]),
                 PortMappings: [{
                     ContainerPort: 5000
                 }],
@@ -158,7 +200,7 @@ const Resources = {
                 Essential: true
             },{
                 Name: 'migration',
-                Image: cf.join([cf.accountId, '.dkr.ecr.', cf.region, '.amazonaws.com/ml-enabler:', cf.ref('GitSha')])
+                Image: cf.join([cf.accountId, '.dkr.ecr.', cf.region, '.amazonaws.com/ml-enabler:', cf.ref('GitSha')]),
                 Environment: [{
                     Name:'POSTGRES_DB',
                     Value: 'mlenabler'
