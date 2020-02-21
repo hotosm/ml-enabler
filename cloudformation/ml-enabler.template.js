@@ -285,6 +285,12 @@ const Resources = {
                 IpProtocol: 'tcp',
                 FromPort: 5000,
                 ToPort: 5000
+            }],
+            SecurityGroupEgress: [{
+                CidrIp: '0.0.0.0/0',
+                IpProtocol: 'tcp',
+                FromPort: 5432,
+                ToPort: 5432
             }]
         }
     },
