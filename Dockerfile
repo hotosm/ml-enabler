@@ -11,4 +11,6 @@ RUN \
   pip install gunicorn; \
   pip install -r requirements.txt
 
-CMD flask db upgrade && gunicorn --bind 0.0.0.0:5000 --timeout 120 'ml_enabler:create_app()'
+CMD flask db upgrade \
+    && echo "CREATE EXTENSION POSTGRES" | psql postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ENDPOINT}:${POSTGRES_PORT}/${POSTGRES_DB} \
+    && gunicorn --bind 0.0.0.0:5000 --timeout 120 'ml_enabler:create_app()'
