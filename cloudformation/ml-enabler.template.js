@@ -25,8 +25,8 @@ const Parameters = {
         Default: 'db.t3.micro',
         Description: 'Database size to create',
         AllowedValues: [
-            'db.t3.micro'
-            'db.m4.xlarge',
+            'db.t3.micro',
+            'db.m4.xlarge'
         ]
     },
     DatabaseUser: {
@@ -300,6 +300,16 @@ const Resources = {
                 IpProtocol: 'tcp',
                 FromPort: 5432,
                 ToPort: 5432
+            },{
+                CidrIp: '0.0.0.0/0',
+                IpProtocol: 'tcp',
+                FromPort: 80,
+                ToPort: 80
+            },{
+                CidrIp: '0.0.0.0/0',
+                IpProtocol: 'tcp',
+                FromPort: 443,
+                ToPort: 443
             }]
         }
     },
