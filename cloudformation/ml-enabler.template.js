@@ -20,6 +20,15 @@ const Parameters = {
         Type: 'String',
         Description: 'SSL certificate for HTTPS protocol'
     },
+    DatabaseType: {
+        Type: 'String',
+        Default: 'db.t3.micro',
+        Description: 'Database size to create',
+        AllowedValues: [
+            'db.t3.micro'
+            'db.m4.xlarge',
+        ]
+    },
     DatabaseUser: {
         Type: 'String',
         Description: 'Database Username'
@@ -397,7 +406,7 @@ const Resources = {
             MaxAllocatedStorage: 100,
             BackupRetentionPeriod: 10,
             StorageType: 'gp2',
-            DBInstanceClass: 'db.m4.xlarge',
+            DBInstanceClass: cf.ref('DatabaseType'),
             DBSecurityGroups: [ cf.ref('MLEnablerRDSSecurityGroup') ],
             DBSubnetGroupName: cf.ref('MLEnablerRDSSubnet')
         }
