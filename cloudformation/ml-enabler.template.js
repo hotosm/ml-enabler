@@ -146,17 +146,19 @@ const Resources = {
                 }]
             },
             Policies: [{
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": [
-                        "logs:CreateLogGroup",
-                        "logs:CreateLogStream",
-                        "logs:PutLogEvents",
-                        "logs:DescribeLogStreams"
-                    ],
-                    "Resource": [ "arn:aws:logs:*:*:*" ]
-                }]
+                PolicyName: 'ml-enabler-logging',
+                PolicyDocument: {
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Action": [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:PutLogEvents",
+                            "logs:DescribeLogStreams"
+                        ],
+                        "Resource": [ "arn:aws:logs:*:*:*" ]
+                    }]
+                }
             }],
             'ManagedPolicyArns': [
                 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
@@ -308,6 +310,17 @@ const Resources = {
         'Type' : 'AWS::EC2::SecurityGroup',
         'Properties' : {
             GroupDescription: cf.join('-', [cf.stackName, 'alb-sg']),
+            SecurityGroupIngress: [{
+                CidrIp: '0.0.0.0/0',
+                IpProtocol: 'tcp',
+                FromPort: 80,
+                ToPort: 80
+            },{
+                CidrIp: '0.0.0.0/0',
+                IpProtocol: 'tcp',
+                FromPort: 443,
+                ToPort: 443
+            }],
             VpcId: cf.ref('MLEnablerVPC')
         }
     },

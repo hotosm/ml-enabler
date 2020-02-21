@@ -1,7 +1,6 @@
 FROM python:3.6.3-jessie
 
-EXPOSE 80
-EXPOSE 443
+EXPOSE 5000
 
 ENV HOME=/home/hot
 WORKDIR $HOME
