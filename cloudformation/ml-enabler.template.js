@@ -279,7 +279,13 @@ const Resources = {
         'Type' : 'AWS::EC2::SecurityGroup',
         'Properties' : {
             GroupDescription: cf.join('-', [cf.stackName, 'ec2-sg']),
-            VpcId: cf.ref('MLEnablerVPC')
+            VpcId: cf.ref('MLEnablerVPC'),
+            SecurityGroupIngress: [{
+                CidrIp: '0.0.0.0/0',
+                IpProtocol: 'tcp',
+                FromPort: 5000,
+                ToPort: 5000
+            }]
         }
     },
     MLEnablerTargetGroup: {
