@@ -7,6 +7,11 @@ WORKDIR $HOME
 
 COPY ./ $HOME/ml-enabler
 WORKDIR $HOME/ml-enabler
+
+RUN \
+    apt-get update \
+    && apt-get install -y postgresql postgresql-contrib
+
 RUN \
   pip install gunicorn; \
   pip install -r requirements.txt
