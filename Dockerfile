@@ -16,7 +16,7 @@ RUN \
   pip install gunicorn; \
   pip install -r requirements.txt
 
-CMD flask db upgrade \
-    && echo "CREATE DATABASE ${POSTGRES_DB}" | psql postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ENDPOINT}:${POSTGRES_PORT} || true \
+CMD echo "CREATE DATABASE ${POSTGRES_DB}" | psql postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ENDPOINT}:${POSTGRES_PORT} || true \
     && echo "CREATE EXTENSION POSTGIS" | psql postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ENDPOINT}:${POSTGRES_PORT}/${POSTGRES_DB} \
+    && flask db migrate \
     && gunicorn --bind 0.0.0.0:5000 --timeout 120 'ml_enabler:create_app()'
