@@ -456,11 +456,19 @@ const Conditions = {
     HasNoSSL: cf.equals(cf.ref('SSLCertificateIdentifier'), '')
 }
 
+const Outputs = {
+    "MLEnablerELB" : {
+        "Description": "API URL",
+        "Value": cf.getAtt('MLEnablerELB', 'DNSName')
+    }
+};
+
 const ml = {
     Parameters,
     Resources,
     Mappings,
-    Conditions
+    Conditions,
+    Outputs
 };
 
 module.exports = ml;
