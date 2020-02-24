@@ -17,9 +17,9 @@ Subscribe a model with the ML Enabler. The following is an example payload.
 
 ```
 {
-	"name": "looking-glass",
-	"source": "developmentseed",
-	"dockerhubUrl": "https://hub.docker.com/r/developmentseed/looking-glass"
+    "name": "looking-glass",
+    "source": "developmentseed",
+    "dockerhubUrl": "https://hub.docker.com/r/developmentseed/looking-glass"
 }
 
 Response is the ID of the model
@@ -37,9 +37,9 @@ Modify model information. The payload looks like:
 
 ```
 {
-	"name": "non-looking-glass",
-	"source": "developmentseed",
-	"dockerhubUrl": "https://hub.docker.com/r/developmentseed/looking-glass"
+    "name": "non-looking-glass",
+    "source": "developmentseed",
+    "dockerhubUrl": "https://hub.docker.com/r/developmentseed/looking-glass"
 }
 ```
 
@@ -53,10 +53,10 @@ Create predictions of a model. The payload looks like:
 
 ```
 {
-	"modelId": 1,
-	"version": "2.0.0",
-	"bbox": [10.013795,53.5225,10.048885,53.540843],
-	"tileZoom": 18
+    "modelId": 1,
+    "version": "2.0.0",
+    "bbox": [10.013795,53.5225,10.048885,53.540843],
+    "tileZoom": 18
 }
 ```
 
@@ -81,7 +81,7 @@ Submit a JSON of tiles ideally from ml-enabler-cli. The payload looks like:
     {
     "quadkey": "120201312023333233",
     "predictions": {"ml_prediction": 65536.0},
-    "centroid": "SRID=4326;POINT (10.01266479492188 53.54030739150021)", 
+    "centroid": "SRID=4326;POINT (10.01266479492188 53.54030739150021)",
     "prediction_id": prediction_id
     }
   ]
