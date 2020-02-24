@@ -1,5 +1,4 @@
 const cf = require('@mapbox/cloudfriend');
-const tfserving = require('./tfserving');
 
 const Parameters = {
     GitSha: {
