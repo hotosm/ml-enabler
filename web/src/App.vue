@@ -9,7 +9,7 @@
                 <div class='col col--12 clearfix py6'>
                     <h2 class='fl'>Models</h2>
 
-                    <button @click='mode = "create"' class='btn fr round btn--stroke color-gray color-green-on-hover'>
+                    <button @click='mode = "model"' class='btn fr round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
                     </button>
                 </div>
@@ -27,8 +27,13 @@
                         <div :key='model.modelId' v-for='model in models' class='col col--12 py12'>
                             <div class='col col--12 grid py6 px12'>
                                 <div class='col col--6'>
-                                    <h3 class='txt-h4' v-text='model.name'></h3>
-                                    <h3 class='txt-xs' v-text='model.source'></h3>
+                                    <div class='col col--12 clearfix'>
+                                        <h3 class='txt-h4 fl' v-text='model.name'></h3>
+                                        <svg @click='editModel(model.modelId)' class='fl my6 mx6 icon cursor-pointer color-gray-light color-gray-on-hover'><use href='#icon-pencil'/></svg>
+                                    </div>
+                                    <div class='col col--12'>
+                                        <h3 class='txt-xs' v-text='model.source'></h3>
+                                    </div>
                                 </div>
                                 <div class='col col--6'>
                                     <div @click='external(model.dockerhubUrl)' class='fr bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
@@ -40,9 +45,10 @@
                     </template>
                 </div>
             </template>
-            <template v-else-if='mode === "create"'>
+            <template v-else-if='mode === "model"'>
                 <div class='col col--12 clearfix py6'>
-                    <h2 class='fl'>Add Model</h2>
+                    <h2 v-if='model.modelId' class='fl'>Modify Model</h2>
+                    <h2 v-else class='fl'>Add Model</h2>
 
                     <button @click='mode = "models"' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                         <svg class='icon'><use href='#icon-close'/></svg>
@@ -66,7 +72,8 @@
                         </div>
 
                         <div class='col col--12 py12'>
-                            <button @click='postModel' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Model</button>
+                            <button v-if='model.modelId' @click='postModel' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Model</button>
+                            <button v-else @click='postModel' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Model</button>
                         </div>
                     </div>
                 </div>
@@ -83,6 +90,7 @@ export default {
         return {
             mode: 'models',
             model: {
+                modelId: false,
                 name: '',
                 source: '',
                 dockerhubUrl: ''
@@ -92,7 +100,8 @@ export default {
     },
     watch: {
         mode: function() {
-            if (this.mode === 'create') {
+            if (this.mode === 'model') {
+                this.model.modelId = false;
                 this.model.name = '';
                 this.model.source = '';
                 this.model.dockerhubUrl = '';
@@ -108,6 +117,12 @@ export default {
 
             window.open(url, "_blank")
         },
+        editModel: function(modelId) {
+            if (!modelId) return;
+
+            this.mode = 'model';
+            this.getModel(modelId);
+        },
         getModels: function() {
             fetch('/v1/model/all', {
                 method: 'GET'
@@ -121,9 +136,18 @@ export default {
                 }
             });
         },
+        getModel: function(modelId) {
+            fetch(`/v1/model/${modelId}`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.model = res;
+            });
+        },
         postModel: function() {
-            fetch('/v1/model', {
-                method: 'POST',
+            fetch(`/v1/model${this.model.modelId ? '/' + this.model.modelId : ''}`, {
+                method: this.model.modelId ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
