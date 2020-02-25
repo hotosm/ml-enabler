@@ -152,6 +152,7 @@ export default {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    modelId: this.model.modelId ? this.model.modelId : undefined,
                     name: this.model.name,
                     source: this.model.source,
                     dockerhubUrl: this.model.dockerhubUrl
