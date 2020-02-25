@@ -24,9 +24,17 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div v-for='model in models' class='col col--12 py12'>
-                            <div class='col col--12'>
-                                <h3 v-text='model.name'></h3>
+                        <div :key='model.modelId' v-for='model in models' class='col col--12 py12'>
+                            <div class='col col--12 grid py6 px12'>
+                                <div class='col col--6'>
+                                    <h3 class='txt-h4' v-text='model.name'></h3>
+                                    <h3 class='txt-xs' v-text='model.source'></h3>
+                                </div>
+                                <div class='col col--6'>
+                                    <div @click='external(model.dockerhubUrl)' class='fr bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
+                                        Docker Image
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </template>
@@ -95,6 +103,11 @@ export default {
         this.getModels();
     },
     methods: {
+        external: function(url) {
+            if (!url) return;
+
+            window.open(url, "_blank")
+        },
         getModels: function() {
             fetch('/v1/model/all', {
                 method: 'GET'
