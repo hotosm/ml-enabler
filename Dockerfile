@@ -3,6 +3,7 @@ FROM python:3.6.3-jessie
 EXPOSE 5000
 
 ENV HOME=/home/hot
+ENV FLASK_APP=ml_enabler
 WORKDIR $HOME
 
 COPY ./ $HOME/ml-enabler
