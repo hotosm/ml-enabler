@@ -11,10 +11,7 @@ from ml_enabler.models import * # noqa
 
 def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
     # create and configure the app
-    app = Flask(
-        __name__
-        static_url_path='./web/dist'
-    )
+    app = Flask(__name__)
     app.config.from_object(app_config)
 
     db.init_app(app)
@@ -37,7 +34,6 @@ def init_routes(app):
 
     api.add_resource(StatusCheckAPI, '/')
     api.add_resource(SwaggerDocsAPI, '/v1/docs')
-    api.add_resource(AdminUI, '/admin')
     api.add_resource(GetAllModels, '/v1/model/all', methods=['GET'])
     api.add_resource(MLModelAPI, '/v1/model', endpoint="post", methods=['POST'])
     api.add_resource(MLModelAPI, '/v1/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
@@ -46,9 +42,6 @@ def init_routes(app):
     api.add_resource(PredictionTileAPI, '/v1/model/prediction/<int:prediction_id>/tiles', methods=['POST'])
     api.add_resource(MLModelTilesAPI, '/v1/model/<int:model_id>/tiles', methods=['GET'])
     api.add_resource(MLModelTilesGeojsonAPI, '/v1/model/<int:model_id>/tiles/geojson', methods=['POST'])
-
-def AdminUI(path):
-    return send_from_directory('.', path)
 
 if __name__ == '__main__':
     app = create_app()
