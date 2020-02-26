@@ -49,7 +49,7 @@
                 <EditModel :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels'/>
             </template>
             <template v-else-if='mode === "model"'>
-                <Model :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels'/>
+                <Model :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels' v-on:edit='editModel($event.modelId)'/>
             </template>
         </div>
     </div>
