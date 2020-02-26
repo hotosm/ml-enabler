@@ -229,6 +229,8 @@ class PredictionUploadAPI(Resource):
         s3 = boto3.resource('s3')
         s3.Bucket().put_object(Key='test.jpg', Body=request.stream)
 
+        return {"error": "NOT IMPLEMENTED"}, 500
+
 class PredictionAPI(Resource):
     """ Methods to manage ML predictions """
 
