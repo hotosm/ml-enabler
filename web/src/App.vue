@@ -9,7 +9,7 @@
                 <div class='col col--12 clearfix py6'>
                     <h2 class='fl cursor-default'>Models</h2>
 
-                    <button @click='mode = "model"' class='btn fr round btn--stroke color-gray color-green-on-hover'>
+                    <button @click='mode = "editmodel"' class='btn fr round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
                     </button>
                 </div>
@@ -24,19 +24,19 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div :key='model.modelId' v-for='model in models' class='col col--12 py12'>
+                        <div @click='showModel(model)' :key='model.modelId' v-for='model in models' class='cursor-pointer bg-darken10-on-hover col col--12 py12'>
                             <div class='col col--12 grid py6 px12'>
                                 <div class='col col--6'>
                                     <div class='col col--12 clearfix'>
                                         <h3 class='txt-h4 fl' v-text='model.name'></h3>
-                                        <svg @click='editModel(model.modelId)' class='fl my6 mx6 icon cursor-pointer color-gray-light color-gray-on-hover'><use href='#icon-pencil'/></svg>
+                                        <svg @click.prevent.stop='editModel(model.modelId)' class='fl my6 mx6 icon cursor-pointer color-gray-light color-gray-on-hover'><use href='#icon-pencil'/></svg>
                                     </div>
                                     <div class='col col--12'>
                                         <h3 class='txt-xs' v-text='model.source'></h3>
                                     </div>
                                 </div>
                                 <div class='col col--6'>
-                                    <div @click='external(model.projectUrl)' class='fr bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
+                                    <div @click.prevent.stop='external(model.projectUrl)' class='fr bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
                                         Project Page
                                     </div>
                                 </div>
@@ -45,40 +45,37 @@
                     </template>
                 </div>
             </template>
+            <template v-else-if='mode === "editmodel"'>
+                <EditModel :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels'/>
+            </template>
             <template v-else-if='mode === "model"'>
                 <div class='col col--12 clearfix py6'>
-                    <h2 v-if='model.modelId' class='fl'>Modify Model</h2>
-                    <h2 v-else class='fl cursor-default'>Add Model</h2>
+                    <h2 class='fl cursor-default' v-text='model.name + " - " + model.source'></h2>
 
                     <button @click='mode = "models"' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                         <svg class='icon'><use href='#icon-close'/></svg>
                     </button>
 
-                    <button v-if='model.modelId' @click='deleteModel(model.modelId)' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
-                        <svg class='icon'><use href='#icon-trash'/></svg>
+                    <button @click='external(model.projectUrl)' class='mr12 btn fr round btn--stroke color-gray color-black-on-hover'>
+                        <svg class='icon'><use href='#icon-link'/></svg>
                     </button>
 
+                    <button @click='editModel(model.modelId)' class='mr12 btn fr round btn--stroke color-gray color-black-on-hover'>
+                        <svg class='icon'><use href='#icon-pencil'/></svg>
+                    </button>
                 </div>
                 <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
                     <div class='grid grid--gut12'>
                         <div class='col col--12 py6'>
-                            <label>Model Name</label>
-                            <input v-model='model.name' class='input' placeholder='Model Name'/>
-                        </div>
+                            <template v-if='models.length === 0'>
+                                <div class='flex-parent flex-parent--center-main pt36'>
+                                    <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+                                </div>
 
-                        <div class='col col--6 py6'>
-                            <label>Model Source</label>
-                            <input v-model='model.source' class='input' placeholder='Company'/>
-                        </div>
-
-                        <div class='col col--6 py6'>
-                            <label>Project Url</label>
-                            <input v-model='model.projectUrl' class='input' placeholder='Docker Hub'/>
-                        </div>
-
-                        <div class='col col--12 py12'>
-                            <button v-if='model.modelId' @click='postModel' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Model</button>
-                            <button v-else @click='postModel' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Model</button>
+                                <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                                    <h1 class='flex-child txt-h4 cursor-default'>Create a model to get started!</h1>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -88,6 +85,8 @@
 </template>
 
 <script>
+
+import EditModel from './components/EditModel.vue';
 
 export default {
     name: 'MLEnabler',
@@ -103,9 +102,12 @@ export default {
             models: []
         }
     },
+    components: {
+        EditModel
+    },
     watch: {
         mode: function() {
-            if (this.mode === 'model') {
+            if (this.mode === 'editmodel') {
                 this.model.modelId = false;
                 this.model.name = '';
                 this.model.source = '';
@@ -122,13 +124,22 @@ export default {
 
             window.open(url, "_blank")
         },
+        showModel: function(model) {
+            this.model.modelId = model.modelId;
+            this.model.name = model.name;
+            this.model.source = model.source;
+            this.model.projectUrl = model.projectUrl;
+            this.mode = 'model'
+        },
         editModel: function(modelId) {
             if (!modelId) return;
 
-            this.mode = 'model';
+            this.mode = 'editmodel';
             this.getModel(modelId);
         },
         getModels: function() {
+            this.mode = 'models';
+
             fetch('/v1/model/all', {
                 method: 'GET'
             }).then((res) => {
@@ -148,33 +159,6 @@ export default {
                 return res.json();
             }).then((res) => {
                 this.model = res;
-            });
-        },
-        deleteModel: function(modelId) {
-            fetch(`/v1/model/${modelId}`, {
-                method: 'DELETE'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.getModels();
-                this.mode = "models";
-            });
-        },
-        postModel: function() {
-            fetch(`/v1/model${this.model.modelId ? '/' + this.model.modelId : ''}`, {
-                method: this.model.modelId ? 'PUT' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    modelId: this.model.modelId ? this.model.modelId : undefined,
-                    name: this.model.name,
-                    source: this.model.source,
-                    projectUrl: this.model.projectUrl
-                })
-            }).then(() => {
-                this.getModels();
-                this.mode = "models";
             });
         }
     }
