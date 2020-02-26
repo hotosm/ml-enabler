@@ -9,7 +9,6 @@ migrate = Migrate()
 # import models
 from ml_enabler.models import * # noqa
 
-
 def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
     # create and configure the app
     app = Flask(__name__)
@@ -43,7 +42,6 @@ def init_routes(app):
     api.add_resource(PredictionTileAPI, '/v1/model/prediction/<int:prediction_id>/tiles', methods=['POST'])
     api.add_resource(MLModelTilesAPI, '/v1/model/<int:model_id>/tiles', methods=['GET'])
     api.add_resource(MLModelTilesGeojsonAPI, '/v1/model/<int:model_id>/tiles/geojson', methods=['POST'])
-
 
 if __name__ == '__main__':
     app = create_app()

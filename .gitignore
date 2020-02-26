@@ -1,5 +1,7 @@
 venv/
 .deploy
+node_modules/
+web/dist/
 
 *.pyc
 __pycache__/
