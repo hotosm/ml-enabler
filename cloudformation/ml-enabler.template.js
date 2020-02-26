@@ -232,6 +232,9 @@ const Resources = {
                 },{
                     Name: 'ECS_LOG_LEVEL',
                     Value: 'debug'
+                },{
+                    Name: 'AssetBucket',
+                    Value: cf.ref('AssetBucket')
                 }],
                 LogConfiguration: {
                     LogDriver: 'awslogs',
@@ -264,6 +267,9 @@ const Resources = {
                 },{
                     Name: 'FLASK_APP',
                     Value: 'ml_enabler'
+                },{
+                    Name: 'AssetBucket',
+                    Value: cf.ref('AssetBucket')
                 }],
                 PortMappings: [{
                     ContainerPort: 5432
