@@ -2,12 +2,12 @@
     <div id="app" class='flex-parent flex-parent--center-main'>
         <div class='flex-child wmax600 col col--12'>
             <div class='flex-parent flex-parent--center-main py36'>
-                <h1 class='flex-child txt-h3'>ML Enabler</h1>
+                <h1 class='flex-child txt-h3 cursor-default'>ML Enabler</h1>
             </div>
 
             <template v-if='mode === "models"'>
                 <div class='col col--12 clearfix py6'>
-                    <h2 class='fl'>Models</h2>
+                    <h2 class='fl cursor-default'>Models</h2>
 
                     <button @click='mode = "model"' class='btn fr round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
@@ -20,7 +20,7 @@
                         </div>
 
                         <div class='flex-parent flex-parent--center-main pt12 pb36'>
-                            <h1 class='flex-child txt-h4'>Create a model to get started!</h1>
+                            <h1 class='flex-child txt-h4 cursor-default'>Create a model to get started!</h1>
                         </div>
                     </template>
                     <template v-else>
@@ -48,7 +48,7 @@
             <template v-else-if='mode === "model"'>
                 <div class='col col--12 clearfix py6'>
                     <h2 v-if='model.modelId' class='fl'>Modify Model</h2>
-                    <h2 v-else class='fl'>Add Model</h2>
+                    <h2 v-else class='fl cursor-default'>Add Model</h2>
 
                     <button @click='mode = "models"' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                         <svg class='icon'><use href='#icon-close'/></svg>
