@@ -25,6 +25,8 @@ class EnvironmentConfig:
                                     f'{POSTGRES_PORT}' + \
                                     f'/{POSTGRES_DB}'
 
+        SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 
 class TestConfig(EnvironmentConfig):
     TESTING = True

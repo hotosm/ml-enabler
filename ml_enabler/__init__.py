@@ -28,7 +28,7 @@ def init_routes(app):
 
     # import apis
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, \
-        PredictionAPI, PredictionTileAPI, MLModelTilesAPI, \
+        PredictionAPI, PredictionUploadAPI, PredictionTileAPI, MLModelTilesAPI, \
         MLModelTilesGeojsonAPI, GetAllPredictions
     from ml_enabler.api.swagger import SwaggerDocsAPI
 
