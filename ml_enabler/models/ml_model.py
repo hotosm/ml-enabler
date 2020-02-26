@@ -59,7 +59,7 @@ class Prediction(db.Model):
     version_id = db.Column(db.Integer, db.ForeignKey(
                           'ml_model_versions.id', name='ml_model_versions_fk'),
                           nullable=False)
-    dockerhub_hash = db.Column(db.String)
+    docker_url = db.Column(db.String)
     bbox = db.Column(Geometry('POLYGON', srid=4326))
     tile_zoom = db.Column(db.Integer, nullable=False)
 
@@ -68,7 +68,7 @@ class Prediction(db.Model):
 
         self.model_id = prediction_dto.model_id
         self.version_id = prediction_dto.version_id
-        self.dockerhub_hash = prediction_dto.dockerhub_hash
+        self.docker_url = prediction_dto.docker_url
         self.bbox = ST_GeomFromText(bbox_to_polygon_wkt(prediction_dto.bbox), 4326)
         self.tile_zoom = prediction_dto.tile_zoom
 
@@ -86,7 +86,7 @@ class Prediction(db.Model):
         :param prediction_id
         :return prediction if found otherwise None
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash,
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url,
                                  ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
                                  Prediction.version_id).filter(Prediction.id == prediction_id)
         return query.one()
@@ -98,7 +98,7 @@ class Prediction(db.Model):
         :param model_id: ml model ID in scope
         :return predictions if found otherwise None
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash,
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url,
                                  ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
                                  Prediction.version_id).filter(Prediction.model_id == model_id)
         return query.all()
@@ -113,7 +113,7 @@ class Prediction(db.Model):
         :return list of predictions
         """
 
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
                                  Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(
                                      Prediction.version_id == version_id).filter(ST_Intersects(
                                          Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(
@@ -128,7 +128,7 @@ class Prediction(db.Model):
         :param model_id, bbox
         :return list of predictions
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.dockerhub_hash, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
                                  Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(
                                      Prediction.model_id == model_id).filter(
                                          ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
@@ -150,7 +150,7 @@ class Prediction(db.Model):
 
         prediction_dto.prediction_id = prediction[0]
         prediction_dto.created = prediction[1]
-        prediction_dto.dockerhub_hash = prediction[2]
+        prediction_dto.docker_url = prediction[2]
         prediction_dto.bbox = geojson_to_bbox(prediction[3])
         prediction_dto.model_id = prediction[4]
         prediction_dto.tile_zoom = prediction[5]
@@ -168,7 +168,7 @@ class MLModel(db.Model):
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     name = db.Column(db.String, unique=True)
     source = db.Column(db.String)
-    dockerhub_url = db.Column(db.String)
+    project_url = db.Column(db.String)
     predictions = db.relationship(Prediction, backref='ml_models',
                                   cascade='all, delete-orphan', lazy='dynamic')
 
@@ -177,7 +177,7 @@ class MLModel(db.Model):
 
         self.name = ml_model_dto.name
         self.source = ml_model_dto.source
-        self.dockerhub_url = ml_model_dto.dockerhub_url
+        self.project_url = ml_model_dto.project_url
 
         db.session.add(self)
         db.session.commit()
@@ -217,7 +217,7 @@ class MLModel(db.Model):
         model_dto.name = self.name
         model_dto.created = self.created
         model_dto.source = self.source
-        model_dto.dockerhub_url = self.dockerhub_url
+        model_dto.project_url = self.project_url
 
         return model_dto
 
@@ -226,7 +226,7 @@ class MLModel(db.Model):
         self.id = updated_ml_model_dto.model_id
         self.name = updated_ml_model_dto.name
         self.source = updated_ml_model_dto.source
-        self.dockerhub_url = updated_ml_model_dto.dockerhub_url
+        self.project_url = updated_ml_model_dto.project_url
 
         db.session.commit()
 

@@ -5,6 +5,10 @@ const Parameters = {
         Type: 'String',
         Description: 'Gitsha to Deploy'
     },
+    AssetBucket: {
+        Type: 'String',
+        Description: 'Bucket in which models can be stored'
+    },
     ContainerCpu: {
         Description: 'How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations',
         Default: 1024,
@@ -165,6 +169,18 @@ const Resources = {
                             "logs:DescribeLogStreams"
                         ],
                         "Resource": [ "arn:aws:logs:*:*:*" ]
+                    },{
+                        "Effect": "Allow",
+                        "Action": [
+                            "s3:GetObject",
+                            "s3:DeleteObject",
+                            "s3:AbortMultipartUpload",
+                            "s3:GetObjectAcl",
+                            "s3:ListMultipartUploadParts",
+                            "s3:PutObject",
+                            "s3:PutObjectAcl"
+                        ],
+                        "Resource": [ cf.join(['arn:aws:s3:::', cf.ref('AssetBucket'), '/*']) ]
                     }]
                 }
             }],

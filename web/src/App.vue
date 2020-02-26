@@ -36,8 +36,8 @@
                                     </div>
                                 </div>
                                 <div class='col col--6'>
-                                    <div @click='external(model.dockerhubUrl)' class='fr bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
-                                        Docker Image
+                                    <div @click='external(model.projectUrl)' class='fr bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
+                                        Project Page
                                     </div>
                                 </div>
                             </div>
@@ -53,6 +53,11 @@
                     <button @click='mode = "models"' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                         <svg class='icon'><use href='#icon-close'/></svg>
                     </button>
+
+                    <button v-if='model.modelId' @click='deleteModel(model.modelId)' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
+                        <svg class='icon'><use href='#icon-trash'/></svg>
+                    </button>
+
                 </div>
                 <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
                     <div class='grid grid--gut12'>
@@ -67,8 +72,8 @@
                         </div>
 
                         <div class='col col--6 py6'>
-                            <label>Model Location</label>
-                            <input v-model='model.dockerhubUrl' class='input' placeholder='Docker Hub'/>
+                            <label>Project Url</label>
+                            <input v-model='model.projectUrl' class='input' placeholder='Docker Hub'/>
                         </div>
 
                         <div class='col col--12 py12'>
@@ -93,7 +98,7 @@ export default {
                 modelId: false,
                 name: '',
                 source: '',
-                dockerhubUrl: ''
+                projectUrl: ''
             },
             models: []
         }
@@ -104,7 +109,7 @@ export default {
                 this.model.modelId = false;
                 this.model.name = '';
                 this.model.source = '';
-                this.model.dockerhubUrl = '';
+                this.model.projectUrl = '';
             }
         }
     },
@@ -145,6 +150,16 @@ export default {
                 this.model = res;
             });
         },
+        deleteModel: function(modelId) {
+            fetch(`/v1/model/${modelId}`, {
+                method: 'DELETE'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.getModels();
+                this.mode = "models";
+            });
+        },
         postModel: function() {
             fetch(`/v1/model${this.model.modelId ? '/' + this.model.modelId : ''}`, {
                 method: this.model.modelId ? 'PUT' : 'POST',
@@ -155,7 +170,7 @@ export default {
                     modelId: this.model.modelId ? this.model.modelId : undefined,
                     name: this.model.name,
                     source: this.model.source,
-                    dockerhubUrl: this.model.dockerhubUrl
+                    projectUrl: this.model.projectUrl
                 })
             }).then(() => {
                 this.getModels();

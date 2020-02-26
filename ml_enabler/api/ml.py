@@ -47,12 +47,9 @@ class MLModelAPI(Resource):
                     source:
                         type: string
                         description: source of the ML model
-                    dockerhub_hash:
+                    project_url:
                         type: string
-                        description: dockerhub hash
-                    dockerhub_url:
-                        type: string
-                        description: dockerhub url
+                        description: URL to project page
         responses:
             200:
                 description: ML Model subscribed
@@ -159,12 +156,9 @@ class MLModelAPI(Resource):
                     source:
                         type: string
                         description: source of the ML model
-                    dockerhub_hash:
+                    project_url:
                         type: string
-                        description: dockerhub hash
-                    dockerhub_url:
-                        type: string
-                        description: dockerhub url
+                        description: URL to project page
         responses:
             200:
                 description: Updated model information
@@ -239,9 +233,9 @@ class PredictionAPI(Resource):
                         type: string
                         description: semver version of the Model
                         required: true
-                    dockerhub_hash:
+                    docker_url:
                         type: string
-                        description: dockerhub hash
+                        description: URL to docker image
                         required: false
                     bbox:
                         type: array of floats
