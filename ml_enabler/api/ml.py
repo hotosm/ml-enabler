@@ -8,7 +8,7 @@ from ml_enabler.models.utils import NotFound, VersionNotFound, \
 from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson
 from sqlalchemy.exc import IntegrityError
 import geojson
-
+import boto3
 
 class StatusCheckAPI(Resource):
     """
@@ -207,6 +207,27 @@ class GetAllModels(Resource):
             current_app.logger.error(error_msg)
             return {"error": error_msg}
 
+class PredictionUploadAPI(Resource):
+    """ Upload raw ML Models to the platform """
+
+    def post(self, model_id, prediction_id):
+        """
+        Attach a raw model to a given predition
+        ---
+        produces:
+            - application/json
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+
+        print(self);
+        s3 = boto3.resource('s3')
+        s3.Bucket().put_object(Key='test.jpg', Body=request.stream)
 
 class PredictionAPI(Resource):
     """ Methods to manage ML predictions """

@@ -233,7 +233,7 @@ const Resources = {
                     Name: 'ECS_LOG_LEVEL',
                     Value: 'debug'
                 },{
-                    Name: 'AssetBucket',
+                    Name: 'ASSET_BUCKET',
                     Value: cf.ref('AssetBucket')
                 }],
                 LogConfiguration: {
