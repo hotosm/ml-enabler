@@ -63,7 +63,7 @@ export default {
             });
         },
         deleteModel: function() {
-            fetch(`/v1/model/${modelId}`, {
+            fetch(`/v1/model/${this.model.modelId}`, {
                 method: 'DELETE'
             }).then((res) => {
                 return res.json();
