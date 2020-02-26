@@ -20,7 +20,7 @@
                 </div>
 
                 <div class='col col--12 py12'>
-                    <button v-if='prediction.modelId' @click='postPrediction' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Prediction</button>
+                    <button v-if='prediction.predictionsId' @click='postPrediction' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Prediction</button>
                     <button v-else @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
                 </div>
             </div>
@@ -45,7 +45,8 @@ export default {
                 body: JSON.stringify({
                     modelId: this.prediction.modelId,
                     version: this.prediction.version,
-                    tileZoom: this.prediction.tileZoom
+                    tileZoom: this.prediction.tileZoom,
+                    bbox: this.prediction.bbox
                 })
             }).then(() => {
                 this.close();

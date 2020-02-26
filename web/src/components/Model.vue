@@ -37,6 +37,20 @@
                             </div>
                         </div>
                     </template>
+                    <template v-else>
+                        <div :key='pred.predictionsId' v-for='pred in predictions' class='cursor-default col col--12'>
+                            <div class='col col--12 grid py6 px12 bg-darken10-on-hover'>
+                                <div class='col col--6'>
+                                    <div class='col col--12 clearfix'>
+                                        <h3 class='txt-h4 fl' v-text='pred.versionString'></h3>
+                                    </div>
+                                </div>
+                                <div class='col col--6'>
+                                </div>
+                            </div>
+                        </div>
+
+                    </template>
                 </div>
             </template>
             <template v-else-if='mode="editprediction"'>
@@ -59,7 +73,8 @@ export default {
             prediction: {
                 modelId: this.model.modelId,
                 version: '',
-                tileZoom: 18
+                tileZoom: 18,
+                bbox: [-180.0, -90.0, 180.0, 90.0]
             }
         }
     },
@@ -69,6 +84,7 @@ export default {
                 this.prediction.modelId = this.model.modelId;
                 this.prediction.version = '';
                 this.prediction.tileZoom = 18;
+                this.prediction.bbox = [-180.0, -90.0, 180.0, 90.0];
             }
         }
     },
