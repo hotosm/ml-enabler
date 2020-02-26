@@ -11,20 +11,30 @@ See documentation
 ## GET v1/model/all
 Get all models
 
+```JSON
+[{
+    "modelId": 1,
+    "created": "2020-02-26T16:20:36.122811",
+    "name": "looking-glass",
+    "source": "developmentseed",
+    "projectUrl": "https://hub.docker.com/r/developmentseed/looking-glass"
+}]
+```
+
 ## POST v1/model
 
 Subscribe a model with the ML Enabler. The following is an example payload.
 
-```
+```JSON
 {
     "name": "looking-glass",
     "source": "developmentseed",
-    "dockerhubUrl": "https://hub.docker.com/r/developmentseed/looking-glass"
+    "projectUrl": "https://hub.docker.com/r/developmentseed/looking-glass"
 }
+```
 
 Response is the ID of the model
 
-```
 
 ## GET v1/model/<int:model_id>
 
@@ -35,11 +45,11 @@ Fetch information about a model with the `id`
 
 Modify model information. The payload looks like:
 
-```
+```JSON
 {
     "name": "non-looking-glass",
     "source": "developmentseed",
-    "dockerhubUrl": "https://hub.docker.com/r/developmentseed/looking-glass"
+    "projectUrl": "https://hub.docker.com/r/developmentseed/looking-glass"
 }
 ```
 
@@ -51,7 +61,7 @@ Delete the model
 
 Create predictions of a model. The payload looks like:
 
-```
+```JSON
 {
     "modelId": 1,
     "version": "2.0.0",
@@ -74,7 +84,7 @@ Fetch predictions of a model within the supplied bbox. For example, `model/1/pre
 
 Submit a JSON of tiles ideally from ml-enabler-cli. The payload looks like:
 
-```
+```JSON
 {
   "predictionId": prediction_id,
   "predictions": [
@@ -95,7 +105,7 @@ Fetch prediction tiles for the model within the give bbox. The aggregation is de
 
 The response looks like:
 
-```
+```JSON
 {
     "8": [
         {
@@ -144,7 +154,7 @@ For a GeoJSON feature collection of polygons, get predictions for each polygon f
 
 Example payload is:
 
-```
+```JSON
 {
   "type": "FeatureCollection",
   "features": [
