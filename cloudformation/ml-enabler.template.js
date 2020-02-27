@@ -233,6 +233,9 @@ const Resources = {
                     Name: 'ECS_LOG_LEVEL',
                     Value: 'debug'
                 },{
+                    Name: 'STACK',
+                    Value: cf.stackName
+                },{
                     Name: 'ASSET_BUCKET',
                     Value: cf.ref('AssetBucket')
                 }],

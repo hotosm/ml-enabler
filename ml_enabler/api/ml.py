@@ -1,3 +1,4 @@
+import ml_enabler.config as CONFIG
 from flask_restful import Resource, request, current_app
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO
 from schematics.exceptions import DataError
@@ -9,6 +10,7 @@ from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list,
 from sqlalchemy.exc import IntegrityError
 import geojson
 import boto3
+import os
 
 class StatusCheckAPI(Resource):
     """
@@ -225,11 +227,24 @@ class PredictionUploadAPI(Resource):
                 description: Internal Server Error
         """
 
-        print(self);
-        s3 = boto3.resource('s3')
-        s3.Bucket().put_object(Key='test.jpg', Body=request.stream)
+        if CONFIG.EnvironmentConfig.ASSET_BUCKET is None:
+            return {"error": "Not Configured"}, 501
 
-        return {"error": "NOT IMPLEMENTED"}, 500
+        key = "{0}/model/{1}/model.zip".format(
+            CONFIG.EnvironmentConfig.STACK,
+            model_id
+        )
+
+        s3 = boto3.resource('s3')
+
+        s3.Bucket(CONFIG.EnvironmentConfig.ASSET_BUCKET).put_object(
+            Key=key,
+            Body=request.files['file'].stream
+        )
+
+        return { "status": "model uploaded" }, 200
+
+
 
 class PredictionAPI(Resource):
     """ Methods to manage ML predictions """

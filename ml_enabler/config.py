@@ -15,6 +15,7 @@ class EnvironmentConfig:
     POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')
 
     ASSET_BUCKET=os.getenv('ASSET_BUCKET', None)
+    STACK=os.getenv('STACK', 'ml-enabler')
 
     if os.getenv('MLENABLER_DB', False):
         SQLALCHEMY_DATABASE_URI = os.getenv('MLENABLER_DB', None)
