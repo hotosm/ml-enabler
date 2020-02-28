@@ -235,14 +235,21 @@ class PredictionUploadAPI(Resource):
             model_id
         )
 
-        s3 = boto3.resource('s3')
+        try:
+            boto3.client('s3').head_object(
+                Bucket=CONFIG.EnvironmentConfig.ASSET_BUCKET,
+                Key=key
+            )
+        except:
+            boto3.resource('s3').Bucket(CONFIG.EnvironmentConfig.ASSET_BUCKET).put_object(
+                Key=key,
+                Body=request.files['file'].stream
+            )
 
-        s3.Bucket(CONFIG.EnvironmentConfig.ASSET_BUCKET).put_object(
-            Key=key,
-            Body=request.files['file'].stream
-        )
+            return { "status": "model uploaded" }, 200
+        else:
+            return { "error": "model exists" }, 400
 
-        return { "status": "model uploaded" }, 200
 
 
 
