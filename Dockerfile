@@ -32,4 +32,5 @@ CMD service nginx restart \
     && echo "CREATE DATABASE ${POSTGRES_DB}" | psql postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ENDPOINT}:${POSTGRES_PORT} || true \
     && echo "CREATE EXTENSION POSTGIS" | psql postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_ENDPOINT}:${POSTGRES_PORT}/${POSTGRES_DB} || true \
     && flask db migrate \
+    && flask db upgrade \
     && gunicorn --bind 0.0.0.0:4000 --timeout 120 'ml_enabler:create_app()'
