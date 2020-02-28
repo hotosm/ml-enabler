@@ -70,6 +70,10 @@ Create predictions of a model. The payload looks like:
 }
 ```
 
+## POST v1/model/<int:model_id>/prediction/<int:prediction_id>/upload
+
+Upload a zipped TF compatible model to the service via a multipart upload
+
 ## GET v1/model/<int:model_id>/prediction/all
 
 Fetch all predictions of the given model. The response is an array of prediction objects.
