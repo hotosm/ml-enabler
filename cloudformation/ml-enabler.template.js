@@ -318,6 +318,11 @@ const Resources = {
                 IpProtocol: 'tcp',
                 FromPort: 5000,
                 ToPort: 5000
+            },{
+                CidrIp: '0.0.0.0/0',
+                IpProtocol: 'tcp',
+                FromPort: 22,
+                ToPort: 22
             }],
             SecurityGroupEgress: [{
                 CidrIp: '0.0.0.0/0',
@@ -442,7 +447,8 @@ const Resources = {
             StorageType: 'gp2',
             DBInstanceClass: cf.ref('DatabaseType'),
             DBSecurityGroups: [ cf.ref('MLEnablerRDSSecurityGroup') ],
-            DBSubnetGroupName: cf.ref('MLEnablerRDSSubnet')
+            DBSubnetGroupName: cf.ref('MLEnablerRDSSubnet'),
+            PubliclyAccessible: true
         }
     },
     MLEnablerRDSSubnet: {
