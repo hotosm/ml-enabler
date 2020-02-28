@@ -9,7 +9,10 @@
   },
   "dependencies": {
     "core-js": "^3.6.4",
-    "vue": "^2.6.11"
+    "filepond": "^4.11.0",
+    "filepond-plugin-file-validate-type": "^1.2.4",
+    "vue": "^2.6.11",
+    "vue-filepond": "^6.0.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.2.0",

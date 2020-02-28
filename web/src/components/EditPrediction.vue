@@ -9,29 +9,69 @@
         </div>
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
             <div class='grid grid--gut12'>
-                <div class='col col--6 py6'>
-                    <label>Prediction Version</label>
-                    <input v-model='prediction.version' class='input' placeholder='0.0.0'/>
-                </div>
+                <template v-if='!predictionId'>
+                    <div class='col col--6 py6'>
+                        <label>Prediction Version</label>
+                        <input v-model='prediction.version' class='input' placeholder='0.0.0'/>
+                    </div>
 
-                <div class='col col--6 py6'>
-                    <label>Prediction Zoom Level</label>
-                    <input v-model='prediction.tileZoom' class='input' placeholder='18'/>
-                </div>
+                    <div class='col col--6 py6'>
+                        <label>Prediction Zoom Level</label>
+                        <input v-model='prediction.tileZoom' class='input' placeholder='18'/>
+                    </div>
 
-                <div class='col col--12 py12'>
-                    <button v-if='prediction.predictionsId' @click='postPrediction' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Prediction</button>
-                    <button v-else @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
-                </div>
+                    <div class='col col--12 py12'>
+                        <button v-if='prediction.predictionsId' @click='postPrediction' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Prediction</button>
+                        <button v-else @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class='col col--12'>
+                        <file-pond
+                            name='model-upload'
+                            ref='pond'
+                            label-idle='Drop model.zip here'
+                            v-bind:allow-multiple='false'
+                            accepted-file-types='application/zip'
+                            allowRevert='false'
+                            :server='`/v1/model/${prediction.modelId}/prediction/${predictionId}/upload`'
+                            v-bind:files='files'
+                        />
+                    </div>
+
+                    <div class='col col--12 py12'>
+                        <button @click='close' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Done</button>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
+
 </template>
 
 <script>
+import vueFilePond from 'vue-filepond';
+import 'filepond/dist/filepond.min.css';
+import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
+const FilePond = vueFilePond(FilePondPluginFileValidateType);
+
 export default {
     name: 'EditPrediction',
     props: ['prediction'],
+    components: {
+        FilePond
+    },
+    data: function() {
+        return {
+            predictionId: false,
+            upload: false,
+            files: []
+        };
+    },
+    watch: {
+        predictionId: function() {
+        }
+    },
     methods: {
         close: function() {
             this.$emit('close');
@@ -48,8 +88,12 @@ export default {
                     tileZoom: this.prediction.tileZoom,
                     bbox: this.prediction.bbox
                 })
-            }).then(() => {
-                this.close();
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.predictionId = res.prediction_id;
+            }).catch((err) => {
+                alert(err);
             });
         }
     }

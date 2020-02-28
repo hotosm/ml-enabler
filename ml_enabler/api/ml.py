@@ -230,9 +230,10 @@ class PredictionUploadAPI(Resource):
         if CONFIG.EnvironmentConfig.ASSET_BUCKET is None:
             return {"error": "Not Configured"}, 501
 
-        key = "{0}/model/{1}/model.zip".format(
+        key = "{0}/model/{1}/prediction/{2}/model.zip".format(
             CONFIG.EnvironmentConfig.STACK,
-            model_id
+            model_id,
+            prediction_id
         )
 
         try:
@@ -241,9 +242,15 @@ class PredictionUploadAPI(Resource):
                 Key=key
             )
         except:
+            files = list(request.files.keys())
+            if len(files) == 0:
+                return {"error": "Model not found in request"}, 400
+
+            model = request.files[files[0]]
+
             boto3.resource('s3').Bucket(CONFIG.EnvironmentConfig.ASSET_BUCKET).put_object(
                 Key=key,
-                Body=request.files['file'].stream
+                Body=model.stream
             )
 
             return { "status": "model uploaded" }, 200
