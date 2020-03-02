@@ -112,7 +112,7 @@ const stack = {
                 },
                 Parameters: { },
                 ContainerProperties: {
-                    Command: ['./task.py'],
+                    Command: ['./task.js'],
                     Environment: [{
                         Name: 'StackName' ,
                         Value: cf.stackName
@@ -122,7 +122,7 @@ const stack = {
                     JobRoleArn: cf.getAtt('BatchJobRole', 'Arn'),
                     ReadonlyRootFilesystem: false,
                     Vcpus: 2,
-                    Image: cf.join([cf.ref('AWS::AccountId'), '.dkr.ecr.', cf.ref('AWS::Region'), '.amazonaws.com/ml-enabler:batch-', cf.ref('GitSha')])
+                    Image: cf.join([cf.ref('AWS::AccountId'), '.dkr.ecr.', cf.ref('AWS::Region'), '.amazonaws.com/ml-enabler:task-', cf.ref('GitSha')])
                 }
             }
         },
