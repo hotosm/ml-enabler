@@ -144,7 +144,7 @@ const Resources = {
             ClusterName: cf.join('-', [cf.stackName, 'cluster'])
         }
     },
-    MLEnablerTaskRole: {
+    MLEnablerExecRole: {
         'Type': 'AWS::IAM::Role',
         'Properties': {
             'AssumeRolePolicyDocument': {
@@ -169,7 +169,34 @@ const Resources = {
                             "logs:DescribeLogStreams"
                         ],
                         "Resource": [ "arn:aws:logs:*:*:*" ]
-                    },{
+                    }]
+                }
+            }],
+            'ManagedPolicyArns': [
+                'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
+                'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role',
+                'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly'
+            ],
+            'Path': '/service-role/'
+        }
+    },
+    MLEnablerTaskRole: {
+        'Type': 'AWS::IAM::Role',
+        'Properties': {
+            'AssumeRolePolicyDocument': {
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Effect': 'Allow',
+                    Principal: {
+                        'Service': 'ecs-tasks.amazonaws.com'
+                    },
+                    'Action': 'sts:AssumeRole'
+                }]
+            },
+            Policies: [{
+                PolicyName: 'ml-enabler-logging',
+                PolicyDocument: {
+                    "Statement": [{
                         "Effect": "Allow",
                         "Action": [
                             "s3:GetObject",
@@ -184,11 +211,6 @@ const Resources = {
                     }]
                 }
             }],
-            'ManagedPolicyArns': [
-                'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
-                'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role',
-                'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly'
-            ],
             'Path': '/service-role/'
         }
     },
@@ -204,7 +226,8 @@ const Resources = {
                 Key: 'Name',
                 Value: cf.stackName
             }],
-            ExecutionRoleArn: cf.getAtt('MLEnablerTaskRole', 'Arn'),
+            TaskRoleArn: cf.getAtt('MLEnablerTaskRole', 'Arn'),
+            ExecutionRoleArn: cf.getAtt('MLEnablerExecRole', 'Arn'),
             ContainerDefinitions: [{
                 Name: 'app',
                 Image: cf.join([cf.accountId, '.dkr.ecr.', cf.region, '.amazonaws.com/ml-enabler:', cf.ref('GitSha')]),
