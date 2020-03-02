@@ -230,8 +230,7 @@ class PredictionUploadAPI(Resource):
         if CONFIG.EnvironmentConfig.ASSET_BUCKET is None:
             return {"error": "Not Configured"}, 501
 
-        key = "{0}/model/{1}/prediction/{2}/model.zip".format(
-            CONFIG.EnvironmentConfig.STACK,
+        key = "models/{1}/prediction/{2}/model.zip".format(
             model_id,
             prediction_id
         )
