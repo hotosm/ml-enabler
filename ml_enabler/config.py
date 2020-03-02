@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 
-
 class EnvironmentConfig:
     """ Base configuration class """
 
@@ -15,6 +14,9 @@ class EnvironmentConfig:
     POSTGRES_DB = os.getenv('POSTGRES_DB', None)
     POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')
 
+    ASSET_BUCKET=os.getenv('ASSET_BUCKET', None)
+    STACK=os.getenv('STACK', 'ml-enabler')
+
     if os.getenv('MLENABLER_DB', False):
         SQLALCHEMY_DATABASE_URI = os.getenv('MLENABLER_DB', None)
     else:
@@ -23,6 +25,8 @@ class EnvironmentConfig:
                                     f'@{POSTGRES_ENDPOINT}:' + \
                                     f'{POSTGRES_PORT}' + \
                                     f'/{POSTGRES_DB}'
+
+        SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 class TestConfig(EnvironmentConfig):

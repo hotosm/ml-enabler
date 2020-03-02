@@ -5,6 +5,10 @@ const Parameters = {
         Type: 'String',
         Description: 'Gitsha to Deploy'
     },
+    AssetBucket: {
+        Type: 'String',
+        Description: 'Bucket in which models can be stored'
+    },
     ContainerCpu: {
         Description: 'How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations',
         Default: 1024,
@@ -140,7 +144,7 @@ const Resources = {
             ClusterName: cf.join('-', [cf.stackName, 'cluster'])
         }
     },
-    MLEnablerTaskRole: {
+    MLEnablerExecRole: {
         'Type': 'AWS::IAM::Role',
         'Properties': {
             'AssumeRolePolicyDocument': {
@@ -176,6 +180,40 @@ const Resources = {
             'Path': '/service-role/'
         }
     },
+    MLEnablerTaskRole: {
+        'Type': 'AWS::IAM::Role',
+        'Properties': {
+            'AssumeRolePolicyDocument': {
+                'Version': '2012-10-17',
+                'Statement': [{
+                    'Effect': 'Allow',
+                    Principal: {
+                        'Service': 'ecs-tasks.amazonaws.com'
+                    },
+                    'Action': 'sts:AssumeRole'
+                }]
+            },
+            Policies: [{
+                PolicyName: 'ml-enabler-logging',
+                PolicyDocument: {
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Action": [
+                            "s3:GetObject",
+                            "s3:DeleteObject",
+                            "s3:AbortMultipartUpload",
+                            "s3:GetObjectAcl",
+                            "s3:ListMultipartUploadParts",
+                            "s3:PutObject",
+                            "s3:PutObjectAcl"
+                        ],
+                        "Resource": [ cf.join(['arn:aws:s3:::', cf.ref('AssetBucket'), '/*']) ]
+                    }]
+                }
+            }],
+            'Path': '/service-role/'
+        }
+    },
     MLEnablerTaskDefinition: {
         Type: 'AWS::ECS::TaskDefinition',
         Properties: {
@@ -188,7 +226,8 @@ const Resources = {
                 Key: 'Name',
                 Value: cf.stackName
             }],
-            ExecutionRoleArn: cf.getAtt('MLEnablerTaskRole', 'Arn'),
+            TaskRoleArn: cf.getAtt('MLEnablerTaskRole', 'Arn'),
+            ExecutionRoleArn: cf.getAtt('MLEnablerExecRole', 'Arn'),
             ContainerDefinitions: [{
                 Name: 'app',
                 Image: cf.join([cf.accountId, '.dkr.ecr.', cf.region, '.amazonaws.com/ml-enabler:', cf.ref('GitSha')]),
@@ -216,6 +255,12 @@ const Resources = {
                 },{
                     Name: 'ECS_LOG_LEVEL',
                     Value: 'debug'
+                },{
+                    Name: 'STACK',
+                    Value: cf.stackName
+                },{
+                    Name: 'ASSET_BUCKET',
+                    Value: cf.ref('AssetBucket')
                 }],
                 LogConfiguration: {
                     LogDriver: 'awslogs',
@@ -248,6 +293,9 @@ const Resources = {
                 },{
                     Name: 'FLASK_APP',
                     Value: 'ml_enabler'
+                },{
+                    Name: 'AssetBucket',
+                    Value: cf.ref('AssetBucket')
                 }],
                 PortMappings: [{
                     ContainerPort: 5432
@@ -293,6 +341,11 @@ const Resources = {
                 IpProtocol: 'tcp',
                 FromPort: 5000,
                 ToPort: 5000
+            },{
+                CidrIp: '0.0.0.0/0',
+                IpProtocol: 'tcp',
+                FromPort: 22,
+                ToPort: 22
             }],
             SecurityGroupEgress: [{
                 CidrIp: '0.0.0.0/0',
@@ -417,7 +470,8 @@ const Resources = {
             StorageType: 'gp2',
             DBInstanceClass: cf.ref('DatabaseType'),
             DBSecurityGroups: [ cf.ref('MLEnablerRDSSecurityGroup') ],
-            DBSubnetGroupName: cf.ref('MLEnablerRDSSubnet')
+            DBSubnetGroupName: cf.ref('MLEnablerRDSSubnet'),
+            PubliclyAccessible: true
         }
     },
     MLEnablerRDSSubnet: {

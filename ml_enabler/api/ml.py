@@ -1,3 +1,4 @@
+import ml_enabler.config as CONFIG
 from flask_restful import Resource, request, current_app
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO
 from schematics.exceptions import DataError
@@ -8,7 +9,8 @@ from ml_enabler.models.utils import NotFound, VersionNotFound, \
 from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson
 from sqlalchemy.exc import IntegrityError
 import geojson
-
+import boto3
+import os
 
 class StatusCheckAPI(Resource):
     """
@@ -47,12 +49,9 @@ class MLModelAPI(Resource):
                     source:
                         type: string
                         description: source of the ML model
-                    dockerhub_hash:
+                    project_url:
                         type: string
-                        description: dockerhub hash
-                    dockerhub_url:
-                        type: string
-                        description: dockerhub url
+                        description: URL to project page
         responses:
             200:
                 description: ML Model subscribed
@@ -159,12 +158,9 @@ class MLModelAPI(Resource):
                     source:
                         type: string
                         description: source of the ML model
-                    dockerhub_hash:
+                    project_url:
                         type: string
-                        description: dockerhub hash
-                    dockerhub_url:
-                        type: string
-                        description: dockerhub url
+                        description: URL to project page
         responses:
             200:
                 description: Updated model information
@@ -213,6 +209,56 @@ class GetAllModels(Resource):
             current_app.logger.error(error_msg)
             return {"error": error_msg}
 
+class PredictionUploadAPI(Resource):
+    """ Upload raw ML Models to the platform """
+
+    def post(self, model_id, prediction_id):
+        """
+        Attach a raw model to a given predition
+        ---
+        produces:
+            - application/json
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+
+        if CONFIG.EnvironmentConfig.ASSET_BUCKET is None:
+            return {"error": "Not Configured"}, 501
+
+        key = "{0}/model/{1}/prediction/{2}/model.zip".format(
+            CONFIG.EnvironmentConfig.STACK,
+            model_id,
+            prediction_id
+        )
+
+        try:
+            boto3.client('s3').head_object(
+                Bucket=CONFIG.EnvironmentConfig.ASSET_BUCKET,
+                Key=key
+            )
+        except:
+            files = list(request.files.keys())
+            if len(files) == 0:
+                return {"error": "Model not found in request"}, 400
+
+            model = request.files[files[0]]
+
+            boto3.resource('s3').Bucket(CONFIG.EnvironmentConfig.ASSET_BUCKET).put_object(
+                Key=key,
+                Body=model.stream
+            )
+
+            return { "status": "model uploaded" }, 200
+        else:
+            return { "error": "model exists" }, 400
+
+
+
 
 class PredictionAPI(Resource):
     """ Methods to manage ML predictions """
@@ -239,9 +285,9 @@ class PredictionAPI(Resource):
                         type: string
                         description: semver version of the Model
                         required: true
-                    dockerhub_hash:
+                    docker_url:
                         type: string
-                        description: dockerhub hash
+                        description: URL to docker image
                         required: false
                     bbox:
                         type: array of floats

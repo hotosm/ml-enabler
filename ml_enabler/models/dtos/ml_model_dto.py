@@ -9,7 +9,7 @@ class MLModelDTO(Model):
     created = DateTimeType()
     name = StringType(required=True)
     source = StringType(required=True)
-    dockerhub_url = StringType(serialized_name='dockerhubUrl')
+    project_url = StringType(serialized_name='projectUrl')
 
 
 class PredictionDTO(Model):
@@ -20,7 +20,7 @@ class PredictionDTO(Model):
     model_id = IntType(serialized_name='modelId', required=True)
     version_id = IntType(serialized_name='versionId', required=True)
     version_string = StringType(serialized_name='versionString')
-    dockerhub_hash = StringType(serialized_name='dockerhubHash')
+    docker_url = StringType(serialized_name='dockerUrl')
     bbox = ListType(FloatType, required=True)
     tile_zoom = IntType(serialized_name='tileZoom', required=True)
 
