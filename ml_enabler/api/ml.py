@@ -252,6 +252,24 @@ class PredictionUploadAPI(Resource):
                 Body=model.stream
             )
 
+            batch = boto3.client(
+                service_name='batch',
+                region_name='us-east-1',
+                endpoint_url='https://batch.us-east-1.amazonaws.com'
+            )
+
+            batch.submit_job(
+                jobName=CONFIG.EnvironmentConfig.STACK + 'ecr-build',
+                jobQueue=CONFIG.EnvironmentConfig.STACK + '-queue',
+                jobDefinition=CONFIG.EnvironmentConfig.STACK + '-job',
+                containerOverrides={
+                    'environment': [{
+                        'name': 'MODEL',
+                        'value': CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
+                    }]
+                }
+            )
+
             return { "status": "model uploaded" }, 200
         else:
             return { "error": "model exists" }, 400

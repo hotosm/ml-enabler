@@ -1,4 +1,5 @@
 const cf = require('@mapbox/cloudfriend');
+const batch = require('./batch');
 
 const Parameters = {
     GitSha: {
@@ -199,6 +200,14 @@ const Resources = {
                 PolicyName: 'ml-enabler-logging',
                 PolicyDocument: {
                     Statement: [{
+                        Effect: 'Allow',
+                        Action: [
+                            'batch:SubmitJob',
+                            'batch:ListJobs',
+                            'batch:DescribeJobs'
+                        ],
+                        Resource: [ cf.join(['arn:aws:batch:', cf.region, ':', cf.accountId, ':*']) ]
+                    },{
                         Effect: 'Allow',
                         Action: [
                             's3:GetObject',
@@ -518,13 +527,10 @@ const Outputs = {
     }
 };
 
-const ml = {
+module.exports = cf.merge({
     Parameters,
     Resources,
     Mappings,
     Conditions,
     Outputs
-};
-
-module.exports = ml;
-//module.exports = cf.merge(ml, tfserving);
+}, batch);

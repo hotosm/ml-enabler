@@ -72,7 +72,7 @@ const stack = {
                                 "s3:PutObject",
                                 "s3:PutObjectAcl"
                             ],
-                            Resource: [ cf.join(['arn:aws:s3:::', cf.ref('AssetBucket'), '/*']) ]
+                            Resource: [ cf.join(['arn:aws:s3:::', cf.ref('MLEnablerBucket'), '/*']) ]
                         }]
                     }
                 }],
@@ -143,82 +143,7 @@ const stack = {
                 }],
                 'State': 'ENABLED',
                 'Priority': 1,
-                'JobQueueName': 'HighPriority'
-            }
-        },
-        BatchLambdaExecutionRole: {
-            'Type': 'AWS::IAM::Role',
-            'Properties': {
-                'AssumeRolePolicyDocument': {
-                    'Version': '2012-10-17',
-                    'Statement': [{
-                        'Effect': 'Allow',
-                        'Principal':{
-                            'Service': ['lambda.amazonaws.com']
-                        },
-                        'Action': ['sts:AssumeRole']
-                    }]
-                },
-                'Path': '/',
-                'Policies': [{
-                    'PolicyName': 'lambda-batch',
-                    'PolicyDocument': {
-                        'Statement': [{
-                            'Effect': 'Allow',
-                            'Action': ['batch:SubmitJob'],
-                            'Resource': 'arn:aws:batch:*:*:*'
-                        }]
-                    }
-                },{
-                    'PolicyName': 'lambda-logs',
-                    'PolicyDocument': {
-                        'Version': '2012-10-17',
-                        'Statement': [{
-                            'Effect': 'Allow',
-                            'Action': ['logs:*'],
-                            'Resource': 'arn:aws:logs:*:*:*'
-                        }]
-                    }
-                },{
-                    'PolicyName': 'lambda-s3',
-                    'PolicyDocument': {
-                        'Statement': [{
-                            'Effect': 'Allow',
-                            'Action': ['s3:GetObject'],
-                            'Resource': [ cf.join(['arn:aws:s3:::', cf.ref('AssetBucket'), '/*']) ]
-                        }]
-                    }
-                }]
-            }
-        },
-        BatchLambdaTriggerFunction: {
-            Type: 'AWS::Lambda::Function',
-            Properties: {
-                Handler: 'index.trigger',
-                Role: cf.getAtt('BatchLambdaExecutionRole', 'Arn'),
-                FunctionName: cf.join('-', [cf.stackName, 'invoke']),
-                Code: {
-                    S3Bucket: cf.ref('AssetBucket'),
-                    S3Key: cf.join(['batch/', cf.ref('GitSha'), '.zip'])
-                },
-                Environment: {
-                    Variables: {
-                        JOB_DEFINITION: cf.ref('BatchJobDefinition'),
-                        JOB_QUEUE: cf.ref('BatchJobQueue'),
-                        JOB_NAME: 'lambda-trigger-job'
-                    }
-                },
-                Runtime: 'python3.8',
-                Timeout: '25'
-            }
-        },
-        BatchPermissionForEventsToInvokeLambda: {
-            'Type': 'AWS::Lambda::Permission',
-            'Properties': {
-                'FunctionName': cf.ref('BatchLambdaTriggerFunction'),
-                'Action': 'lambda:InvokeFunction',
-                'Principal': 'events.amazonaws.com',
-                'SourceArn': cf.getAtt('BatchScheduledRule', 'Arn')
+                'JobQueueName': cf.join('-', [cf.stackName, 'queue'])
             }
         }
     }
