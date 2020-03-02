@@ -12,6 +12,9 @@
                     <button @click='mode = "editmodel"' class='btn fr round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
                     </button>
+                    <button @click='getModels' class='btn fr round btn--stroke color-gray color-green-on-hover mr12'>
+                        <svg class='icon'><use href='#icon-refresh'/></svg>
+                    </button>
                 </div>
                 <div class='border border--gray-light round'>
                     <template v-if='models.length === 0'>
