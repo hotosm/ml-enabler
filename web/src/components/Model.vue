@@ -23,6 +23,10 @@
                     <button @click='mode = "editprediction"' class='btn fr mb6 round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
                     </button>
+
+                    <button @click='getPredictions' class='btn fr round btn--stroke color-gray color-green-on-hover mr12'>
+                        <svg class='icon'><use href='#icon-refresh'/></svg>
+                    </button>
                 </div>
 
                 <div class='grid grid--gut12'>
