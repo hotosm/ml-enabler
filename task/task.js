@@ -31,7 +31,7 @@ async function main() {
 
         await get_zip(tmp, model);
 
-        await docker(tmp, model.split('/').splice(1).join('-'));
+        await docker(tmp, model.split('/').splice(1).join('-').replace(/\-model\.zip/, ''));
     } catch(err) {
         console.error(err);
         process.exit(1);
