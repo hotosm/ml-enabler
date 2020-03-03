@@ -1,36 +1,62 @@
 #!/usr/bin/env node
 
+const unzipper = require('unzipper');
 const Q = require('d3-queue').queue;
 const mkdir = require('mkdirp').sync;
+const pipeline = require('stream').pipeline;
 const fs = require('fs');
 const os = require('os');
 const CP = require('child_process');
-const tmp = os.tmpdir() + '/' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 const path = require('path');
+const AWS = require('aws-sdk');
+const s3 = new AWS.S3({
+    region: 'us-east-1'
+});
 
 main();
 
 async function main() {
-    if (!process.env.MODEL) throw new Error('No MODEL env var found');
-
-    const model = process.env.MODEL;
-
-    mkdir(tmp + '/001');
-    console.error(`ok - tmp dir: ${tmp}`);
-
     try {
-        await get_zip();
+        if (!process.env.MODEL) throw new Error('No MODEL env var found');
+
+        const tmp = os.tmpdir() + '/' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+
+        const model = process.env.MODEL;
+
+        mkdir(tmp + '/001');
+        console.error(`ok - tmp dir: ${tmp}`);
+
+        await get_zip(tmp, model);
 
         await docker();
 
         await push();
     } catch(err) {
-        throw err;
+        console.error(err);
+        process.exit(1);
     }
 }
 
-function get_zip() {
+function get_zip(tmp, model) {
+    return new Promise((resolve, reject) => {
+        console.error(`ok - fetching ${model}`);
 
+        const loc = path.resolve(tmp, 'model.zip');
+
+        pipeline(
+            s3.getObject({
+                Bucket: model.split('/')[0],
+                Key: model.split('/').splice(1).join('/')
+            }).createReadStream(),
+            unzipper.Extract({ path: tmp }),
+        (err, res) => {
+            if (err) return reject(err);
+
+            console.error(`ok - saved: ${loc}`);
+
+            return resolve(loc);
+        });
+    });
 }
 
 function docker(err, res) {
