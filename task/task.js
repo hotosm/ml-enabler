@@ -31,7 +31,7 @@ async function main() {
 
         await get_zip(tmp, model);
 
-        await docker(tmp, model.split('/').splice(1).join('-').replace(/\-model\.zip/, ''));
+        await docker(tmp, model);
     } catch(err) {
         console.error(err);
         process.exit(1);
@@ -61,55 +61,80 @@ function get_zip(tmp, model) {
 }
 
 function docker(tmp, model) {
-    console.error('ok - pulling tensorflow/serving docker image');
-    CP.execSync(`
-        docker pull tensorflow/serving
-    `);
+    return new Promise((resolve, reject) => {
+        try {
+            console.error('ok - pulling tensorflow/serving docker image');
 
-    // Ignore errors, these are to ensure the next commands don't err
-    try {
-        CP.execSync(`
-            docker kill serving_base
-        `);
-    } catch(err) {
-        console.error('ok - no old task to stop');
-    }
+            const tagged_model = model.split('/').splice(1).join('-').replace(/\-model\.zip/, '');
 
-    try {
-        CP.execSync(`
-            docker rm serving_base
-        `);
-    } catch(err) {
-        console.error('ok - no old image to remove');
-    }
+            CP.execSync(`
+                docker pull tensorflow/serving
+            `);
 
-    CP.execSync(`
-        docker run -d --name serving_base tensorflow/serving
-    `);
+            // Ignore errors, these are to ensure the next commands don't err
+            try {
+                CP.execSync(`
+                    docker kill serving_base
+                `);
+            } catch(err) {
+                console.error('ok - no old task to stop');
+            }
 
-    CP.execSync(`
-        docker cp ${tmp}/ serving_base:/models/default/ \
-    `);
+            try {
+                CP.execSync(`
+                    docker rm serving_base
+                `);
+            } catch(err) {
+                console.error('ok - no old image to remove');
+            }
 
-    const tag = `developmentseed/default:${Math.random().toString(36).substring(2, 15)}`;
+            CP.execSync(`
+                docker run -d --name serving_base tensorflow/serving
+            `);
 
-    CP.execSync(`
-        docker commit --change "ENV MODEL_NAME default" serving_base ${tag}
-    `);
+            CP.execSync(`
+                docker cp ${tmp}/ serving_base:/models/default/ \
+            `);
 
-    console.error(`ok - docker: ${tag}`);
+            const tag = `developmentseed/default:${Math.random().toString(36).substring(2, 15)}`;
 
-    const push = `${process.env.AWS_ACCOUNT_ID}.dkr.ecr.${process.env.AWS_REGION}.amazonaws.com/${process.env.BATCH_ECR}:${model}`;
-    CP.execSync(`
-        docker tag ${tag} ${push}
-    `);
+            CP.execSync(`
+                docker commit --change "ENV MODEL_NAME default" serving_base ${tag}
+            `);
 
-    CP.execSync(`
-        $(aws ecr get-login --no-include-email)
-    `)
+            console.error(`ok - docker: ${tag}`);
 
-    CP.execSync(`
-        docker push ${push}
-    `);
+            const push = `${process.env.AWS_ACCOUNT_ID}.dkr.ecr.${process.env.AWS_REGION}.amazonaws.com/${process.env.BATCH_ECR}:${tagged_model}`;
+            CP.execSync(`
+                docker tag ${tag} ${push}
+            `);
+
+            CP.execSync(`
+                $(aws ecr get-login --no-include-email)
+            `)
+
+            CP.execSync(`
+                docker push ${push}
+            `);
+
+            CP.execSync(`
+                docker save ${tag} | gzip > ${tmp}/docker-${tagged_model}.tar.gz
+            `)
+        } catch(err) {
+            return reject(err);
+        }
+
+        pipeline(
+            s3.putObject({
+                Bucket: model.split('/')[0],
+                Key: model.split('/').splice(1).join('/').replace(/model\.zip/, `docker-${tagged_model}.tar.gz`)
+            }).createReadStream(),
+            unzipper.Extract({ path: tmp }),
+        (err, res) => {
+            if (err) return reject(err);
+
+            return resolve(true);
+        });
+    });
 }
 
