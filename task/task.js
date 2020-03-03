@@ -62,10 +62,10 @@ function get_zip(tmp, model) {
 
 function docker(tmp, model) {
     return new Promise((resolve, reject) => {
+        const tagged_model = model.split('/').splice(1).join('-').replace(/\-model\.zip/, '');
+
         try {
             console.error('ok - pulling tensorflow/serving docker image');
-
-            const tagged_model = model.split('/').splice(1).join('-').replace(/\-model\.zip/, '');
 
             CP.execSync(`
                 docker pull tensorflow/serving
