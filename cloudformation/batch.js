@@ -7,7 +7,7 @@ const stack = {
         BatchECR: {
             Type: 'AWS::ECR::Repository',
             Properties: {
-                RepositoryName: cf.stackName
+                RepositoryName: cf.join('-', [cf.stackName, 'ecr'])
             }
         },
         BatchServiceRole: {
