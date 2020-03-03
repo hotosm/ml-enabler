@@ -5,6 +5,8 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
-        "aws-sdk": "^2.631.0"
+        "aws-sdk": "^2.631.0",
+        "d3-queue": "^3.0.7",
+        "mkdirp": "^1.0.3"
     }
 }
