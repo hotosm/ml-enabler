@@ -1,4 +1,4 @@
-FROM python:3.6.3-jessie
+FROM alpine:3.11
 
 EXPOSE 5000
 
@@ -9,22 +9,16 @@ WORKDIR $HOME
 COPY ./ $HOME/ml-enabler
 WORKDIR $HOME/ml-enabler
 
-RUN \
-    apt-get update \
-    && apt-get install -y postgresql postgresql-contrib git curl nginx
+RUN apk add postgresql-client postgresql-dev curl nginx nodejs npm yarn python3 py3-pip
 
-RUN curl 'https://nodejs.org/dist/v13.8.0/node-v13.8.0-linux-x64.tar.gz' | tar -xzv \
-    && cp ./node-v13.8.0-linux-x64/bin/node /usr/bin/ \
-    && ./node-v13.8.0-linux-x64/bin/npm install -g npm \
-    && npm install -g yarn \
-    && cd web \
+RUN cd web \
     && yarn install \
     && yarn build \
     && cd ..
 
 RUN \
-  pip install gunicorn; \
-  pip install -r requirements.txt
+  pip3 install gunicorn; \
+  pip3 install -r requirements.txt
 
 RUN cp ./cloudformation/nginx.conf /etc/nginx/sites-enabled/default
 
