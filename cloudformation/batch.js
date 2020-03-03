@@ -144,6 +144,9 @@ const stack = {
                     },{
                         Name: 'BATCH_ECR' ,
                         Value: cf.ref('BatchECR')
+                    },{
+                        Name: 'API_URL',
+                        Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')])
                     }],
                     Memory: 4000,
                     Privileged: true,
