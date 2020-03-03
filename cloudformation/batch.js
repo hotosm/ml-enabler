@@ -79,7 +79,7 @@ const stack = {
                                 'ecr:UploadLayerPart',
                                 'ecr:CompleteLayerUpload'
                             ],
-                            Resource: [ cf.join(['']) ]
+                            Resource: [ cf.join(['arn:aws:ecr:', cf.region, ':', cf.accountId, ':repository/', cf.ref('BatchECR')]) ]
                         },{
                             Effect: 'Allow',
                             Action: [
@@ -150,7 +150,7 @@ const stack = {
                     JobRoleArn: cf.getAtt('BatchJobRole', 'Arn'),
                     ReadonlyRootFilesystem: false,
                     Vcpus: 2,
-                    Image: cf.join([cf.ref('AWS::AccountId'), '.dkr.ecr.', cf.ref('AWS::Region'), '.amazonaws.com/ml-enabler-store:task-', cf.ref('GitSha')])
+                    Image: cf.join([cf.ref('AWS::AccountId'), '.dkr.ecr.', cf.ref('AWS::Region'), '.amazonaws.com/ml-enabler:task-', cf.ref('GitSha')])
                 }
             }
         },

@@ -33,6 +33,7 @@
                             label-idle='Drop model.zip here'
                             v-bind:allow-multiple='false'
                             accepted-file-types='application/zip'
+                            chunkUploads='true'
                             allowRevert='false'
                             :server='`/v1/model/${prediction.modelId}/prediction/${predictionId}/upload`'
                             v-bind:files='files'
