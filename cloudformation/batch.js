@@ -4,6 +4,12 @@ const cf = require('@mapbox/cloudfriend');
 
 const stack = {
     Resources: {
+        BatchECR: {
+            Type: 'AWS::ECR::Repository',
+            Properties: {
+                RepositoryName: cf.stackName
+            }
+        },
         BatchServiceRole: {
             Type: 'AWS::IAM::Role',
             Properties: {
@@ -62,15 +68,28 @@ const stack = {
                     PolicyName: 'batch-job-policy',
                     PolicyDocument: {
                         Statement: [{
-                            Effect: "Allow",
+                            Effect: 'Allow',
                             Action: [
-                                "s3:GetObject",
-                                "s3:DeleteObject",
-                                "s3:AbortMultipartUpload",
-                                "s3:GetObjectAcl",
-                                "s3:ListMultipartUploadParts",
-                                "s3:PutObject",
-                                "s3:PutObjectAcl"
+                                'ecr:TagResource',
+                                'ecr:GetDownloadUrlForLayer',
+                                'ecr:BatchGetImage',
+                                'ecr:BatchCheckLayerAvailability',
+                                'ecr:PutImage',
+                                'ecr:InitiateLayerUpload',
+                                'ecr:UploadLayerPart',
+                                'ecr:CompleteLayerUpload'
+                            ],
+                            Resource: [ cf.join(['']) ]
+                        },{
+                            Effect: 'Allow',
+                            Action: [
+                                's3:GetObject',
+                                's3:DeleteObject',
+                                's3:AbortMultipartUpload',
+                                's3:GetObjectAcl',
+                                's3:ListMultipartUploadParts',
+                                's3:PutObject',
+                                's3:PutObjectAcl'
                             ],
                             Resource: [ cf.join(['arn:aws:s3:::', cf.ref('MLEnablerBucket'), '/*']) ]
                         }]
@@ -122,13 +141,16 @@ const stack = {
                     },{
                         Name: 'AWS_REGION',
                         Value: cf.region
+                    },{
+                        Name: 'BATCH_ECR' ,
+                        Value: cf.ref('BatchECR')
                     }],
                     Memory: 4000,
                     Privileged: true,
                     JobRoleArn: cf.getAtt('BatchJobRole', 'Arn'),
                     ReadonlyRootFilesystem: false,
                     Vcpus: 2,
-                    Image: cf.join([cf.ref('AWS::AccountId'), '.dkr.ecr.', cf.ref('AWS::Region'), '.amazonaws.com/ml-enabler:task-', cf.ref('GitSha')])
+                    Image: cf.join([cf.ref('AWS::AccountId'), '.dkr.ecr.', cf.ref('AWS::Region'), '.amazonaws.com/ml-enabler-store:task-', cf.ref('GitSha')])
                 }
             }
         },

@@ -10,7 +10,7 @@ const CP = require('child_process');
 const path = require('path');
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({
-    region: 'us-east-1'
+    region: process.env.AWS_REGION
 });
 
 main();
@@ -18,6 +18,7 @@ main();
 async function main() {
     try {
         if (!process.env.MODEL) throw new Error('MODEL env var not set');
+        if (!process.env.BATCH_ECR) throw new Error('BATCH_ECR env var not set');
         if (!process.env.AWS_ACCOUNT_ID) throw new Error('AWS_ACCOUT_ID env var not set');
         if (!process.env.AWS_REGION) throw new Error('AWS_REGION env var not set');
 
@@ -98,8 +99,17 @@ function docker(tmp, model) {
 
     console.error(`ok - docker: ${tag}`);
 
+    const push = `${process.env.AWS_ACCOUNT_ID}.dkr.ecr.${process.env.AWS_REGION}.amazonaws.com/${process.env.BATCH_ECR}:${model}`;
     CP.execSync(`
-        docker tag serving_base ${process.env.AWS_ACCOUNT_ID}.dkr.ecr.${process.env.AWS_REGION}.amazonaws.com/ml-enabler:model-${model}
+        docker tag ${tag} ${push}
+    `);
+
+    CP.execSync(`
+        $(aws ecr get-login --no-include-email)
+    `)
+
+    CP.execSync(`
+        docker push ${push}
     `);
 }
 
