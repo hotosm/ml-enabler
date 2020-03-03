@@ -1,14 +1,17 @@
-FROM ubuntu:19.10
+FROM alpine:3.11
 
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-ENV SHELL /bin/bash
+RUN apk add nodejs curl docker npm yarn
 
-RUN apt-get update -y \
-    && apt-get install -y git curl awscli docker.io \
-    && curl 'https://nodejs.org/dist/v13.8.0/node-v13.8.0-linux-x64.tar.gz' | tar -xzv \
-    && cp ./node-v13.8.0-linux-x64/bin/node /usr/bin/ \
-    && ./node-v13.8.0-linux-x64/bin/npm install -g npm \
-    && npm install -g yarn
+RUN apk -v --update add \
+        python \
+        py-pip \
+        groff \
+        less \
+        mailcap \
+        && \
+    pip install --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic && \
+    apk -v --purge del py-pip && \
+    rm /var/cache/apk/*
 
 WORKDIR /usr/local/src/batch
 ADD . /usr/local/src/batch
