@@ -17,7 +17,9 @@ main();
 
 async function main() {
     try {
-        if (!process.env.MODEL) throw new Error('No MODEL env var found');
+        if (!process.env.MODEL) throw new Error('MODEL env var not set');
+        if (!process.env.AWS_ACCOUNT_ID) throw new Error('AWS_ACCOUT_ID env var not set');
+        if (!process.env.AWS_REGION) throw new Error('AWS_REGION env var not set');
 
         const tmp = os.tmpdir() + '/' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 
@@ -28,9 +30,7 @@ async function main() {
 
         await get_zip(tmp, model);
 
-        await docker();
-
-        await push();
+        await docker(tmp, model.split('/').splice(1).join('-'));
     } catch(err) {
         console.error(err);
         process.exit(1);
@@ -59,9 +59,7 @@ function get_zip(tmp, model) {
     });
 }
 
-function docker(err, res) {
-    if (err) throw err;
-
+function docker(tmp, model) {
     console.error('ok - pulling tensorflow/serving docker image');
     CP.execSync(`
         docker pull tensorflow/serving
@@ -100,9 +98,8 @@ function docker(err, res) {
 
     console.error(`ok - docker: ${tag}`);
 
-    console.error();
-    console.error(`ok - Run with docker run -p 8501:8501 -t ${tag}`);
-    console.error();
-
+    CP.execSync(`
+        docker tag serving_base ${process.env.AWS_ACCOUNT_ID}.dkr.ecr.${process.env.AWS_REGION}.amazonaws.com/ml-enabler:model-${model}
+    `);
 }
 

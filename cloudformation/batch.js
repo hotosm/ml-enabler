@@ -116,6 +116,12 @@ const stack = {
                     Environment: [{
                         Name: 'StackName' ,
                         Value: cf.stackName
+                    },{
+                        Name: 'AWS_ACCOUNT_ID',
+                        Value: cf.accountId
+                    },{
+                        Name: 'AWS_REGION',
+                        Value: cf.region
                     }],
                     Memory: 4000,
                     Privileged: true,
