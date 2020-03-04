@@ -29,6 +29,8 @@ async function main() {
         mkdir(tmp + '/001');
         console.error(`ok - tmp dir: ${tmp}`);
 
+        await dockerd();
+
         await get_zip(tmp, model);
 
         await docker(tmp, model);
@@ -60,16 +62,29 @@ function get_zip(tmp, model) {
     });
 }
 
+function dockerd() {
+    return new Promise((resolve, reject) => {
+        console.error('ok - spawning dockerd');
+        const dockerd = CP.spawn('sudo', ['dockerd']);
+
+        dockerd.stderr.on('data', (data) => {
+            data = String(data);
+
+            if (/API listen on/.test(data)) {
+                return resolve(true);
+            }
+        }).on('error', (err) => {
+            return reject(err);
+        });
+    });
+}
+
 function docker(tmp, model) {
     return new Promise((resolve, reject) => {
         const tagged_model = model.split('/').splice(1).join('-').replace(/\-model\.zip/, '');
 
         try {
             console.error('ok - pulling tensorflow/serving docker image');
-
-            CP.execSync(`
-                 dockerd&
-            `);
 
             CP.execSync(`
                 docker pull tensorflow/serving
