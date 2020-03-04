@@ -69,9 +69,12 @@ function dockerd() {
 
         dockerd.stderr.on('data', (data) => {
             data = String(data);
+            process.stdout.write(data);
 
             if (/API listen on/.test(data)) {
-                return resolve(true);
+                setTimeout(() => {
+                    return resolve(true);
+                }, 5000)
             }
         }).on('error', (err) => {
             return reject(err);
@@ -129,7 +132,7 @@ function docker(tmp, model) {
             `);
 
             CP.execSync(`
-                $(aws ecr get-login --no-include-email)
+                $(aws ecr get-login --region us-east-1 --no-include-email)
             `)
 
             CP.execSync(`
