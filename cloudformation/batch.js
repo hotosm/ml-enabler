@@ -70,6 +70,7 @@ const stack = {
                         Statement: [{
                             Effect: 'Allow',
                             Action: [
+                                'ecr:GetAuthorizationToken',
                                 'ecr:TagResource',
                                 'ecr:GetDownloadUrlForLayer',
                                 'ecr:BatchGetImage',
