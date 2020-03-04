@@ -80,7 +80,7 @@ const stack = {
                                 'ecr:UploadLayerPart',
                                 'ecr:CompleteLayerUpload'
                             ],
-                            Resource: [ cf.join(['arn:aws:ecr:', cf.region, ':', cf.accountId, ':repository/', cf.ref('BatchECR')]) ]
+                            Resource: [ '*' ]
                         },{
                             Effect: 'Allow',
                             Action: [

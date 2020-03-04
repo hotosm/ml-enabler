@@ -146,13 +146,11 @@ function docker(tmp, model) {
             return reject(err);
         }
 
-        pipeline(
-            s3.putObject({
-                Bucket: model.split('/')[0],
-                Key: model.split('/').splice(1).join('/').replace(/model\.zip/, `docker-${tagged_model}.tar.gz`)
-            }).createReadStream(),
-            unzipper.Extract({ path: tmp }),
-        (err, res) => {
+        s3.putObject({
+            Bucket: model.split('/')[0],
+            Key: model.split('/').splice(1).join('/').replace(/model\.zip/, `docker-${tagged_model}.tar.gz`),
+            Body: fs.createReadStream(path.resolve(tmp, `docker-${tagged_model}.tar.gz`))
+        }, (err, res) => {
             if (err) return reject(err);
 
             return resolve(true);
