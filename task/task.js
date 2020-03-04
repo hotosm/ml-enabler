@@ -68,7 +68,7 @@ function docker(tmp, model) {
             console.error('ok - pulling tensorflow/serving docker image');
 
             CP.execSync(`
-                 service docker start || true
+                 dockerd >/tmp/docker.stdout 2>/tmp/docker.stderr & || true
             `);
 
             CP.execSync(`
