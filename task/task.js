@@ -29,11 +29,13 @@ async function main() {
         mkdir(tmp + '/001');
         console.error(`ok - tmp dir: ${tmp}`);
 
-        await dockerd();
+        const dockerd = await dockerd();
 
         await get_zip(tmp, model);
 
         await docker(tmp, model);
+
+        dockerd.kill();
     } catch(err) {
         console.error(err);
         process.exit(1);
@@ -73,7 +75,7 @@ function dockerd() {
 
             if (/API listen on/.test(data)) {
                 setTimeout(() => {
-                    return resolve(true);
+                    return resolve(dockerd);
                 }, 5000)
             }
         }).on('error', (err) => {
@@ -138,10 +140,12 @@ function docker(tmp, model) {
             CP.execSync(`
                 docker push ${push}
             `);
+            console.error('ok - pushed image to AWS:ECR');
 
             CP.execSync(`
                 docker save ${tag} | gzip > ${tmp}/docker-${tagged_model}.tar.gz
             `)
+            console.error('ok - saved image to disk');
         } catch(err) {
             return reject(err);
         }
@@ -152,6 +156,8 @@ function docker(tmp, model) {
             Body: fs.createReadStream(path.resolve(tmp, `docker-${tagged_model}.tar.gz`))
         }, (err, res) => {
             if (err) return reject(err);
+
+            console.error('ok - saved image to s3');
 
             return resolve(true);
         });
