@@ -65,7 +65,7 @@ function get_zip(tmp, model) {
 function dockerd() {
     return new Promise((resolve, reject) => {
         console.error('ok - spawning dockerd');
-        const dockerd = CP.spawn('sudo', ['dockerd']);
+        const dockerd = CP.spawn('dockerd');
 
         dockerd.stderr.on('data', (data) => {
             data = String(data);
