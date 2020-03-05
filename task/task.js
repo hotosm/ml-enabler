@@ -33,8 +33,8 @@ async function main() {
 
         console.error(process.env);
 
-        const model_id = get_model_id()
-        const prediction_id = get_model_id()
+        const model_id = get_model_id(model)
+        const prediction_id = get_model_id(model)
 
         await set_link(model_id, prediction_id, {
             modelLink: model
