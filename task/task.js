@@ -29,13 +29,13 @@ async function main() {
         mkdir(tmp + '/001');
         console.error(`ok - tmp dir: ${tmp}`);
 
-        const dockerd = await dockerd();
+        const dd = await dockerd();
 
         await get_zip(tmp, model);
 
         await docker(tmp, model);
 
-        dockerd.kill();
+        dd.kill();
     } catch(err) {
         console.error(err);
         process.exit(1);

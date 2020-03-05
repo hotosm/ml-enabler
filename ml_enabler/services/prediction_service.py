@@ -28,6 +28,21 @@ class PredictionService():
         return new_prediction.id
 
     @staticmethod
+    def update_prediction(prediction_id: int, updated_prediction_model_dto: PredictionDTO) -> int:
+        """
+        Update a prediction by ID
+        :params prediction_id
+        :returns prediction
+        """
+
+        ml_model = MLModel.get(updated_ml_model_dto.model_id)
+        if (ml_model):
+            ml_model.update(updated_ml_model_dto)
+            return updated_ml_model_dto.model_id
+        else:
+            raise NotFound('Model does not exist')
+
+    @staticmethod
     def get_prediction_by_id(prediction_id: int):
         """
         Get a prediction by ID

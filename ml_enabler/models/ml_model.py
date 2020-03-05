@@ -63,6 +63,11 @@ class Prediction(db.Model):
     bbox = db.Column(Geometry('POLYGON', srid=4326))
     tile_zoom = db.Column(db.Integer, nullable=False)
 
+    log_link = db.Column(db.String)
+    model_link =  db.Column(db.String)
+    docker_link =  db.Column(db.String)
+    save_link = db.Column(db.String)
+
     def create(self, prediction_dto: PredictionDTO):
         """ Creates and saves the current model to the DB """
 
