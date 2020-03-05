@@ -92,6 +92,8 @@ class Prediction(db.Model):
         if update.get("saveLink") is not None:
             self.docker_link = update["dockerLink"]
 
+        db.session.commit()
+
     def save(self):
         """ Save changes to db"""
         db.session.commit()
@@ -115,9 +117,20 @@ class Prediction(db.Model):
         :param model_id: ml model ID in scope
         :return predictions if found otherwise None
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url,
-                                 ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
-                                 Prediction.version_id).filter(Prediction.model_id == model_id)
+        query = db.session.query(
+            Prediction.id,
+            Prediction.created,
+            Prediction.docker_url,
+            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+            Prediction.model_id,
+            Prediction.tile_zoom,
+            Prediction.version_id,
+            Prediction.log_link,
+            Prediction.model_link,
+            Prediction.docker_link,
+            Prediction.save_link
+        ).filter(Prediction.model_id == model_id)
+
         return query.all()
 
     @staticmethod
@@ -173,6 +186,11 @@ class Prediction(db.Model):
         prediction_dto.tile_zoom = prediction[5]
         prediction_dto.version_id = prediction[6]
         prediction_dto.version_string = f'{version_dto.version_major}.{version_dto.version_minor}.{version_dto.version_patch}'
+
+        prediction_dto.log_link = prediction[7]
+        prediction_dto.model_link = prediction[8]
+        prediction_dto.docker_link = prediction[9]
+        prediction_dto.save_link = prediction[10]
 
         return prediction_dto
 

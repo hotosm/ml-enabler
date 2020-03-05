@@ -39,7 +39,6 @@ class PredictionService():
 
         if (prediction):
             prediction.link(update)
-            prediction.save()
 
             return prediction_id
         else:
