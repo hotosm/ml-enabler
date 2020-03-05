@@ -90,7 +90,7 @@ class Prediction(db.Model):
         if update.get("dockerLink") is not None:
             self.docker_link = update["dockerLink"]
         if update.get("saveLink") is not None:
-            self.docker_link = update["dockerLink"]
+            self.save_link = update["saveLink"]
 
         db.session.commit()
 
