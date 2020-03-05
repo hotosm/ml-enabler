@@ -10,6 +10,9 @@ const os = require('os');
 const CP = require('child_process');
 const path = require('path');
 const AWS = require('aws-sdk');
+const batch = new AWS.Batch({
+    region: 'us-east-1'
+});
 const s3 = new AWS.S3({
     region: process.env.AWS_REGION
 });
@@ -36,19 +39,27 @@ async function main() {
         const model_id = get_model_id(model)
         const prediction_id = get_model_id(model)
 
-        await set_link(model_id, prediction_id, {
+        const links = {
             modelLink: model
-        });
+        }
+
+        if (process.env.AWS_BATCH_JOB_ID) {
+            const logLink = await log_link();
+
+            links.logLink = logLink;
+        }
+
+        await set_link(model_id, prediction_id, links)
 
         const dd = await dockerd();
 
         await get_zip(tmp, model);
 
-        const links = await docker(tmp, model);
+        const finalLinks = await docker(tmp, model);
 
         await set_link(model_id, prediction_id, {
-            saveLink: links.save,
-            dockerLink: links.docker
+            saveLink: finalLinks.save,
+            dockerLink: finalLinks.docker
         });
 
         dd.kill();
@@ -66,6 +77,20 @@ function get_model_id(model) {
 function get_prediction_id(model) {
     // ml-enabler-test-1234-us-east-1/models/1/prediction/18/model.zip
     return parseInt(model.split('/')[4])
+}
+
+function log_link() {
+    return new Promise((resolve, reject) => {
+        // Allow local runs
+
+        batch.describeJobs({
+            jobs: [ process.env.AWS_BATCH_JOB_ID ]
+        }, (err, res) => {
+            if (err) return reject(err);
+
+            resolve(res.jobs[0].attempts[0].container.logStreamName)
+        });
+    });
 }
 
 function set_link(model, prediction, patch) {
