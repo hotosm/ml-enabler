@@ -70,6 +70,7 @@ const stack = {
                         Statement: [{
                             Effect: 'Allow',
                             Action: [
+                                'ecr:GetAuthorizationToken',
                                 'ecr:TagResource',
                                 'ecr:GetDownloadUrlForLayer',
                                 'ecr:BatchGetImage',
@@ -79,7 +80,7 @@ const stack = {
                                 'ecr:UploadLayerPart',
                                 'ecr:CompleteLayerUpload'
                             ],
-                            Resource: [ cf.join(['arn:aws:ecr:', cf.region, ':', cf.accountId, ':repository/', cf.ref('BatchECR')]) ]
+                            Resource: [ '*' ]
                         },{
                             Effect: 'Allow',
                             Action: [
@@ -144,6 +145,9 @@ const stack = {
                     },{
                         Name: 'BATCH_ECR' ,
                         Value: cf.ref('BatchECR')
+                    },{
+                        Name: 'API_URL',
+                        Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')])
                     }],
                     Memory: 4000,
                     Privileged: true,

@@ -24,6 +24,18 @@ class PredictionDTO(Model):
     bbox = ListType(FloatType, required=True)
     tile_zoom = IntType(serialized_name='tileZoom', required=True)
 
+    """ Asset Status
+        log_link - store a link to the AWS CloudWatch Console
+        model_link - store a link to the S3 Location of the raw model
+        docker_link - store a link to the container in ECR
+        save_link - download the TFServing container
+    """
+
+    log_link = StringType(serialized_name='logLink')
+    model_link = StringType(serialized_name='modelLink')
+    docker_link = StringType(serialized_name='dockerLink')
+    save_link = StringType(serialized_name='saveLink')
+
 
 class MLModelVersionDTO(Model):
     """ Describes JSON of a ML model version """

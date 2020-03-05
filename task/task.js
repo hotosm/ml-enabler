@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const unzipper = require('unzipper');
+const request = require('request');
 const Q = require('d3-queue').queue;
 const mkdir = require('mkdirp').sync;
 const pipeline = require('stream').pipeline;
@@ -21,6 +22,7 @@ async function main() {
         if (!process.env.BATCH_ECR) throw new Error('BATCH_ECR env var not set');
         if (!process.env.AWS_ACCOUNT_ID) throw new Error('AWS_ACCOUT_ID env var not set');
         if (!process.env.AWS_REGION) throw new Error('AWS_REGION env var not set');
+        if (!process.env.API_URL) throw new Error('API_URL env var not set');
 
         const tmp = os.tmpdir() + '/' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 
@@ -29,13 +31,58 @@ async function main() {
         mkdir(tmp + '/001');
         console.error(`ok - tmp dir: ${tmp}`);
 
+        console.error(process.env);
+
+        const model_id = get_model_id(model)
+        const prediction_id = get_model_id(model)
+
+        await set_link(model_id, prediction_id, {
+            modelLink: model
+        });
+
+        const dd = await dockerd();
+
         await get_zip(tmp, model);
 
-        await docker(tmp, model);
+        const links = await docker(tmp, model);
+
+        await set_link(model_id, prediction_id, {
+            saveLink: links.save,
+            dockerLink: links.docker
+        });
+
+        dd.kill();
     } catch(err) {
         console.error(err);
         process.exit(1);
     }
+}
+
+function get_model_id(model) {
+    // ml-enabler-test-1234-us-east-1/models/1/prediction/18/model.zip
+    return parseInt(model.split('/')[2])
+}
+
+function get_prediction_id(model) {
+    // ml-enabler-test-1234-us-east-1/models/1/prediction/18/model.zip
+    return parseInt(model.split('/')[4])
+}
+
+function set_link(model, prediction, patch) {
+    return new Promise((resolve, reject) => {
+        console.error('ok - saving link state');
+
+        request({
+            method: 'PATCH',
+            url: `${process.env.API_URL}/v1/model/${model}/prediction/${prediction}`,
+            json: true,
+            body: patch
+        }, (err, res) => {
+            if (err) return reject(err);
+
+            return resolve(res);
+        });
+    });
 }
 
 function get_zip(tmp, model) {
@@ -56,6 +103,26 @@ function get_zip(tmp, model) {
             console.error(`ok - saved: ${loc}`);
 
             return resolve(loc);
+        });
+    });
+}
+
+function dockerd() {
+    return new Promise((resolve, reject) => {
+        console.error('ok - spawning dockerd');
+        const dockerd = CP.spawn('dockerd');
+
+        dockerd.stderr.on('data', (data) => {
+            data = String(data);
+            process.stdout.write(data);
+
+            if (/API listen on/.test(data)) {
+                setTimeout(() => {
+                    return resolve(dockerd);
+                }, 5000)
+            }
+        }).on('error', (err) => {
+            return reject(err);
         });
     });
 }
@@ -110,30 +177,35 @@ function docker(tmp, model) {
             `);
 
             CP.execSync(`
-                $(aws ecr get-login --no-include-email)
+                $(aws ecr get-login --region us-east-1 --no-include-email)
             `)
 
             CP.execSync(`
                 docker push ${push}
             `);
+            console.error('ok - pushed image to AWS:ECR');
 
             CP.execSync(`
                 docker save ${tag} | gzip > ${tmp}/docker-${tagged_model}.tar.gz
             `)
+            console.error('ok - saved image to disk');
         } catch(err) {
             return reject(err);
         }
 
-        pipeline(
-            s3.putObject({
-                Bucket: model.split('/')[0],
-                Key: model.split('/').splice(1).join('/').replace(/model\.zip/, `docker-${tagged_model}.tar.gz`)
-            }).createReadStream(),
-            unzipper.Extract({ path: tmp }),
-        (err, res) => {
+        s3.putObject({
+            Bucket: model.split('/')[0],
+            Key: model.split('/').splice(1).join('/').replace(/model\.zip/, `docker-${tagged_model}.tar.gz`),
+            Body: fs.createReadStream(path.resolve(tmp, `docker-${tagged_model}.tar.gz`))
+        }, (err, res) => {
             if (err) return reject(err);
 
-            return resolve(true);
+            console.error('ok - saved image to s3');
+
+            return resolve({
+                docker: `${process.env.BATCH_ECR}:${tagged_model}`,
+                save: model.split('/')[0] + '/' + model.split('/').splice(1).join('/').replace(/model\.zip/, `docker-${tagged_model}.tar.gz`)
+            });
         });
     });
 }

@@ -1,7 +1,11 @@
-FROM alpine:3.11
+FROM docker:19.03.0-dind
 
-RUN apk add nodejs curl docker npm yarn
+ENV SHELL /bin/bash
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DOCKER_DRIVER=overlay2
+ENV DOCKER_TLS_CERTDIR=''
 
+RUN apk add nodejs yarn
 RUN apk -v --update add \
         python \
         py-pip \

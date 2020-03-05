@@ -4,7 +4,6 @@ from ml_enabler.models.utils import PredictionsNotFound
 from ml_enabler.utils import bbox_str_to_list, bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt, geojson_to_bbox
 from ml_enabler import db
 
-
 class PredictionService():
     @staticmethod
     def create(model_id: int, version_id: int, payload: dict) -> int:
@@ -26,6 +25,24 @@ class PredictionService():
         new_prediction = Prediction()
         new_prediction.create(prediction_dto)
         return new_prediction.id
+
+    @staticmethod
+    def patch(prediction_id: int, update: dict) -> int:
+        """
+        Patch a prediction by ID
+        :params prediction_id
+        :params update
+        :returns prediction
+        """
+
+        prediction = Prediction.get(prediction_id)
+
+        if (prediction):
+            prediction.link(update)
+
+            return prediction_id
+        else:
+            raise NotFound('Prediction does not exist')
 
     @staticmethod
     def get_prediction_by_id(prediction_id: int):
@@ -83,7 +100,6 @@ class PredictionService():
         predictions = Prediction.get_predictions_by_model(model_id)
         prediction_dtos = []
         for prediction in predictions:
-            print(prediction)
             prediction_dtos.append(Prediction.as_dto(prediction).to_primitive())
 
         return prediction_dtos
