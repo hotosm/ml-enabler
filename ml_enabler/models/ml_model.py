@@ -80,6 +80,18 @@ class Prediction(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def link(self, update: dict):
+        """ Update prediction to include asset links """
+
+        if update.get("logLink") is not None:
+            self.log_link = update["logLink"]
+        if update.get("modelLink") is not None:
+            self.model_link = update["modelLink"]
+        if update.get("dockerLink") is not None:
+            self.docker_link = update["dockerLink"]
+        if update.get("saveLink") is not None:
+            self.docker_link = update["dockerLink"]
+
     def save(self):
         """ Save changes to db"""
         db.session.commit()
@@ -94,7 +106,7 @@ class Prediction(db.Model):
         query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url,
                                  ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
                                  Prediction.version_id).filter(Prediction.id == prediction_id)
-        return query.one()
+        return Prediction.query.get(prediction_id)
 
     @staticmethod
     def get_predictions_by_model(model_id: int):

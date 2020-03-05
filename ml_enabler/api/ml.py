@@ -1,6 +1,6 @@
 import ml_enabler.config as CONFIG
 from flask_restful import Resource, request, current_app
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
@@ -25,7 +25,6 @@ class StatusCheckAPI(Resource):
 
     def get(self):
         return {'hello': 'world'}, 200
-
 
 class MLModelAPI(Resource):
 
@@ -182,7 +181,6 @@ class MLModelAPI(Resource):
             current_app.logger.error(error_msg)
             return {"error": error_msg}
 
-
 class GetAllModels(Resource):
     """ Methods to fetch many ML models """
     def get(self):
@@ -273,9 +271,6 @@ class PredictionUploadAPI(Resource):
             return { "status": "model uploaded" }, 200
         else:
             return { "error": "model exists" }, 400
-
-
-
 
 class PredictionAPI(Resource):
     """ Methods to manage ML predictions """
@@ -403,6 +398,49 @@ class PredictionAPI(Resource):
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
 
+    def patch(self, model_id, prediction_id):
+        """
+        Allow updating of links in model
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: path
+              name: prediction_id
+              description: ID of the Prediction
+              required: true
+              type: integer
+        responses:
+            200:
+                description: Prediction updated successfully
+            404:
+                description: Prediction not found to update
+            500:
+                description: Internal Server Error
+        """
+        try:
+            updated_prediction = request.get_json()
+
+            if updated_prediction is None:
+                return {"error": "prediction must be json object"}, 400
+
+            prediction_id = PredictionService.patch(prediction_id, updated_prediction)
+
+            return {
+                "model_id": model_id,
+                "prediction_id": prediction_id
+            }, 200
+        except NotFound:
+            return {"error": "prediction not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}
 
 class GetAllPredictions(Resource):
     def get(self, model_id):
