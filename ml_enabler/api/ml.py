@@ -259,7 +259,7 @@ class PredictionUploadAPI(Resource):
             # Save the model link to ensure UI shows upload success
             try:
                 PredictionService.patch(prediction_id, {
-                    "saveLink": CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
+                    "modelLink": CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
                 })
             except Exception as e:
                 error_msg = f'SaveLink Error: {str(e)}'
