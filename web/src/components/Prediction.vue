@@ -52,10 +52,10 @@ export default {
         close: function() {
             this.$emit('close');
         },
-        logLink: function() {
-            //const url = `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/%252Faws%252Fbatch%252Fjob`
+        logLink: function(stream) {
+            const url = `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/%252Faws%252Fbatch%252Fjob/log-events/${encodeURIComponent(stream)}`
 
-            this.external();
+            this.external(url);
         },
         external: function(url) {
             if (!url) return;
