@@ -70,7 +70,7 @@
                 </div>
             </template>
             <template v-else-if='mode === "editPrediction"'>
-                <EditPrediction :prediction='prediction' v-on:close='getPredictions' />
+                <CreatePrediction :modelid='model.modelId' v-on:close='getPredictions' />
             </template>
             <template v-else-if='mode === "showPrediction"'>
                 <Prediction :model='model' :prediction='prediction' v-on:close='getPredictions' />
@@ -81,7 +81,7 @@
 
 <script>
 import Prediction from './Prediction.vue';
-import EditPrediction from './EditPrediction.vue';
+import CreatePrediction from './CreatePrediction.vue';
 
 export default {
     name: 'Model',
@@ -110,7 +110,7 @@ export default {
     },
     components: {
         Prediction,
-        EditPrediction
+        CreatePrediction
     },
     mounted: function() {
         this.getPredictions();

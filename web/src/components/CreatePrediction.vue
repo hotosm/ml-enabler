@@ -21,8 +21,7 @@
                     </div>
 
                     <div class='col col--12 py12'>
-                        <button v-if='prediction.predictionsId' @click='postPrediction' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Prediction</button>
-                        <button v-else @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
+                        <button @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
                     </div>
                 </template>
                 <template v-else>
@@ -38,14 +37,24 @@
 import UploadPrediction from './UploadPrediction.vue';
 
 export default {
-    name: 'EditPrediction',
-    props: ['prediction'],
+    name: 'CreatePrediction',
+    props: ['modelid'],
     components: {
         UploadPrediction
     },
+    mounted: function() {
+        this.prediction.modelId = this.modelid;
+    },
     data: function() {
         return {
-            predictionId: false
+            predictionId: false,
+            prediction: {
+                modelId: false,
+                predictionsId: false,
+                version: '',
+                tileZoom: '18',
+                bbox: [-180.0, -90.0, 180.0, 90.0]
+            }
         };
     },
     methods: {
@@ -53,7 +62,7 @@ export default {
             this.$emit('close');
         },
         postPrediction: function() {
-            fetch(`/v1/model/${this.prediction.modelId}/prediction`, {
+            fetch(`/v1/model/${this.modelid}/prediction`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -68,6 +77,7 @@ export default {
                 return res.json();
             }).then((res) => {
                 this.predictionId = res.prediction_id;
+                this.prediction.predictionsId = res.prediction_id;
             }).catch((err) => {
                 alert(err);
             });
