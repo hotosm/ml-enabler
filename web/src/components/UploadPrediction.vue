@@ -9,7 +9,7 @@
                 v-on:processfile='uploaded'
                 accepted-file-types='application/zip'
                 allowRevert='false'
-                :server='`/v1/model/${prediction.modelId}/prediction/${prediction.predictionId}/upload`'
+                :server='`/v1/model/${prediction.modelId}/prediction/${prediction.predictionsId}/upload`'
                 v-bind:files='files'
             />
         </div>
