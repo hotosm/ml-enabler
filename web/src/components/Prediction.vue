@@ -13,7 +13,7 @@
                     <h3 class='fl mt6 cursor-default'>Assets:</h3>
 
                     <button v-if='prediction.logLink' @click='logLink(prediction.logLink)' class='fr btn btn--s btn--stroke color-gray color-blue-on-hover round ml6'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg>Build Log</button>
-                    <button v-if='prediction.dockerLink' class='fr btn btn--s btn--stroke color-gray color-blue-on-hover round mx6'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
+                    <button v-if='prediction.dockerLink' @click='ecrLink(prediction.dockerLink)' class='fr btn btn--s btn--stroke color-gray color-blue-on-hover round mx6'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
                 </div>
 
                 <div class='col col--12 py3'>
@@ -23,6 +23,10 @@
                 <div v-if='prediction.saveLink' class='col col--12 py3'>
                     <div class='align-center'>TFServing Container</div>
                     <pre class='pre' v-text='"s3://" + prediction.saveLink'></pre>
+                </div>
+                <div v-if='prediction.saveLink' class='col col--12 py3'>
+                    <div class='align-center'>ECR Container</div>
+                    <pre class='pre' v-text='prediction.dockerLink'></pre>
                 </div>
             </template>
             <template v-else>
@@ -52,9 +56,12 @@ export default {
         close: function() {
             this.$emit('close');
         },
+        ecrLink(ecr) {
+            const url = `https://console.aws.amazon.com/ecr/repositories/${ecr.split(':')[0]}/`;
+            this.external(url);
+        },
         logLink: function(stream) {
             const url = `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/%252Faws%252Fbatch%252Fjob/log-events/${encodeURIComponent(stream)}`
-
             this.external(url);
         },
         external: function(url) {
