@@ -246,35 +246,49 @@ class PredictionUploadAPI(Resource):
             model = request.files[files[0]]
 
             # Save the model to S3
-            boto3.resource('s3').Bucket(CONFIG.EnvironmentConfig.ASSET_BUCKET).put_object(
-                Key=key,
-                Body=model.stream
-            )
+            try:
+                boto3.resource('s3').Bucket(CONFIG.EnvironmentConfig.ASSET_BUCKET).put_object(
+                    Key=key,
+                    Body=model.stream
+                )
+            except Exception as e:
+                error_msg = f'S3 Upload Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {"error": "Failed to upload model to S3"}, 500
 
             # Save the model link to ensure UI shows upload success
-            PredictionService.patch(prediction_id, {
-                "saveLink": CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
-            })
+            try:
+                PredictionService.patch(prediction_id, {
+                    "saveLink": CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
+                })
+            except Exception as e:
+                error_msg = f'SaveLink Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {"error": "Failed to save model state to DB"}, 500
 
-            batch = boto3.client(
-                service_name='batch',
-                region_name='us-east-1',
-                endpoint_url='https://batch.us-east-1.amazonaws.com'
-            )
+            try:
+                batch = boto3.client(
+                    service_name='batch',
+                    region_name='us-east-1',
+                    endpoint_url='https://batch.us-east-1.amazonaws.com'
+                )
 
-
-            # Submit to AWS Batch to convert to ECR image
-            batch.submit_job(
-                jobName=CONFIG.EnvironmentConfig.STACK + 'ecr-build',
-                jobQueue=CONFIG.EnvironmentConfig.STACK + '-queue',
-                jobDefinition=CONFIG.EnvironmentConfig.STACK + '-job',
-                containerOverrides={
-                    'environment': [{
-                        'name': 'MODEL',
-                        'value': CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
-                    }]
-                }
-            )
+                # Submit to AWS Batch to convert to ECR image
+                batch.submit_job(
+                    jobName=CONFIG.EnvironmentConfig.STACK + 'ecr-build',
+                    jobQueue=CONFIG.EnvironmentConfig.STACK + '-queue',
+                    jobDefinition=CONFIG.EnvironmentConfig.STACK + '-job',
+                    containerOverrides={
+                        'environment': [{
+                            'name': 'MODEL',
+                            'value': CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
+                        }]
+                    }
+                )
+            except Exception as e:
+                error_msg = f'Batch Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {"error": "Failed to start ECR build"}, 500
 
             return { "status": "model uploaded" }, 200
         else:
