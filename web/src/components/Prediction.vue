@@ -52,8 +52,8 @@ export default {
         close: function() {
             this.$emit('close');
         },
-        logLink: function(stream) {
-            const url = `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/%252Faws%252Fbatch%252Fjob`
+        logLink: function() {
+            //const url = `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/%252Faws%252Fbatch%252Fjob`
 
             this.external();
         },
