@@ -9,12 +9,27 @@
         </div>
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
             <template v-if='prediction.modelLink'>
+                <div class='col col--12 border-b border--gray-light clearfix mb6'>
+                    <h3 class='fl mt6 cursor-default'>Assets:</h3>
+                </div>
 
+                <div class='col col--12 py3'>
+                    <button class='btn btn--stroke round mx6'><svg class='icon'><use href='#icon-arrow-down'/></svg></button> Raw TF compatible Model
+                </div>
+                <div v-if='prediction.saveLink' class='col col--12 py3'>
+                    <button class='btn btn--stroke round mx6'><svg class='icon'><use href='#icon-arrow-down'/></svg></button> TFServing Docker Image
+                </div>
+                <div v-if='prediction.logLink' class='col col--12 py3'>
+                    <button class='btn btn--stroke round mx6'><svg class='icon'><use href='#icon-link'/></svg></button>Link to build log
+                </div>
+                <div v-if='prediction.dockerLink' class='col col--12 py3'>
+                    <button class='btn btn--stroke round mx6'><svg class='icon'><use href='#icon-link'/></svg></button>ECR Docker Image
+                </div>
             </template>
             <template v-else>
                 <div class='align-center pb6'>Upload a model to get started</div>
 
-                <UploadPrediction :prediction='prediction'/>
+                <UploadPrediction :prediction='prediction' v-on:close='close'/>
             </template>
         </div>
     </div>
