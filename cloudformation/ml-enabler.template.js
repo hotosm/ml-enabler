@@ -521,9 +521,13 @@ const Conditions = {
 }
 
 const Outputs = {
-    MLEnablerELB: {
+    API: {
         Description: 'API URL',
         Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')])
+    },
+    UI: {
+        Description: 'UI URL',
+        Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName'), '/admin/'])
     }
 };
 
