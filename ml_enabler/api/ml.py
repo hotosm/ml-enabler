@@ -245,10 +245,16 @@ class PredictionUploadAPI(Resource):
 
             model = request.files[files[0]]
 
+            # Save the model to S3
             boto3.resource('s3').Bucket(CONFIG.EnvironmentConfig.ASSET_BUCKET).put_object(
                 Key=key,
                 Body=model.stream
             )
+
+            # Save the model link to ensure UI shows upload success
+            PredictionService.patch(prediction_id, {
+                "saveLink": CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
+            })
 
             batch = boto3.client(
                 service_name='batch',
@@ -256,6 +262,8 @@ class PredictionUploadAPI(Resource):
                 endpoint_url='https://batch.us-east-1.amazonaws.com'
             )
 
+
+            # Submit to AWS Batch to convert to ECR image
             batch.submit_job(
                 jobName=CONFIG.EnvironmentConfig.STACK + 'ecr-build',
                 jobQueue=CONFIG.EnvironmentConfig.STACK + '-queue',
