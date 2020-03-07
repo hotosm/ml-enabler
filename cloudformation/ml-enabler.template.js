@@ -528,6 +528,10 @@ const Outputs = {
     UI: {
         Description: 'UI URL',
         Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName'), '/admin/'])
+    },
+    S3: {
+        Description: 'Asset Storage',
+        Value: cf.ref('MLEnablerBucket')
     }
 };
 

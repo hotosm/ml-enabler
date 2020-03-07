@@ -88,6 +88,7 @@ function log_link() {
         }, (err, res) => {
             if (err) return reject(err);
 
+            console.error(JSON.stringify(res.jobs[0])
             resolve(res.jobs[0].attempts[0].container.logStreamName)
         });
     });
