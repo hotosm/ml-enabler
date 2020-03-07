@@ -83,6 +83,8 @@ function log_link() {
     return new Promise((resolve, reject) => {
         // Allow local runs
 
+        link();
+
         function link() {
             batch.describeJobs({
                 jobs: [ process.env.AWS_BATCH_JOB_ID ]
