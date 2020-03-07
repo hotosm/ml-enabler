@@ -83,14 +83,27 @@ function log_link() {
     return new Promise((resolve, reject) => {
         // Allow local runs
 
-        batch.describeJobs({
-            jobs: [ process.env.AWS_BATCH_JOB_ID ]
-        }, (err, res) => {
-            if (err) return reject(err);
+        function link() {
+            batch.describeJobs({
+                jobs: [ process.env.AWS_BATCH_JOB_ID ]
+            }, (err, res) => {
+                if (err) return reject(err);
 
-            console.error(JSON.stringify(res.jobs[0])
-            resolve(res.jobs[0].attempts[0].container.logStreamName)
-        });
+                if (
+                    !res.jobs[0]
+                    || !res.jobs[0].attempts
+                    || !res.jobs[0].attempts[0]
+                    || !res.jobs[0].attempts[0].container
+                    || !res.jobs[0].attempts[0].container.logStreamName
+                ) {
+                    setTimeout(() => {
+                        return link();
+                    }, 10000);
+                } else {
+                    resolve(res.jobs[0].attempts[0].container.logStreamName)
+                }
+            });
+        }
     });
 }
 
