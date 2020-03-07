@@ -7,7 +7,7 @@
                 <svg class='icon'><use href='#icon-close'/></svg>
             </button>
 
-            <button @click='external(model.projectUrl)' class='mr12 btn fr round btn--stroke color-gray color-black-on-hover'>
+            <button v-if='model.projectUrl' @click='external(model.projectUrl)' class='mr12 btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-link'/></svg>
             </button>
 
