@@ -80,6 +80,7 @@
 </template>
 
 <script>
+import vSort from 'semver-sort';
 import Prediction from './Prediction.vue';
 import CreatePrediction from './CreatePrediction.vue';
 
@@ -142,7 +143,15 @@ export default {
                 if (res.error) {
                     this.predictions = [];
                 } else {
-                    this.predictions = res;
+                    const vMap = {};
+
+                    for (const v of res) {
+                        vMap[v.versionString] = v;
+                    }
+
+                    this.predictions = vSort.desc(res.map(r => r.versionString)).map(r => {
+                        return vMap[r];
+                    });
                 }
             });
         }
