@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@mapbox/cloudfriend": "^4.0.0"
+  }
+}

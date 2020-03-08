@@ -63,6 +63,11 @@ class Prediction(db.Model):
     bbox = db.Column(Geometry('POLYGON', srid=4326))
     tile_zoom = db.Column(db.Integer, nullable=False)
 
+    log_link = db.Column(db.String)
+    model_link =  db.Column(db.String)
+    docker_link =  db.Column(db.String)
+    save_link = db.Column(db.String)
+
     def create(self, prediction_dto: PredictionDTO):
         """ Creates and saves the current model to the DB """
 
@@ -73,6 +78,20 @@ class Prediction(db.Model):
         self.tile_zoom = prediction_dto.tile_zoom
 
         db.session.add(self)
+        db.session.commit()
+
+    def link(self, update: dict):
+        """ Update prediction to include asset links """
+
+        if update.get("logLink") is not None:
+            self.log_link = update["logLink"]
+        if update.get("modelLink") is not None:
+            self.model_link = update["modelLink"]
+        if update.get("dockerLink") is not None:
+            self.docker_link = update["dockerLink"]
+        if update.get("saveLink") is not None:
+            self.save_link = update["saveLink"]
+
         db.session.commit()
 
     def save(self):
@@ -89,7 +108,7 @@ class Prediction(db.Model):
         query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url,
                                  ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
                                  Prediction.version_id).filter(Prediction.id == prediction_id)
-        return query.one()
+        return Prediction.query.get(prediction_id)
 
     @staticmethod
     def get_predictions_by_model(model_id: int):
@@ -98,9 +117,20 @@ class Prediction(db.Model):
         :param model_id: ml model ID in scope
         :return predictions if found otherwise None
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url,
-                                 ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
-                                 Prediction.version_id).filter(Prediction.model_id == model_id)
+        query = db.session.query(
+            Prediction.id,
+            Prediction.created,
+            Prediction.docker_url,
+            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+            Prediction.model_id,
+            Prediction.tile_zoom,
+            Prediction.version_id,
+            Prediction.log_link,
+            Prediction.model_link,
+            Prediction.docker_link,
+            Prediction.save_link
+        ).filter(Prediction.model_id == model_id)
+
         return query.all()
 
     @staticmethod
@@ -156,6 +186,11 @@ class Prediction(db.Model):
         prediction_dto.tile_zoom = prediction[5]
         prediction_dto.version_id = prediction[6]
         prediction_dto.version_string = f'{version_dto.version_major}.{version_dto.version_minor}.{version_dto.version_patch}'
+
+        prediction_dto.log_link = prediction[7]
+        prediction_dto.model_link = prediction[8]
+        prediction_dto.docker_link = prediction[9]
+        prediction_dto.save_link = prediction[10]
 
         return prediction_dto
 

@@ -1,4 +1,4 @@
-name: AWS ECR
+name: AWS ECR Task
 
 on: [push]
 
@@ -8,8 +8,8 @@ jobs:
         steps:
             - uses: actions/checkout@v1
 
-            - name: Docker Build
-              run: docker build -t base .
+            - name: Docker Build Task
+              run: docker build -t task task/
 
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v1
@@ -22,9 +22,9 @@ jobs:
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v1
 
-            - name: Docker Tag
-              run: docker tag base ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/ml-enabler:${GITHUB_SHA}
+            - name: Docker Tag Task
+              run: docker tag task ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/ml-enabler:task-${GITHUB_SHA}
 
-            - name: Docker Push
-              run: docker push ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/ml-enabler:${GITHUB_SHA}
+            - name: Docker Push Task
+              run: docker push ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/ml-enabler:task-${GITHUB_SHA}
 

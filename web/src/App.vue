@@ -12,7 +12,7 @@
                     <button @click='mode = "editmodel"' class='btn fr round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
                     </button>
-                    <button @click='getModels' class='btn fr round btn--stroke color-gray color-green-on-hover mr12'>
+                    <button @click='getModels' class='btn fr round btn--stroke color-gray color-blue-on-hover mr12'>
                         <svg class='icon'><use href='#icon-refresh'/></svg>
                     </button>
                 </div>

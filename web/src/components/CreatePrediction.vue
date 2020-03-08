@@ -21,27 +21,11 @@
                     </div>
 
                     <div class='col col--12 py12'>
-                        <button v-if='prediction.predictionsId' @click='postPrediction' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Prediction</button>
-                        <button v-else @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
+                        <button @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
                     </div>
                 </template>
                 <template v-else>
-                    <div class='col col--12'>
-                        <file-pond
-                            name='model-upload'
-                            ref='pond'
-                            label-idle='Drop model.zip here'
-                            v-bind:allow-multiple='false'
-                            accepted-file-types='application/zip'
-                            allowRevert='false'
-                            :server='`/v1/model/${prediction.modelId}/prediction/${predictionId}/upload`'
-                            v-bind:files='files'
-                        />
-                    </div>
-
-                    <div class='col col--12 py12'>
-                        <button @click='close' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Done</button>
-                    </div>
+                    <UploadPrediction :prediction='prediction' v-on:close='close'/>
                 </template>
             </div>
         </div>
@@ -50,34 +34,35 @@
 </template>
 
 <script>
-import vueFilePond from 'vue-filepond';
-import 'filepond/dist/filepond.min.css';
-import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
-const FilePond = vueFilePond(FilePondPluginFileValidateType);
+import UploadPrediction from './UploadPrediction.vue';
 
 export default {
-    name: 'EditPrediction',
-    props: ['prediction'],
+    name: 'CreatePrediction',
+    props: ['modelid'],
     components: {
-        FilePond
+        UploadPrediction
+    },
+    mounted: function() {
+        this.prediction.modelId = this.modelid;
     },
     data: function() {
         return {
             predictionId: false,
-            upload: false,
-            files: []
+            prediction: {
+                modelId: false,
+                predictionsId: false,
+                version: '',
+                tileZoom: '18',
+                bbox: [-180.0, -90.0, 180.0, 90.0]
+            }
         };
-    },
-    watch: {
-        predictionId: function() {
-        }
     },
     methods: {
         close: function() {
             this.$emit('close');
         },
         postPrediction: function() {
-            fetch(`/v1/model/${this.prediction.modelId}/prediction`, {
+            fetch(`/v1/model/${this.modelid}/prediction`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -92,6 +77,7 @@ export default {
                 return res.json();
             }).then((res) => {
                 this.predictionId = res.prediction_id;
+                this.prediction.predictionsId = res.prediction_id;
             }).catch((err) => {
                 alert(err);
             });

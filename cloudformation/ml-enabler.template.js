@@ -1,13 +1,10 @@
 const cf = require('@mapbox/cloudfriend');
+const batch = require('./batch');
 
 const Parameters = {
     GitSha: {
         Type: 'String',
         Description: 'Gitsha to Deploy'
-    },
-    AssetBucket: {
-        Type: 'String',
-        Description: 'Bucket in which models can be stored'
     },
     ContainerCpu: {
         Description: 'How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations',
@@ -160,15 +157,15 @@ const Resources = {
             Policies: [{
                 PolicyName: 'ml-enabler-logging',
                 PolicyDocument: {
-                    "Statement": [{
-                        "Effect": "Allow",
-                        "Action": [
-                            "logs:CreateLogGroup",
-                            "logs:CreateLogStream",
-                            "logs:PutLogEvents",
-                            "logs:DescribeLogStreams"
+                    'Statement': [{
+                        'Effect': 'Allow',
+                        'Action': [
+                            'logs:CreateLogGroup',
+                            'logs:CreateLogStream',
+                            'logs:PutLogEvents',
+                            'logs:DescribeLogStreams'
                         ],
-                        "Resource": [ "arn:aws:logs:*:*:*" ]
+                        'Resource': [ 'arn:aws:logs:*:*:*' ]
                     }]
                 }
             }],
@@ -178,6 +175,12 @@ const Resources = {
                 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly'
             ],
             'Path': '/service-role/'
+        }
+    },
+    MLEnablerBucket: {
+        Type: 'AWS::S3::Bucket',
+        Properties: {
+            BucketName: cf.join('-', [cf.stackName, cf.accountId, cf.region])
         }
     },
     MLEnablerTaskRole: {
@@ -196,18 +199,26 @@ const Resources = {
             Policies: [{
                 PolicyName: 'ml-enabler-logging',
                 PolicyDocument: {
-                    "Statement": [{
-                        "Effect": "Allow",
-                        "Action": [
-                            "s3:GetObject",
-                            "s3:DeleteObject",
-                            "s3:AbortMultipartUpload",
-                            "s3:GetObjectAcl",
-                            "s3:ListMultipartUploadParts",
-                            "s3:PutObject",
-                            "s3:PutObjectAcl"
+                    Statement: [{
+                        Effect: 'Allow',
+                        Action: [
+                            'batch:SubmitJob',
+                            'batch:ListJobs',
+                            'batch:DescribeJobs'
                         ],
-                        "Resource": [ cf.join(['arn:aws:s3:::', cf.ref('AssetBucket'), '/*']) ]
+                        Resource: [ cf.join(['arn:aws:batch:', cf.region, ':', cf.accountId, ':*']) ]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            's3:GetObject',
+                            's3:DeleteObject',
+                            's3:AbortMultipartUpload',
+                            's3:GetObjectAcl',
+                            's3:ListMultipartUploadParts',
+                            's3:PutObject',
+                            's3:PutObjectAcl'
+                        ],
+                        Resource: [ cf.join(['arn:aws:s3:::', cf.ref('MLEnablerBucket'), '/*']) ]
                     }]
                 }
             }],
@@ -260,7 +271,7 @@ const Resources = {
                     Value: cf.stackName
                 },{
                     Name: 'ASSET_BUCKET',
-                    Value: cf.ref('AssetBucket')
+                    Value: cf.ref('MLEnablerBucket')
                 }],
                 LogConfiguration: {
                     LogDriver: 'awslogs',
@@ -294,8 +305,8 @@ const Resources = {
                     Name: 'FLASK_APP',
                     Value: 'ml_enabler'
                 },{
-                    Name: 'AssetBucket',
-                    Value: cf.ref('AssetBucket')
+                    Name: 'ASSET_BUCKET',
+                    Value: cf.ref('MLEnablerBucket')
                 }],
                 PortMappings: [{
                     ContainerPort: 5432
@@ -475,18 +486,18 @@ const Resources = {
         }
     },
     MLEnablerRDSSubnet: {
-        'Type' : 'AWS::RDS::DBSubnetGroup',
-        'Properties' : {
-            'DBSubnetGroupDescription': cf.join('-', [cf.stackName, 'rds-subnets']),
-            'SubnetIds': [
+        Type: 'AWS::RDS::DBSubnetGroup',
+        Properties: {
+            DBSubnetGroupDescription: cf.join('-', [cf.stackName, 'rds-subnets']),
+            SubnetIds: [
                 cf.ref('MLEnablerSubA'),
                 cf.ref('MLEnablerSubB')
             ]
         }
     },
-    'MLEnablerRDSSecurityGroup': {
-        Type : 'AWS::RDS::DBSecurityGroup',
-        Properties : {
+    MLEnablerRDSSecurityGroup: {
+        Type: 'AWS::RDS::DBSecurityGroup',
+        Properties: {
             GroupDescription: cf.join('-', [cf.stackName, 'rds-sg']),
             EC2VpcId: cf.ref('MLEnablerVPC'),
             DBSecurityGroupIngress: {
@@ -497,10 +508,10 @@ const Resources = {
 };
 
 const Mappings = {
-    'AWSRegion2AZ' : {
-        'us-east-1' : { '1' : 'us-east-1b', '2' : 'us-east-1c', '3' : 'us-east-1d', '4' : 'us-east-1e' },
-        'us-west-1' : { '1' : 'us-west-1b', '2' : 'us-west-1c' },
-        'us-west-2' : { '1' : 'us-west-2a', '2' : 'us-west-2b', '3' : 'us-west-2c'  }
+    AWSRegion2AZ: {
+        'us-east-1': { '1': 'us-east-1b', '2': 'us-east-1c', '3': 'us-east-1d', '4': 'us-east-1e' },
+        'us-west-1': { '1': 'us-west-1b', '2': 'us-west-1c' },
+        'us-west-2': { '1': 'us-west-2a', '2': 'us-west-2b', '3': 'us-west-2c'  }
     }
 }
 
@@ -510,19 +521,24 @@ const Conditions = {
 }
 
 const Outputs = {
-    "MLEnablerELB" : {
-        "Description": "API URL",
-        "Value": cf.getAtt('MLEnablerELB', 'DNSName')
+    API: {
+        Description: 'API URL',
+        Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')])
+    },
+    UI: {
+        Description: 'UI URL',
+        Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName'), '/admin/'])
+    },
+    S3: {
+        Description: 'Asset Storage',
+        Value: cf.ref('MLEnablerBucket')
     }
 };
 
-const ml = {
+module.exports = cf.merge({
     Parameters,
     Resources,
     Mappings,
     Conditions,
     Outputs
-};
-
-module.exports = ml;
-//module.exports = cf.merge(ml, tfserving);
+}, batch);
