@@ -58,7 +58,7 @@ async function main() {
         const finalLinks = await docker(tmp, model);
 
         links.saveLink = finalLinks.save;
-        links.saveLink = finalLinks.docker;
+        links.dockerLink = finalLinks.docker;
 
         await set_link(model_id, prediction_id, links);
 
