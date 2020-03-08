@@ -57,10 +57,10 @@ async function main() {
 
         const finalLinks = await docker(tmp, model);
 
-        await set_link(model_id, prediction_id, {
-            saveLink: finalLinks.save,
-            dockerLink: finalLinks.docker
-        });
+        links.saveLink = finalLinks.save;
+        links.saveLink = finalLinks.docker;
+
+        await set_link(model_id, prediction_id, links);
 
         dd.kill();
     } catch(err) {
@@ -92,7 +92,6 @@ function log_link() {
             }, (err, res) => {
                 if (err) return reject(err);
 
-                console.error(JSON.stringify(res));
                 if (
                     !res.jobs[0]
                     || !res.jobs[0].container
@@ -111,7 +110,7 @@ function log_link() {
 
 function set_link(model, prediction, patch) {
     return new Promise((resolve, reject) => {
-        console.error('ok - saving link state');
+        console.error(`ok - saving model (${model}), prediction (${prediction}) state: ${JSON.stringify(patch)}`);
 
         request({
             method: 'PATCH',
