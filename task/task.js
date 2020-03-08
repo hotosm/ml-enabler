@@ -121,7 +121,11 @@ function set_link(model, prediction, patch) {
         }, (err, res) => {
             if (err) return reject(err);
 
-            return resolve(res);
+            if (res.statusCode === 200) {
+                return resolve(res);
+            } else {
+                return reject(res.statusCode + ':' + res.body);
+            }
         });
     });
 }
