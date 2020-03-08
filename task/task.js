@@ -86,11 +86,13 @@ function log_link() {
         link();
 
         function link() {
+            console.error(`ok - getting meta for job: ${process.env.AWS_BATCH_JOB_ID}`);
             batch.describeJobs({
                 jobs: [ process.env.AWS_BATCH_JOB_ID ]
             }, (err, res) => {
                 if (err) return reject(err);
 
+                console.error(JSON.stringify(res));
                 if (
                     !res.jobs[0]
                     || !res.jobs[0].attempts
