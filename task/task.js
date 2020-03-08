@@ -37,7 +37,7 @@ async function main() {
         console.error(process.env);
 
         const model_id = get_model_id(model)
-        const prediction_id = get_model_id(model)
+        const prediction_id = get_prediction_id(model)
 
         const links = {
             modelLink: model
