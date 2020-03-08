@@ -102,7 +102,7 @@ function log_link() {
                         return link();
                     }, 10000);
                 } else {
-                    resolve(res.jobs[0].attempts[0].container.logStreamName)
+                    resolve(res.jobs[0].container.logStreamName)
                 }
             });
         }
