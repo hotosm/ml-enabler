@@ -95,10 +95,8 @@ function log_link() {
                 console.error(JSON.stringify(res));
                 if (
                     !res.jobs[0]
-                    || !res.jobs[0].attempts
-                    || !res.jobs[0].attempts[0]
-                    || !res.jobs[0].attempts[0].container
-                    || !res.jobs[0].attempts[0].container.logStreamName
+                    || !res.jobs[0].container
+                    || !res.jobs[0].container.logStreamName
                 ) {
                     setTimeout(() => {
                         return link();
