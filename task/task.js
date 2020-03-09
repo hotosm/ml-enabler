@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
 const unzipper = require('unzipper');
+const find = require('find');
 const request = require('request');
 const Q = require('d3-queue').queue;
 const mkdir = require('mkdirp').sync;
 const pipeline = require('stream').pipeline;
 const fs = require('fs');
+const fse = require('fs-extra');
 const os = require('os');
 const CP = require('child_process');
 const path = require('path');
@@ -31,7 +33,6 @@ async function main() {
 
         const model = process.env.MODEL;
 
-        mkdir(tmp + '/001');
         console.error(`ok - tmp dir: ${tmp}`);
 
         console.error(process.env);
@@ -49,11 +50,13 @@ async function main() {
             links.logLink = logLink;
         }
 
-        await set_link(model_id, prediction_id, links)
+        //await set_link(model_id, prediction_id, links)
 
-        const dd = await dockerd();
+        //const dd = await dockerd();
 
         await get_zip(tmp, model);
+
+        await std_model(tmp);
 
         const finalLinks = await docker(tmp, model);
 
@@ -87,6 +90,7 @@ function log_link() {
 
         function link() {
             console.error(`ok - getting meta for job: ${process.env.AWS_BATCH_JOB_ID}`);
+
             batch.describeJobs({
                 jobs: [ process.env.AWS_BATCH_JOB_ID ]
             }, (err, res) => {
@@ -125,6 +129,28 @@ function set_link(model, prediction, patch) {
             } else {
                 return reject(res.statusCode + ':' + res.body);
             }
+        });
+    });
+}
+
+function std_model(tmp) {
+    return new Promise((resolve, reject) => {
+        find.file('saved_model.pb', tmp, (files) => {
+
+            if (files.length !== 1) return reject(new Error('zip must contain exactly 1 model'));
+
+            path.parse(files[0]).dir;
+
+            mkdir(tmp + '/MODEL/001');
+
+            fse.move(path.parse(files[0]).dir, tmp + '/MODEL/001/', {
+                overwrite: true
+            }, (err) => {
+                if (err) return reject(err);
+
+                console.error(tmp + '/MODEL/001/')
+                return resolve(tmp + '/MODEL/001/');
+            });
         });
     });
 }
@@ -204,7 +230,7 @@ function docker(tmp, model) {
             `);
 
             CP.execSync(`
-                docker cp ${tmp}/ serving_base:/models/default/ \
+                docker cp ${tmp}/MODEL/ serving_base:/models/default/ \
             `);
 
             const tag = `developmentseed/default:${Math.random().toString(36).substring(2, 15)}`;
