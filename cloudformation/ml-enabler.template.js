@@ -36,6 +36,10 @@ const Parameters = {
     DatabasePassword: {
         Type: 'String',
         Description: 'Database User Password'
+    },
+    MapboxAccessToken: {
+        Type: 'String',
+        Description: 'Mapbox API Token'
     }
 };
 
