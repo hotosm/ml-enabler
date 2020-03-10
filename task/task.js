@@ -50,9 +50,9 @@ async function main() {
             links.logLink = logLink;
         }
 
-        //await set_link(model_id, prediction_id, links)
+        await set_link(model_id, prediction_id, links)
 
-        //const dd = await dockerd();
+        const dd = await dockerd();
 
         await get_zip(tmp, model);
 
