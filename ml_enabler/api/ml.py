@@ -504,6 +504,32 @@ class PredictionTileAPI(Resource):
     Methods to manage tile predictions
     """
 
+    def get(self, prediction_id):
+        """
+        TileJSON response for the predictions
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: path
+              name: prediction_id
+              description: ID of the Prediction
+              required: true
+              type: integer
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+
     def post(self, prediction_id):
         """
         Submit tile level predictions

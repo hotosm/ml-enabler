@@ -49,6 +49,9 @@ export default {
             mode: 'prediction'
         }
     },
+    mounted: function() {
+        this.getPredictions();
+    },
     components: {
         UploadPrediction
     },
@@ -68,6 +71,16 @@ export default {
             if (!url) return;
 
             window.open(url, "_blank")
+        },
+        getPredictions: function() {
+            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/all`, {
+                method: 'GET',
+                credentials: 'same-origin'
+            }).then((res) => {
+                return res.json();
+            }).then((preds) => {
+                console.error(preds);
+            });
         }
     }
 }
