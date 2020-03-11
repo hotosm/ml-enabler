@@ -127,12 +127,14 @@ class PredictionTileService():
 
         ml_model = MLModel.get(model_id)
         prediction = Prediction.get(prediction_id)
+        version = MLModelVersion.get(prediction.version_id)
 
         tilejson = {
             "tilejson": "2.1.0",
             "name": ml_model.name,
             "description": ml_model.project_url,
             "attribution": ml_model.source,
+            "version": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
             "scheme": "xyz",
             "tiles": [
                 "/v1/{0}/prediction/{1}/tilejson".format(model_id, prediction_id)
