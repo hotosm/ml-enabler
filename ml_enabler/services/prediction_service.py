@@ -108,7 +108,7 @@ class PredictionService():
 
 class PredictionTileService():
     @staticmethod
-    def create(prediction: PredictionDTO, data):
+    def create(data):
         """
         Bulk inserts prediction tiles
         :params prediction, data

@@ -587,12 +587,11 @@ class PredictionTileAPI(Resource):
                 description: Internal Server Error
         """
         try:
-            prediction_dto = PredictionService.get_prediction_by_id(prediction_id)
             data = request.get_json()
             if (len(data['predictions']) == 0):
                 return {"error": "Error validating request"}, 400
 
-            PredictionTileService.create(prediction_dto, data)
+            PredictionTileService.create(data)
 
             return {"prediction_id": prediction_id}, 200
         except PredictionsNotFound:

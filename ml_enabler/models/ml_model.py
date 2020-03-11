@@ -135,9 +135,16 @@ class Prediction(db.Model):
         :param prediction_id
         :return prediction if found otherwise None
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url,
-                                 ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
-                                 Prediction.version_id).filter(Prediction.id == prediction_id)
+        query = db.session.query(
+            Prediction.id,
+            Prediction.created,
+            Prediction.docker_url,
+            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+            Prediction.model_id,
+            Prediction.tile_zoom,
+            Prediction.version_id
+        ).filter(Prediction.id == prediction_id)
+
         return Prediction.query.get(prediction_id)
 
     @staticmethod
@@ -205,6 +212,7 @@ class Prediction(db.Model):
 
         prediction_dto = PredictionDTO()
         version = MLModelVersion.get(prediction[6])
+
         version_dto = version.as_dto()
 
         prediction_dto.prediction_id = prediction[0]
