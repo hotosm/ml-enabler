@@ -5,7 +5,7 @@ from ml_enabler.utils import bbox_to_polygon_wkt, geojson_to_bbox
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_Envelope, ST_AsGeoJSON, ST_Within
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, text
 from sqlalchemy.sql.expression import cast
 import sqlalchemy
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, \
@@ -17,36 +17,59 @@ class PredictionTile(db.Model):
     __tablename__ = 'prediction_tiles'
 
     id = db.Column(db.Integer, primary_key=True)
-    prediction_id = db.Column(db.BigInteger, db.ForeignKey(
-                        'predictions.id', name='fk_predictions'),
-                        nullable=False)
+
+    prediction_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey('predictions.id', name='fk_predictions'),
+        nullable=False
+    )
+
     quadkey = db.Column(db.String, nullable=False)
     centroid = db.Column(Geometry('POINT', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
 
-    prediction_tiles_quadkey_idx = db.Index('prediction_tiles_quadkey_idx',
-                                            'prediction_tiles.quadkey',
-                                            postgresql_ops={
-                                                'quadkey': 'text_pattern_ops'
-                                                })
+    prediction_tiles_quadkey_idx = db.Index(
+        'prediction_tiles_quadkey_idx',
+        'prediction_tiles.quadkey',
+        postgresql_ops={ 'quadkey': 'text_pattern_ops' }
+    )
+
+    @staticmethod
+    def count(prediction_id: int):
+        return db.session.query(
+            func.count(PredictionTile.quadkey).label("count")
+        ).filter(PredictionTile.prediction_id == prediction_id).one()
+
+    @staticmethod
+    def bbox(prediction_id: int):
+        result = db.session.execute(text('''
+            SELECT
+                ST_Extent(quadkey_geom)
+            FROM
+                prediction_tiles
+        ''')).fetchone()
+
+        bbox = []
+        for corners in result[0].replace('BOX(', '').replace(')', '').split(' '):
+            for corner in corners.split(','):
+                bbox.append(float(corner))
+
+        return bbox
 
     @staticmethod
     def get_tiles_by_quadkey(prediction_id: int, quadkeys: tuple, zoom: int):
-        return db.session.query(func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'),
-                                func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String),
-                                         sqlalchemy.Float)).label('ml_prediction'),
-                                func.avg(cast(cast(PredictionTile.predictions['osm_building_area'], sqlalchemy.String),
-                                         sqlalchemy.Float)).label('osm_building_area')).filter(PredictionTile.prediction_id == prediction_id).filter(
-                                             func.substr(
-                                              PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
+        return db.session.query(
+            func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'),
+            func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction'),
+            func.avg(cast(cast(PredictionTile.predictions['osm_building_area'], sqlalchemy.String), sqlalchemy.Float)).label('osm_building_area')
+        ).filter(PredictionTile.prediction_id == prediction_id).filter(func.substr(PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
 
     @staticmethod
     def get_aggregate_for_polygon(prediction_id: int, polygon: str):
-        return db.session.query(func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction'),
-                                func.avg(cast(cast(PredictionTile.predictions['osm_building_area'],
-                                         sqlalchemy.String), sqlalchemy.Float)).label('osm_building_area')).filter(
-            PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
-
+        return db.session.query(
+            func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction'),
+            func.avg(cast(cast(PredictionTile.predictions['osm_building_area'], sqlalchemy.String), sqlalchemy.Float)).label('osm_building_area')
+        ).filter(PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
 
 class Prediction(db.Model):
     """ Predictions from a model at a given time """
@@ -54,11 +77,18 @@ class Prediction(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
-    model_id = db.Column(db.BigInteger, db.ForeignKey(
-                        'ml_models.id', name='fk_models'), nullable=False)
-    version_id = db.Column(db.Integer, db.ForeignKey(
-                          'ml_model_versions.id', name='ml_model_versions_fk'),
-                          nullable=False)
+    model_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey('ml_models.id', name='fk_models'),
+        nullable=False
+    )
+
+    version_id = db.Column(
+        db.Integer,
+        db.ForeignKey('ml_model_versions.id', name='ml_model_versions_fk'),
+        nullable=False
+    )
+
     docker_url = db.Column(db.String)
     bbox = db.Column(Geometry('POLYGON', srid=4326))
     tile_zoom = db.Column(db.Integer, nullable=False)

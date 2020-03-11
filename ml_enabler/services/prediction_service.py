@@ -125,6 +125,11 @@ class PredictionTileService():
         :returns dict
         """
 
+        tiles = PredictionTile.count(prediction_id)
+
+        if tiles.count == 0:
+            raise PredictionsNotFound('No Prediction Tiles exist')
+
         ml_model = MLModel.get(model_id)
         prediction = Prediction.get(prediction_id)
         version = MLModelVersion.get(prediction.version_id)
@@ -141,8 +146,7 @@ class PredictionTileService():
             ],
             "minzoom": prediction.tile_zoom,
             "maxzoom": prediction.tile_zoom,
-            "bounds": [
-            ]
+            "bounds": PredictionTile.bbox(prediction_id)
         }
 
         return tilejson
