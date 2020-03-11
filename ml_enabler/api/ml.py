@@ -504,7 +504,7 @@ class PredictionTileAPI(Resource):
     Methods to manage tile predictions
     """
 
-    def get(self, prediction_id):
+    def get(self, model_id, prediction_id):
         """
         TileJSON response for the predictions
         ---
@@ -529,6 +529,15 @@ class PredictionTileAPI(Resource):
             500:
                 description: Internal Server Error
         """
+
+        try:
+            return PredictionTileService.tilejson(model_id, prediction_id)
+        except PredictionsNotFound:
+            return {"error": "Prediction TileJSON not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
 
     def post(self, prediction_id):
         """
@@ -585,6 +594,7 @@ class PredictionTileAPI(Resource):
 
             PredictionTileService.create(prediction_dto, data)
 
+            return {"prediction_id": prediction_id}, 200
         except PredictionsNotFound:
             return {"error": "Prediction not found"}, 404
         except Exception as e:

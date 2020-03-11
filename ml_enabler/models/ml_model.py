@@ -142,7 +142,6 @@ class Prediction(db.Model):
         :param model_id, version_id, bbox
         :return list of predictions
         """
-
         query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
                                  Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(
                                      Prediction.version_id == version_id).filter(ST_Intersects(

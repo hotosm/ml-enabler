@@ -1,4 +1,4 @@
-from ml_enabler.models.ml_model import MLModelVersion, Prediction, PredictionTile
+from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
 from ml_enabler.models.utils import PredictionsNotFound
 from ml_enabler.utils import bbox_str_to_list, bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt, geojson_to_bbox
@@ -115,6 +115,35 @@ class PredictionTileService():
         """
         connection = db.engine.connect()
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
+
+    @staticmethod
+    def tilejson(model_id, prediction_id):
+        """
+        Get the TileJSON of the prediction id given
+
+        :params prediction_id
+        :returns dict
+        """
+
+        ml_model = MLModel.get(model_id)
+        prediction = Prediction.get(prediction_id)
+
+        tilejson = {
+            "tilejson": "2.1.0",
+            "name": ml_model.name,
+            "description": ml_model.project_url,
+            "attribution": ml_model.source,
+            "scheme": "xyz",
+            "tiles": [
+                "/v1/{0}/prediction/{1}/tilejson".format(model_id, prediction_id)
+            ],
+            "minzoom": prediction.tile_zoom,
+            "maxzoom": prediction.tile_zoom,
+            "bounds": [
+            ]
+        }
+
+        return tilejson
 
     @staticmethod
     def get_aggregated_tiles(model_id: int, bbox: list, zoom: int):
