@@ -46,11 +46,12 @@ export default {
     props: ['model', 'prediction'],
     data: function() {
         return {
-            mode: 'prediction'
+            mode: 'prediction',
+            tiles: false
         }
     },
     mounted: function() {
-        this.getPredictions();
+        this.getTilejson();
     },
     components: {
         UploadPrediction
@@ -72,14 +73,18 @@ export default {
 
             window.open(url, "_blank")
         },
-        getPredictions: function() {
-            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/all`, {
+        getTilejson: function() {
+            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionId}/tiles`, {
                 method: 'GET',
                 credentials: 'same-origin'
             }).then((res) => {
-                return res.json();
-            }).then((preds) => {
-                console.error(preds);
+                if (res.status === 404) {
+                    this.tiles = false;
+                } else {
+                    return res.json();
+                }
+            }).then((tilejson) => {
+                this.tiles = tilejson;
             });
         }
     }
