@@ -274,6 +274,9 @@ const Resources = {
                     Name: 'STACK',
                     Value: cf.stackName
                 },{
+                    Name: 'MAPBOX_TOKEN',
+                    Value: cf.ref('MapboxAccessToken')
+                },{
                     Name: 'ASSET_BUCKET',
                     Value: cf.ref('MLEnablerBucket')
                 }],
