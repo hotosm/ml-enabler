@@ -34,12 +34,19 @@
 
                 <UploadPrediction :prediction='prediction' v-on:close='close'/>
             </template>
+
+            <template v-if='tiles'>
+                <div class='align-center pb6'>Prediction Tiles</div>
+
+                <Map :prediction='prediction' :tilejson='tilejson'/>
+            </template>
         </div>
     </div>
 </template>
 
 <script>
 import UploadPrediction from './UploadPrediction.vue';
+import Map from './Map.vue';
 
 export default {
     name: 'Prediction',
@@ -54,6 +61,7 @@ export default {
         this.getTilejson();
     },
     components: {
+        Map,
         UploadPrediction
     },
     methods: {

@@ -1,3 +1,4 @@
+import ml_enabler.config as CONFIG
 from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
 from ml_enabler.models.utils import PredictionsNotFound
@@ -138,6 +139,7 @@ class PredictionTileService():
             "tilejson": "2.1.0",
             "name": ml_model.name,
             "description": ml_model.project_url,
+            "token": CONFIG.EnvironmentConfig.MAPBOX_TOKEN,
             "attribution": ml_model.source,
             "version": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
             "scheme": "xyz",
