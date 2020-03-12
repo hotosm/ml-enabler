@@ -481,7 +481,7 @@ const Resources = {
         Properties: {
             Engine: 'postgres',
             DBName: 'mlenabler',
-            EngineVersion: '11.2',
+            EngineVersion: '11.6',
             MasterUsername: cf.ref('DatabaseUser'),
             MasterUserPassword: cf.ref('DatabasePassword'),
             AllocatedStorage: 10,
