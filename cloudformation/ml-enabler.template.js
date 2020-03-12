@@ -543,6 +543,18 @@ const Outputs = {
     S3: {
         Description: 'Asset Storage',
         Value: cf.ref('MLEnablerBucket')
+    },
+    DB: {
+        Description: 'Postgres Connection String',
+        Value: cf.join([
+            'postgresql://',
+            cf.ref('DatabaseUser'),
+            ':',
+            cf.ref('DatabasePassword'),
+            '@',
+            cf.getAtt('MLEnablerRDS', 'Endpoint.Address'),
+            ':5432/mlenabler'
+        ])
     }
 };
 
