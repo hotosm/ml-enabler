@@ -47,7 +47,9 @@ const Resources = {
     MLEnablerVPC: {
         'Type' : 'AWS::EC2::VPC',
         'Properties' : {
-            'CidrBlock' : '172.31.0.0/16',
+            EnableDnsHostnames: true,
+            EnableDnsSupport: true,
+            CidrBlock : '172.31.0.0/16',
             Tags: [{
                 Key: 'Name',
                 Value: cf.join('-', [cf.stackName, 'vpc'])
@@ -507,9 +509,11 @@ const Resources = {
         Properties: {
             GroupDescription: cf.join('-', [cf.stackName, 'rds-sg']),
             EC2VpcId: cf.ref('MLEnablerVPC'),
-            DBSecurityGroupIngress: {
+            DBSecurityGroupIngress: [{
                 EC2SecurityGroupId: cf.getAtt('MLEnablerServiceSecurityGroup', 'GroupId')
-            }
+            },{
+                  CIDRIP: '0.0.0.0/0'
+            }]
         }
     }
 };
