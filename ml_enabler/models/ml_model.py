@@ -25,6 +25,7 @@ class PredictionTile(db.Model):
     )
 
     quadkey = db.Column(db.String, nullable=False)
+    quadkey_geom = db.Column(Geometry('POLYGON', srid=4326), nullable=False)
     centroid = db.Column(Geometry('POINT', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
 

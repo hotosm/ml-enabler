@@ -119,18 +119,12 @@ class PredictionTileService():
         for prediction in data['predictions']:
             bounds = mercantile.bounds(mercantile.quadkey_to_tile(prediction.get('quadkey')))
 
-            print('---')
-            print(prediction.get('quadkey'))
-            print(mercantile.quadkey_to_tile(prediction.get('quadkey')))
-            print("[{0}, {1}, {2}, {3}]".format(bounds[0], bounds[1], bounds[2], bounds[3]));
-            prediction["quadkey_geom"] = "POLYGON(({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
+            prediction["quadkey_geom"] = "SRID=4326;POLYGON(({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
                 bounds[0],
                 bounds[1],
                 bounds[2],
                 bounds[3]
             )
-
-            print(prediction.get("quadkey_geom"))
 
         connection = db.engine.connect()
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
