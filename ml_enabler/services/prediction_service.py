@@ -1,4 +1,5 @@
 import ml_enabler.config as CONFIG
+import mercantile
 from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
 from ml_enabler.models.utils import PredictionsNotFound
@@ -114,6 +115,23 @@ class PredictionTileService():
         :params prediction, data
         :returns None
         """
+
+        for prediction in data['predictions']:
+            bounds = mercantile.bounds(mercantile.quadkey_to_tile(prediction.get('quadkey')))
+
+            print('---')
+            print(prediction.get('quadkey'))
+            print(mercantile.quadkey_to_tile(prediction.get('quadkey')))
+            print("[{0}, {1}, {2}, {3}]".format(bounds[0], bounds[1], bounds[2], bounds[3]));
+            prediction["quadkey_geom"] = "POLYGON(({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
+                bounds[0],
+                bounds[1],
+                bounds[2],
+                bounds[3]
+            )
+
+            print(prediction.get("quadkey_geom"))
+
         connection = db.engine.connect()
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
 
@@ -158,7 +176,7 @@ class PredictionTileService():
             "scheme": "xyz",
             "type": "vector",
             "tiles": [
-                "/v1/{0}/prediction/{1}/tiles/{z}/{x}/{y}.mvt".format(model_id, prediction_id)
+                "/v1/{0}/prediction/{1}/tiles/{{z}}/{{x}}/{{y}}.mvt".format(model_id, prediction_id)
             ],
             "minzoom": prediction.tile_zoom,
             "maxzoom": prediction.tile_zoom,

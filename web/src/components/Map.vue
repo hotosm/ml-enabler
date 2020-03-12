@@ -1,6 +1,6 @@
 <template>
     <div class="col col--12 relative">
-        <div class='absolute top right z5 mx6 my6'>
+        <div class='bg-white round absolute top right z5 mx6 my6'>
             <button @click='fullscreen' class='btn btn--stroke round btn--gray'>
                 <svg class='icon'><use xlink:href='#icon-fullscreen'/></svg>
             </button>
@@ -36,7 +36,7 @@ export default {
                 bounds: this.tilejson.bounds,
                 style: 'mapbox://styles/mapbox/satellite-streets-v11'
             });
-            this.map.addControl(new mapboxgl.NavigationControl());
+            this.map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
             const polyouter = buffer(bboxPolygon(this.tilejson.bounds), 0.3);
             const polyinner = buffer(bboxPolygon(this.tilejson.bounds), 0.1);
@@ -52,8 +52,6 @@ export default {
                     ]
                 }
             };
-
-            console.error(JSON.stringify(poly));
 
             this.map.on('load', () => {
                 this.map.addSource('tiles', this.tilejson);
