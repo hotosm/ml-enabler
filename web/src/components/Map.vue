@@ -1,23 +1,25 @@
 <template>
-    <div class="col col--12 relative">
-        <div class='bg-white round absolute right bottom z5 mx6 my6'>
-            <div class='select-container'>
-                <select v-model='inf' class='select select--s'>
-                    <template v-for='inf in tilejson.inferences'>
-                        <option v-bind:key='inf' v-text='inf'></option>
-                    </template>
-                </select>
-                <div class='select-arrow'></div>
+    <div class='col col--12 h600'>
+        <div id='map-container' class="col col--12 h-full w-full relative">
+            <div class='bg-white round absolute top left z5 mx6 my6'>
+                <div class='select-container'>
+                    <select v-model='inf' class='select select--s'>
+                        <template v-for='inf in tilejson.inferences'>
+                            <option v-bind:key='inf' v-text='inf'></option>
+                        </template>
+                    </select>
+                    <div class='select-arrow'></div>
+                </div>
             </div>
-        </div>
 
-        <div class='bg-white round absolute top right z5 mx6 my6'>
-            <button @click='fullscreen' class='btn btn--stroke round btn--gray'>
-                <svg class='icon'><use xlink:href='#icon-fullscreen'/></svg>
-            </button>
-        </div>
+            <div class='bg-white round absolute top right z5 mx6 my6'>
+                <button @click='fullscreen' class='btn btn--stroke round btn--gray'>
+                    <svg class='icon'><use xlink:href='#icon-fullscreen'/></svg>
+                </button>
+            </div>
 
-        <div id="map" class='w-full h600'></div>
+            <div id="map" class='w-full h-full'></div>
+        </div>
     </div>
 </template>
 
@@ -32,8 +34,18 @@ export default {
         return {
             inf: this.tilejson.inferences[0],
             inspect: false,
+            opacity: 0.5,
             map: false
         };
+    },
+    watch: {
+        inf: function() {
+            for (const inf of this.tilejson.inferences) {
+                this.map.setLayoutProperty(`inf-${inf}`, 'visibility', 'none');
+            }
+
+            this.map.setLayoutProperty(`inf-${this.inf}`, 'visibility', 'visible');
+        }
     },
     mounted: function() {
         this.$nextTick(() => {
@@ -49,7 +61,7 @@ export default {
                 bounds: this.tilejson.bounds,
                 style: 'mapbox://styles/mapbox/satellite-streets-v11'
             });
-            this.map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+            this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
             const polyouter = buffer(bboxPolygon(this.tilejson.bounds), 0.3);
             const polyinner = buffer(bboxPolygon(this.tilejson.bounds), 0.1);
@@ -67,7 +79,6 @@ export default {
             };
 
             this.map.on('load', () => {
-                console.error(JSON.stringify(this.tilejson));
                 this.map.addSource('tiles', {
                     type: 'vector',
                     tiles: this.tilejson.tiles,
@@ -90,16 +101,21 @@ export default {
                     }
                 });
 
-                this.map.addLayer({
-                    id: `tiles-fill`,
-                    type: 'fill',
-                    source: 'tiles',
-                    'source-layer': 'data',
-                    paint: {
-                        'fill-color': '#00ff00',
-                        'fill-opacity': 1
-                    }
-                });
+                for (const inf of this.tilejson.inferences) {
+                    this.map.addLayer({
+                        id: `inf-${inf}`,
+                        type: 'fill',
+                        source: 'tiles',
+                        'source-layer': 'data',
+                        paint: {
+                            'fill-color': '#ff0000',
+                            'fill-opacity': [
+                                'number',
+                                [ '*', ['get', inf], this.opacity ]
+                            ]
+                        }
+                    });
+                }
 
                 this.map.on('mousemove', 'tiles-fill', (e) => {
                     if (e.features.length === 0 || !e.features[0].properties[this.inf]) {
@@ -115,7 +131,13 @@ export default {
             });
         },
         fullscreen: function() {
+            const container = document.querySelector('#map-container');
 
+            if (!document.fullscreen) {
+                 container.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
         }
     }
 }
