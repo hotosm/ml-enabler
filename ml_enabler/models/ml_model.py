@@ -37,6 +37,25 @@ class PredictionTile(db.Model):
     )
 
     @staticmethod
+    def inferences(prediction_id: int):
+        results = db.session.execute(text('''
+             SELECT
+                DISTINCT jsonb_object_keys(predictions)
+            FROM
+                prediction_tiles
+            WHERE
+                prediction_id = :pred
+        '''), {
+            'pred': prediction_id
+        }).fetchall()
+
+        inferences = []
+        for res in results:
+            inferences.append(res[0])
+
+        return inferences
+
+    @staticmethod
     def count(prediction_id: int):
         return db.session.query(
             func.count(PredictionTile.quadkey).label("count")

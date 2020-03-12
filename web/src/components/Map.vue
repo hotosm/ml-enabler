@@ -1,5 +1,16 @@
 <template>
     <div class="col col--12 relative">
+        <div class='bg-white round absolute right bottom z5 mx6 my6'>
+            <div class='select-container'>
+                <select v-model='inf' class='select select--s'>
+                    <template v-for='inf in tilejson.inferences'>
+                        <option v-bind:key='inf' v-text='inf'></option>
+                    </template>
+                </select>
+                <div class='select-arrow'></div>
+            </div>
+        </div>
+
         <div class='bg-white round absolute top right z5 mx6 my6'>
             <button @click='fullscreen' class='btn btn--stroke round btn--gray'>
                 <svg class='icon'><use xlink:href='#icon-fullscreen'/></svg>
@@ -19,6 +30,8 @@ export default {
     props: ['prediction', 'tilejson'],
     data: function() {
         return {
+            inf: this.tilejson.inferences[0],
+            inspect: false,
             map: false
         };
     },
@@ -86,6 +99,17 @@ export default {
                         'fill-color': '#00ff00',
                         'fill-opacity': 1
                     }
+                });
+
+                this.map.on('mousemove', 'tiles-fill', (e) => {
+                    if (e.features.length === 0 || !e.features[0].properties[this.inf]) {
+                        this.map.getCanvas().style.cursor = '';
+                        return;
+                    }
+
+                    this.map.getCanvas().style.cursor = 'pointer';
+
+                    this.inspect = e.features[0].properties[this.inf];
                 });
 
             });

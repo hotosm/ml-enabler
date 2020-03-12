@@ -164,6 +164,7 @@ class PredictionTileService():
             "tilejson": "2.1.0",
             "name": ml_model.name,
             "description": ml_model.project_url,
+            "inferences": PredictionTile.inferences(prediction_id),
             "token": CONFIG.EnvironmentConfig.MAPBOX_TOKEN,
             "attribution": ml_model.source,
             "version": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
