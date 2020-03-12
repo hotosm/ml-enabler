@@ -1,18 +1,24 @@
 <template>
     <div class='col col--12 h600'>
         <div id='map-container' class="col col--12 h-full w-full relative">
-            <div class='bg-white round absolute top left z5 mx6 my6'>
-                <div class='select-container'>
-                    <select v-model='inf' class='select select--s'>
-                        <template v-for='inf in tilejson.inferences'>
-                            <option v-bind:key='inf' v-text='inf'></option>
-                        </template>
-                    </select>
-                    <div class='select-arrow'></div>
+            <div class='bg-white round absolute top left z5 px12 py12 mx12 my12 w180'>
+                <div class='col col--12'>
+                    <label>Inference Type</label>
+                    <div class='select-container w-full'>
+                        <select v-model='inf' class='select select--s'>
+                            <template v-for='inf in tilejson.inferences'>
+                                <option v-bind:key='inf' v-text='inf'></option>
+                            </template>
+                        </select>
+                        <div class='select-arrow'></div>
+                    </div>
+                </div>
+                <div class='col col--12 clearfix pt6'>
+                    <button @click='bboxzoom' class='btn round btn--stroke fl btn--gray'><svg class='icon'><use xlink:href='#icon-viewport'/></svg></button>
                 </div>
             </div>
 
-            <div class='bg-white round absolute top right z5 mx6 my6'>
+            <div class='bg-white round absolute top right z5 mx12 my12'>
                 <button @click='fullscreen' class='btn btn--stroke round btn--gray'>
                     <svg class='icon'><use xlink:href='#icon-fullscreen'/></svg>
                 </button>
@@ -129,6 +135,12 @@ export default {
                 });
 
             });
+        },
+        bboxzoom: function() {
+            this.map.fitBounds([
+                [this.tilejson.bounds[0], this.tilejson.bounds[1]],
+                [this.tilejson.bounds[2], this.tilejson.bounds[3]]
+            ]);
         },
         fullscreen: function() {
             const container = document.querySelector('#map-container');
