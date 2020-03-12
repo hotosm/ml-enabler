@@ -118,10 +118,23 @@ class PredictionTileService():
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
 
     @staticmethod
+    def mvt(model_id, prediction_id, z, x, y):
+        """
+        :params model_id
+        :params prediction_id
+        :params z
+        :params x
+        :params y
+        """
+
+        return {}
+
+    @staticmethod
     def tilejson(model_id, prediction_id):
         """
         Get the TileJSON of the prediction id given
 
+        :params model_id
         :params prediction_id
         :returns dict
         """
@@ -143,8 +156,9 @@ class PredictionTileService():
             "attribution": ml_model.source,
             "version": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
             "scheme": "xyz",
+            "type": "vector",
             "tiles": [
-                "/v1/{0}/prediction/{1}/tilejson".format(model_id, prediction_id)
+                "/v1/{0}/prediction/{1}/tiles/{z}/{x}/{y}.mvt".format(model_id, prediction_id)
             ],
             "minzoom": prediction.tile_zoom,
             "maxzoom": prediction.tile_zoom,

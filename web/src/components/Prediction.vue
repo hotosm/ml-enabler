@@ -38,7 +38,7 @@
             <template v-if='tiles'>
                 <div class='align-center pb6'>Prediction Tiles</div>
 
-                <Map :prediction='prediction' :tilejson='tilejson'/>
+                <Map :prediction='prediction' :tilejson='tiles'/>
             </template>
         </div>
     </div>
@@ -82,7 +82,7 @@ export default {
             window.open(url, "_blank")
         },
         getTilejson: function() {
-            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionId}/tiles`, {
+            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/tiles`, {
                 method: 'GET',
                 credentials: 'same-origin'
             }).then((res) => {
@@ -92,6 +92,8 @@ export default {
                     return res.json();
                 }
             }).then((tilejson) => {
+                tilejson.tiles[0] = window.location.origin + tilejson.tiles[0];
+
                 this.tiles = tilejson;
             });
         }

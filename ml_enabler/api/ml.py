@@ -498,6 +498,60 @@ class GetAllPredictions(Resource):
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
 
+class PredictionTileMVT(Resource):
+    """
+    Methods to retrieve vector tiles
+    """
+
+    def get(self, model_id, prediction_id, x, y, z):
+        """
+        TileJSON response for the predictions
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: path
+              name: prediction_id
+              description: ID of the Prediction
+              required: true
+              type: integer
+            - in: path
+              name: z
+              description: zoom of the tile to fetch
+              required: true
+              type: integer
+            - in: path
+              name: y
+              description: y coord of the tile to fetch
+              required: true
+              type: integer
+            - in: path
+              name: x
+              description: x coord of the tile to fetch
+              required: true
+              type: integer
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+
+        try:
+            return PredictionTileService.mvt(model_id, prediction_id, z, x, y)
+        except PredictionsNotFound:
+            return {"error": "Prediction tile not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
 
 class PredictionTileAPI(Resource):
     """
