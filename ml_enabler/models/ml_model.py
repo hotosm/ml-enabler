@@ -1,3 +1,4 @@
+import mercantile
 from ml_enabler import db
 from ml_enabler.models.utils import timestamp, \
      ST_GeomFromText, ST_Intersects, ST_MakeEnvelope
@@ -5,7 +6,7 @@ from ml_enabler.utils import bbox_to_polygon_wkt, geojson_to_bbox
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_Envelope, ST_AsGeoJSON, ST_Within
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, text
 from sqlalchemy.sql.expression import cast
 import sqlalchemy
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, \
@@ -17,36 +18,106 @@ class PredictionTile(db.Model):
     __tablename__ = 'prediction_tiles'
 
     id = db.Column(db.Integer, primary_key=True)
-    prediction_id = db.Column(db.BigInteger, db.ForeignKey(
-                        'predictions.id', name='fk_predictions'),
-                        nullable=False)
+
+    prediction_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey('predictions.id', name='fk_predictions'),
+        nullable=False
+    )
+
     quadkey = db.Column(db.String, nullable=False)
+    quadkey_geom = db.Column(Geometry('POLYGON', srid=4326), nullable=False)
     centroid = db.Column(Geometry('POINT', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
 
-    prediction_tiles_quadkey_idx = db.Index('prediction_tiles_quadkey_idx',
-                                            'prediction_tiles.quadkey',
-                                            postgresql_ops={
-                                                'quadkey': 'text_pattern_ops'
-                                                })
+    prediction_tiles_quadkey_idx = db.Index(
+        'prediction_tiles_quadkey_idx',
+        'prediction_tiles.quadkey',
+        postgresql_ops={ 'quadkey': 'text_pattern_ops' }
+    )
+
+    @staticmethod
+    def inferences(prediction_id: int):
+        results = db.session.execute(text('''
+             SELECT
+                DISTINCT jsonb_object_keys(predictions)
+            FROM
+                prediction_tiles
+            WHERE
+                prediction_id = :pred
+        '''), {
+            'pred': prediction_id
+        }).fetchall()
+
+        inferences = []
+        for res in results:
+            inferences.append(res[0])
+
+        return inferences
+
+    @staticmethod
+    def count(prediction_id: int):
+        return db.session.query(
+            func.count(PredictionTile.quadkey).label("count")
+        ).filter(PredictionTile.prediction_id == prediction_id).one()
+
+    @staticmethod
+    def bbox(prediction_id: int):
+        result = db.session.execute(text('''
+            SELECT
+                ST_Extent(quadkey_geom)
+            FROM
+                prediction_tiles
+        ''')).fetchone()
+
+        bbox = []
+        for corners in result[0].replace('BOX(', '').replace(')', '').split(' '):
+            for corner in corners.split(','):
+                bbox.append(float(corner))
+
+        return bbox
+
+    def mvt(prediction_id: int, z: int, x: int, y: int):
+        grid = mercantile.xy_bounds(x, y, z)
+
+        result = db.session.execute(text('''
+            SELECT
+                ST_AsMVT(q, 'data', 4096, 'geom') AS mvt
+            FROM (
+                SELECT
+                    quadkey AS id,
+                    predictions AS props,
+                    ST_AsMVTGeom(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326), 4096, 256, false) AS geom
+                FROM
+                    prediction_tiles
+                WHERE
+                    prediction_id = :pred
+                    AND ST_Intersects(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326))
+            ) q
+        '''), {
+            'pred': prediction_id,
+            'minx': grid[0],
+            'miny': grid[1],
+            'maxx': grid[2],
+            'maxy': grid[3]
+        }).fetchone()
+
+        return bytes(result.values()[0])
 
     @staticmethod
     def get_tiles_by_quadkey(prediction_id: int, quadkeys: tuple, zoom: int):
-        return db.session.query(func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'),
-                                func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String),
-                                         sqlalchemy.Float)).label('ml_prediction'),
-                                func.avg(cast(cast(PredictionTile.predictions['osm_building_area'], sqlalchemy.String),
-                                         sqlalchemy.Float)).label('osm_building_area')).filter(PredictionTile.prediction_id == prediction_id).filter(
-                                             func.substr(
-                                              PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
+        return db.session.query(
+            func.substr(PredictionTile.quadkey, 1, zoom).label('qaudkey'),
+            func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction'),
+            func.avg(cast(cast(PredictionTile.predictions['osm_building_area'], sqlalchemy.String), sqlalchemy.Float)).label('osm_building_area')
+        ).filter(PredictionTile.prediction_id == prediction_id).filter(func.substr(PredictionTile.quadkey, 1, zoom).in_(quadkeys)).group_by(func.substr(PredictionTile.quadkey, 1, zoom)).all()
 
     @staticmethod
     def get_aggregate_for_polygon(prediction_id: int, polygon: str):
-        return db.session.query(func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction'),
-                                func.avg(cast(cast(PredictionTile.predictions['osm_building_area'],
-                                         sqlalchemy.String), sqlalchemy.Float)).label('osm_building_area')).filter(
-            PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
-
+        return db.session.query(
+            func.avg(cast(cast(PredictionTile.predictions['ml_prediction'], sqlalchemy.String), sqlalchemy.Float)).label('ml_prediction'),
+            func.avg(cast(cast(PredictionTile.predictions['osm_building_area'], sqlalchemy.String), sqlalchemy.Float)).label('osm_building_area')
+        ).filter(PredictionTile.prediction_id == prediction_id).filter(ST_Within(PredictionTile.centroid, ST_GeomFromText(polygon)) == 'True').one()
 
 class Prediction(db.Model):
     """ Predictions from a model at a given time """
@@ -54,11 +125,18 @@ class Prediction(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
-    model_id = db.Column(db.BigInteger, db.ForeignKey(
-                        'ml_models.id', name='fk_models'), nullable=False)
-    version_id = db.Column(db.Integer, db.ForeignKey(
-                          'ml_model_versions.id', name='ml_model_versions_fk'),
-                          nullable=False)
+    model_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey('ml_models.id', name='fk_models'),
+        nullable=False
+    )
+
+    version_id = db.Column(
+        db.Integer,
+        db.ForeignKey('ml_model_versions.id', name='ml_model_versions_fk'),
+        nullable=False
+    )
+
     docker_url = db.Column(db.String)
     bbox = db.Column(Geometry('POLYGON', srid=4326))
     tile_zoom = db.Column(db.Integer, nullable=False)
@@ -105,9 +183,16 @@ class Prediction(db.Model):
         :param prediction_id
         :return prediction if found otherwise None
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url,
-                                 ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom,
-                                 Prediction.version_id).filter(Prediction.id == prediction_id)
+        query = db.session.query(
+            Prediction.id,
+            Prediction.created,
+            Prediction.docker_url,
+            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
+            Prediction.model_id,
+            Prediction.tile_zoom,
+            Prediction.version_id
+        ).filter(Prediction.id == prediction_id)
+
         return Prediction.query.get(prediction_id)
 
     @staticmethod
@@ -142,7 +227,6 @@ class Prediction(db.Model):
         :param model_id, version_id, bbox
         :return list of predictions
         """
-
         query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
                                  Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(
                                      Prediction.version_id == version_id).filter(ST_Intersects(
@@ -176,6 +260,7 @@ class Prediction(db.Model):
 
         prediction_dto = PredictionDTO()
         version = MLModelVersion.get(prediction[6])
+
         version_dto = version.as_dto()
 
         prediction_dto.prediction_id = prediction[0]

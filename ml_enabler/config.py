@@ -17,6 +17,8 @@ class EnvironmentConfig:
     ASSET_BUCKET=os.getenv('ASSET_BUCKET', None)
     STACK=os.getenv('STACK', 'ml-enabler')
 
+    MAPBOX_TOKEN=os.getenv('MAPBOX_TOKEN', None)
+
     if os.getenv('MLENABLER_DB', False):
         SQLALCHEMY_DATABASE_URI = os.getenv('MLENABLER_DB', None)
     else:

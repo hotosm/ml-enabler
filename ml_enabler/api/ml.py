@@ -1,4 +1,5 @@
 import ml_enabler.config as CONFIG
+from flask import make_response
 from flask_restful import Resource, request, current_app
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
@@ -498,11 +499,105 @@ class GetAllPredictions(Resource):
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
 
+class PredictionTileMVT(Resource):
+    """
+    Methods to retrieve vector tiles
+    """
+
+    def get(self, model_id, prediction_id, z, x, y):
+        """
+        TileJSON response for the predictions
+        ---
+        produces:
+            - application/x-protobuf
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: path
+              name: prediction_id
+              description: ID of the Prediction
+              required: true
+              type: integer
+            - in: path
+              name: z
+              description: zoom of the tile to fetch
+              required: true
+              type: integer
+            - in: path
+              name: y
+              description: y coord of the tile to fetch
+              required: true
+              type: integer
+            - in: path
+              name: x
+              description: x coord of the tile to fetch
+              required: true
+              type: integer
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+
+        try:
+            tile = PredictionTileService.mvt(model_id, prediction_id, z, x, y)
+
+            response = make_response(tile)
+            response.headers['content-type'] = 'application/x-protobuf'
+
+            return response
+        except PredictionsNotFound:
+            return {"error": "Prediction tile not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
 
 class PredictionTileAPI(Resource):
     """
     Methods to manage tile predictions
     """
+
+    def get(self, model_id, prediction_id):
+        """
+        TileJSON response for the predictions
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: path
+              name: prediction_id
+              description: ID of the Prediction
+              required: true
+              type: integer
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+
+        try:
+            return PredictionTileService.tilejson(model_id, prediction_id)
+        except PredictionsNotFound:
+            return {"error": "Prediction TileJSON not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
 
     def post(self, prediction_id):
         """
@@ -552,63 +647,19 @@ class PredictionTileAPI(Resource):
                 description: Internal Server Error
         """
         try:
-            prediction_dto = PredictionService.get_prediction_by_id(prediction_id)
             data = request.get_json()
             if (len(data['predictions']) == 0):
                 return {"error": "Error validating request"}, 400
 
-            PredictionTileService.create(prediction_dto, data)
+            PredictionTileService.create(data)
 
+            return {"prediction_id": prediction_id}, 200
         except PredictionsNotFound:
             return {"error": "Prediction not found"}, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
-
-
-class MLModelWMSAPI(Resource):
-    """
-    Methods to return raster tiles showing tile based prediction values
-    """
-
-    def get(self, model_id, x, y, z):
-        """
-        Return a raster tile for the given model predictions
-        ---
-        produces:
-            - image/png
-        parameters:
-            - in: path
-              name: model_id
-              description: ID of the Model
-              required: true
-              type: integer
-            - in: path
-              name: x
-              description: X coordinate of the tile
-              required: true
-              type: integer
-            - in: path
-              name: y
-              description: Y coordinate of the tile
-              required: true
-              type: integer
-            - in: path
-              name: z
-              description: Z coordinate of the tile
-              required: true
-              type: integer
-        responses:
-            200:
-                description: Return a tile for the given model
-            404:
-                description: No predictions found
-            500:
-                description: Internal Server Error
-        """
-
-        return {"error": "NOT IMPLEMENTED"}, 500
 
 
 class MLModelTilesAPI(Resource):

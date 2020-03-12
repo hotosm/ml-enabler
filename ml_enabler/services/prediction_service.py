@@ -1,4 +1,6 @@
-from ml_enabler.models.ml_model import MLModelVersion, Prediction, PredictionTile
+import ml_enabler.config as CONFIG
+import mercantile
+from ml_enabler.models.ml_model import MLModel, MLModelVersion, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
 from ml_enabler.models.utils import PredictionsNotFound
 from ml_enabler.utils import bbox_str_to_list, bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt, geojson_to_bbox
@@ -107,14 +109,76 @@ class PredictionService():
 
 class PredictionTileService():
     @staticmethod
-    def create(prediction: PredictionDTO, data):
+    def create(data):
         """
         Bulk inserts prediction tiles
         :params prediction, data
         :returns None
         """
+
+        for prediction in data['predictions']:
+            bounds = mercantile.bounds(mercantile.quadkey_to_tile(prediction.get('quadkey')))
+
+            prediction["quadkey_geom"] = "SRID=4326;POLYGON(({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
+                bounds[0],
+                bounds[1],
+                bounds[2],
+                bounds[3]
+            )
+
         connection = db.engine.connect()
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
+
+    @staticmethod
+    def mvt(model_id, prediction_id, z, x, y):
+        """
+        :params model_id
+        :params prediction_id
+        :params z
+        :params x
+        :params y
+        """
+
+        return PredictionTile.mvt(prediction_id, z, x, y)
+
+    @staticmethod
+    def tilejson(model_id, prediction_id):
+        """
+        Get the TileJSON of the prediction id given
+
+        :params model_id
+        :params prediction_id
+        :returns dict
+        """
+
+        tiles = PredictionTile.count(prediction_id)
+
+        if tiles.count == 0:
+            raise PredictionsNotFound('No Prediction Tiles exist')
+
+        ml_model = MLModel.get(model_id)
+        prediction = Prediction.get(prediction_id)
+        version = MLModelVersion.get(prediction.version_id)
+
+        tilejson = {
+            "tilejson": "2.1.0",
+            "name": ml_model.name,
+            "description": ml_model.project_url,
+            "inferences": PredictionTile.inferences(prediction_id),
+            "token": CONFIG.EnvironmentConfig.MAPBOX_TOKEN,
+            "attribution": ml_model.source,
+            "version": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
+            "scheme": "xyz",
+            "type": "vector",
+            "tiles": [
+                "/v1/model/{0}/prediction/{1}/tiles/{{z}}/{{x}}/{{y}}.mvt".format(model_id, prediction_id)
+            ],
+            "minzoom": 0,
+            "maxzoom": prediction.tile_zoom,
+            "bounds": PredictionTile.bbox(prediction_id)
+        }
+
+        return tilejson
 
     @staticmethod
     def get_aggregated_tiles(model_id: int, bbox: list, zoom: int):

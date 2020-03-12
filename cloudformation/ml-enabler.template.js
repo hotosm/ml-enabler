@@ -36,6 +36,10 @@ const Parameters = {
     DatabasePassword: {
         Type: 'String',
         Description: 'Database User Password'
+    },
+    MapboxAccessToken: {
+        Type: 'String',
+        Description: 'Mapbox API Token'
     }
 };
 
@@ -269,6 +273,9 @@ const Resources = {
                 },{
                     Name: 'STACK',
                     Value: cf.stackName
+                },{
+                    Name: 'MAPBOX_TOKEN',
+                    Value: cf.ref('MapboxAccessToken')
                 },{
                     Name: 'ASSET_BUCKET',
                     Value: cf.ref('MLEnablerBucket')

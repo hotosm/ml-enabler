@@ -34,22 +34,34 @@
 
                 <UploadPrediction :prediction='prediction' v-on:close='close'/>
             </template>
+
+            <template v-if='tiles'>
+                <div class='align-center pb6'>Prediction Tiles</div>
+
+                <Map :prediction='prediction' :tilejson='tiles'/>
+            </template>
         </div>
     </div>
 </template>
 
 <script>
 import UploadPrediction from './UploadPrediction.vue';
+import Map from './Map.vue';
 
 export default {
     name: 'Prediction',
     props: ['model', 'prediction'],
     data: function() {
         return {
-            mode: 'prediction'
+            mode: 'prediction',
+            tiles: false
         }
     },
+    mounted: function() {
+        this.getTilejson();
+    },
     components: {
+        Map,
         UploadPrediction
     },
     methods: {
@@ -68,6 +80,22 @@ export default {
             if (!url) return;
 
             window.open(url, "_blank")
+        },
+        getTilejson: function() {
+            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/tiles`, {
+                method: 'GET',
+                credentials: 'same-origin'
+            }).then((res) => {
+                if (res.status === 404) {
+                    this.tiles = false;
+                } else {
+                    return res.json();
+                }
+            }).then((tilejson) => {
+                tilejson.tiles[0] = window.location.origin + tilejson.tiles[0];
+
+                this.tiles = tilejson;
+            });
         }
     }
 }
