@@ -139,7 +139,7 @@ class PredictionTileService():
         :params y
         """
 
-        return {}
+        return PredictionTile.mvt(prediction_id, z, x, y)
 
     @staticmethod
     def tilejson(model_id, prediction_id):
@@ -170,9 +170,9 @@ class PredictionTileService():
             "scheme": "xyz",
             "type": "vector",
             "tiles": [
-                "/v1/{0}/prediction/{1}/tiles/{{z}}/{{x}}/{{y}}.mvt".format(model_id, prediction_id)
+                "/v1/model/{0}/prediction/{1}/tiles/{{z}}/{{x}}/{{y}}.mvt".format(model_id, prediction_id)
             ],
-            "minzoom": prediction.tile_zoom,
+            "minzoom": 0,
             "maxzoom": prediction.tile_zoom,
             "bounds": PredictionTile.bbox(prediction_id)
         }

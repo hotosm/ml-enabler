@@ -1,4 +1,5 @@
 import ml_enabler.config as CONFIG
+from flask import make_response
 from flask_restful import Resource, request, current_app
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
@@ -508,7 +509,7 @@ class PredictionTileMVT(Resource):
         TileJSON response for the predictions
         ---
         produces:
-            - application/json
+            - application/x-protobuf
         parameters:
             - in: path
               name: model_id
@@ -545,7 +546,12 @@ class PredictionTileMVT(Resource):
         """
 
         try:
-            return PredictionTileService.mvt(model_id, prediction_id, z, x, y)
+            tile = PredictionTileService.mvt(model_id, prediction_id, z, x, y)
+
+            response = make_response(tile)
+            response.headers['content-type'] = 'application/x-protobuf'
+
+            return response
         except PredictionsNotFound:
             return {"error": "Prediction tile not found"}, 404
         except Exception as e:

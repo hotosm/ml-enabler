@@ -54,7 +54,14 @@ export default {
             };
 
             this.map.on('load', () => {
-                this.map.addSource('tiles', this.tilejson);
+                console.error(JSON.stringify(this.tilejson));
+                this.map.addSource('tiles', {
+                    type: 'vector',
+                    tiles: this.tilejson.tiles,
+                    minzoom: this.tilejson.minzoom,
+                    maxzoom: this.tilejson.maxzoom
+                });
+
                 this.map.addSource('bbox', {
                     type: 'geojson',
                     data: poly
@@ -66,6 +73,17 @@ export default {
                     'source': 'bbox',
                     'paint': {
                         'fill-color': '#ffffff',
+                        'fill-opacity': 1
+                    }
+                });
+
+                this.map.addLayer({
+                    id: `tiles-fill`,
+                    type: 'fill',
+                    source: 'tiles',
+                    'source-layer': 'data',
+                    paint: {
+                        'fill-color': '#00ff00',
                         'fill-opacity': 1
                     }
                 });

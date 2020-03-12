@@ -1,3 +1,4 @@
+import mercantile
 from ml_enabler import db
 from ml_enabler.models.utils import timestamp, \
      ST_GeomFromText, ST_Intersects, ST_MakeEnvelope
@@ -56,6 +57,33 @@ class PredictionTile(db.Model):
                 bbox.append(float(corner))
 
         return bbox
+
+    def mvt(prediction_id: int, z: int, x: int, y: int):
+        grid = mercantile.xy_bounds(x, y, z)
+
+        result = db.session.execute(text('''
+            SELECT
+                ST_AsMVT(q, 'data', 4096, 'geom') AS mvt
+            FROM (
+                SELECT
+                    quadkey AS id,
+                    predictions AS props,
+                    ST_AsMVTGeom(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326), 4096, 256, false) AS geom
+                FROM
+                    prediction_tiles
+                WHERE
+                    prediction_id = :pred
+                    AND ST_Intersects(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326))
+            ) q
+        '''), {
+            'pred': prediction_id,
+            'minx': grid[0],
+            'miny': grid[1],
+            'maxx': grid[2],
+            'maxy': grid[3]
+        }).fetchone()
+
+        return bytes(result.values()[0])
 
     @staticmethod
     def get_tiles_by_quadkey(prediction_id: int, quadkeys: tuple, zoom: int):
