@@ -24,6 +24,33 @@
                 </button>
             </div>
 
+            <div class='absolute z5 w180 bg-white round px12 py12' style='bottom: 40px; left: 12px;'>
+                <template v-if='inspect'>
+                    <div class='flex-parent flex-parent--center-main'>
+                        <div class='flex-child'>
+                            <svg class='icon w30 h30'><use xlink:href='#icon-info'/></svg>
+                        </div>
+                    </div>
+                    <div class='flex-parent flex-parent--center-main'>
+                        <div class='flex-child'>
+                            <span v-text='this.layer'></span>: <span v-text='(this.inspect * 100).toFixed(1)'></span>%
+                        </div>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class='flex-parent flex-parent--center-main'>
+                        <div class='flex-child'>
+                            <svg class='icon w30 h30'><use xlink:href='#icon-cursor'/></svg>
+                        </div>
+                    </div>
+                    <div class='flex-parent flex-parent--center-main'>
+                        <div class='flex-child'>
+                            <div align=center>Hover for Details</div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
             <div id="map" class='w-full h-full'></div>
         </div>
     </div>
