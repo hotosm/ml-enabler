@@ -68,7 +68,11 @@ class PredictionTile(db.Model):
                 ST_Extent(quadkey_geom)
             FROM
                 prediction_tiles
-        ''')).fetchone()
+            WHERE
+                prediction_id = :pred
+        '''), {
+            'pred': prediction_id
+        }).fetchone()
 
         bbox = []
         for corners in result[0].replace('BOX(', '').replace(')', '').split(' '):
