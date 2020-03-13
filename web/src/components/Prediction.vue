@@ -6,6 +6,8 @@
             <button @click='close' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-close'/></svg>
             </button>
+
+            <span class='fr mr6 bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer' v-text='"id: " + prediction.predictionsId'/>
         </div>
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
             <template v-if='prediction.modelLink'>
