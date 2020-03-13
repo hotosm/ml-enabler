@@ -7941,6 +7941,11 @@ vue-loader@^15.8.3:
     vue-hot-reload-api "^2.3.0"
     vue-style-loader "^4.1.0"
 
+vue-range-slider@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/vue-range-slider/-/vue-range-slider-0.6.0.tgz#a2c1927a5a38e72a96146478b421752817df34ff"
+  integrity sha512-VH5ZI7ZxZ/2I+4kmHMvRNShB87N+N71wgENFaycMI2NEBCxKyF+gN/NbbralGQP63X9IrCWgggo8uBjm7SdM7g==
+
 vue-style-loader@^4.1.0, vue-style-loader@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/vue-style-loader/-/vue-style-loader-4.1.2.tgz#dedf349806f25ceb4e64f3ad7c0a44fba735fcf8"
