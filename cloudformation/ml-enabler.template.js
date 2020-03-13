@@ -47,7 +47,9 @@ const Resources = {
     MLEnablerVPC: {
         'Type' : 'AWS::EC2::VPC',
         'Properties' : {
-            'CidrBlock' : '172.31.0.0/16',
+            EnableDnsHostnames: true,
+            EnableDnsSupport: true,
+            CidrBlock : '172.31.0.0/16',
             Tags: [{
                 Key: 'Name',
                 Value: cf.join('-', [cf.stackName, 'vpc'])
@@ -479,7 +481,7 @@ const Resources = {
         Properties: {
             Engine: 'postgres',
             DBName: 'mlenabler',
-            EngineVersion: '11.2',
+            EngineVersion: '11.6',
             MasterUsername: cf.ref('DatabaseUser'),
             MasterUserPassword: cf.ref('DatabasePassword'),
             AllocatedStorage: 10,
@@ -507,9 +509,11 @@ const Resources = {
         Properties: {
             GroupDescription: cf.join('-', [cf.stackName, 'rds-sg']),
             EC2VpcId: cf.ref('MLEnablerVPC'),
-            DBSecurityGroupIngress: {
+            DBSecurityGroupIngress: [{
                 EC2SecurityGroupId: cf.getAtt('MLEnablerServiceSecurityGroup', 'GroupId')
-            }
+            },{
+                  CIDRIP: '0.0.0.0/0'
+            }]
         }
     }
 };
@@ -539,6 +543,18 @@ const Outputs = {
     S3: {
         Description: 'Asset Storage',
         Value: cf.ref('MLEnablerBucket')
+    },
+    DB: {
+        Description: 'Postgres Connection String',
+        Value: cf.join([
+            'postgresql://',
+            cf.ref('DatabaseUser'),
+            ':',
+            cf.ref('DatabasePassword'),
+            '@',
+            cf.getAtt('MLEnablerRDS', 'Endpoint.Address'),
+            ':5432/mlenabler'
+        ])
     }
 };
 

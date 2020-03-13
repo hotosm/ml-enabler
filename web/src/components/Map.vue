@@ -38,7 +38,7 @@ export default {
     props: ['prediction', 'tilejson'],
     data: function() {
         return {
-            inf: this.tilejson.inferences[0],
+            inf: false,
             inspect: false,
             opacity: 0.5,
             map: false
@@ -123,17 +123,7 @@ export default {
                     });
                 }
 
-                this.map.on('mousemove', 'tiles-fill', (e) => {
-                    if (e.features.length === 0 || !e.features[0].properties[this.inf]) {
-                        this.map.getCanvas().style.cursor = '';
-                        return;
-                    }
-
-                    this.map.getCanvas().style.cursor = 'pointer';
-
-                    this.inspect = e.features[0].properties[this.inf];
-                });
-
+                this.inf = this.tilejson.inferences[0];
             });
         },
         bboxzoom: function() {
