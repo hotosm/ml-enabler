@@ -46,7 +46,8 @@
                             <div class='col col--12 grid py6 px12 bg-darken10-on-hover'>
                                 <div class='col col--6'>
                                     <div class='col col--12 clearfix'>
-                                        <h3 class='txt-h4 fl' v-text='pred.versionString'></h3>
+                                        <h3 class='txt-h4 fl' v-text='"v" + pred.versionString'></h3>
+                                        <span class='fl ml6 bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer' v-text='"id: " + pred.predictionsId'/>
                                     </div>
                                 </div>
                                 <div class='col col--6 clearfix'>
