@@ -13,6 +13,9 @@ class VersionNotFound(Exception):
     pass
 
 
+class ImageryNotFound(Exception):
+    """ Custom exception to indicate that imagery was not found """
+
 class PredictionsNotFound(Exception):
     """ Custom exception to indicate that no predictions were found """
 

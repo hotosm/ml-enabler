@@ -27,7 +27,15 @@ class Imagery(db.Model):
     name = db.Column(db.String, nullable=False)
     url =  db.Column(db.String, nullable=False)
 
+    def create(self, imagery: dict):
+        """ Creates and saves the current model to the DB """
 
+        self.name = imagery.name
+        self.source = imagery.url
+
+        db.session.add(self)
+        db.session.commit()
+        return self
 
 class PredictionTile(db.Model):
     """ Store individual tile predictions """
@@ -247,11 +255,12 @@ class Prediction(db.Model):
         :param model_id, version_id, bbox
         :return list of predictions
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
-                                 Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(Prediction.model_id == model_id).filter(
-                                     Prediction.version_id == version_id).filter(ST_Intersects(
-                                         Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(
-                                             Prediction.created.desc()).limit(1)
+        query = db.session.query(
+            Prediction.id,
+            Prediction.created,
+            Prediction.docker_url,
+            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id
+        ).filter(Prediction.model_id == model_id).filter(Prediction.version_id == version_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(Prediction.created.desc()).limit(1)
 
         return query.all()
 
@@ -262,10 +271,12 @@ class Prediction(db.Model):
         :param model_id, bbox
         :return list of predictions
         """
-        query = db.session.query(Prediction.id, Prediction.created, Prediction.docker_url, ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
-                                 Prediction.model_id, Prediction.tile_zoom, Prediction.version_id).filter(
-                                     Prediction.model_id == model_id).filter(
-                                         ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
+        query = db.session.query(
+            Prediction.id,
+            Prediction.created,
+            Prediction.docker_url,
+            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id
+        ).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
 
         return query.all()
 
@@ -309,8 +320,12 @@ class MLModel(db.Model):
     name = db.Column(db.String, unique=True)
     source = db.Column(db.String)
     project_url = db.Column(db.String)
-    predictions = db.relationship(Prediction, backref='ml_models',
-                                  cascade='all, delete-orphan', lazy='dynamic')
+    predictions = db.relationship(
+        Prediction,
+        backref='ml_models',
+        cascade='all, delete-orphan',
+        lazy='dynamic'
+    )
 
     def create(self, ml_model_dto: MLModelDTO):
         """ Creates and saves the current model to the DB """

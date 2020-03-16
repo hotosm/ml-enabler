@@ -11,7 +11,6 @@ class MLModelDTO(Model):
     source = StringType(required=True)
     project_url = StringType(serialized_name='projectUrl')
 
-
 class PredictionDTO(Model):
     """ Describes JSON of a set of predictions from a model """
 

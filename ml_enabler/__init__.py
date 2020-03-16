@@ -29,7 +29,7 @@ def init_routes(app):
     # import apis
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, \
         PredictionAPI, PredictionUploadAPI, PredictionTileAPI, MLModelTilesAPI, \
-        MLModelTilesGeojsonAPI, GetAllPredictions, PredictionTileMVT
+        MLModelTilesGeojsonAPI, GetAllPredictions, PredictionTileMVT, ImageryAPI
     from ml_enabler.api.swagger import SwaggerDocsAPI
 
     api.add_resource(StatusCheckAPI,        '/')
@@ -41,6 +41,8 @@ def init_routes(app):
 
     api.add_resource(MLModelTilesAPI,       '/v1/model/<int:model_id>/tiles', methods=['GET'])
     api.add_resource(MLModelTilesGeojsonAPI,'/v1/model/<int:model_id>/tiles/geojson', methods=['POST'])
+
+    api.add_resource(ImageryAPI,            '/v1/model/<int:model_id>/imagery', methods=['POST'])
 
     api.add_resource(PredictionAPI,         '/v1/model/<int:model_id>/prediction', methods=['POST', 'GET'])
     api.add_resource(GetAllPredictions,     '/v1/model/<int:model_id>/prediction/all', methods=['GET'])

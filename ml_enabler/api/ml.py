@@ -5,6 +5,7 @@ from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, P
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
+from ml_enabler.services.imagery_service import ImageryService
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
     PredictionsNotFound
 from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson
@@ -207,6 +208,32 @@ class GetAllModels(Resource):
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}
+
+class ImageryAPI(Resource):
+    """ Upload imagery sources for a given model """
+
+    def post(self, model_id):
+        """
+        Create a new imagery source
+        ---
+        produces:
+            - application/json
+        responses:
+            200:
+                description: ID of the imagery source
+        """
+        try:
+            imagery = request.get_json()
+            imagery_id = ImageryService.create(model_id, imagery)
+
+            return {
+                "model_id": model_id,
+                "imagery_id": imagery_id
+            }, 200
+        except Exception as e:
+            error_msg = f'Imagery Post: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": "Failed to save imagery source to DB"}, 500
 
 class PredictionUploadAPI(Resource):
     """ Upload raw ML Models to the platform """

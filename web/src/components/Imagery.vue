@@ -57,7 +57,8 @@ export default {
                 },
                 body: JSON.stringify({
                     modelId: this.imagery.modelId,
-                    name: this.imagery.name
+                    name: this.imagery.name,
+                    url: this.imagery.url
                 })
             }).then((res) => {
                 return res.json();
