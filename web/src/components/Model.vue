@@ -14,6 +14,10 @@
             <button v-if='mode === "model"' @click='edit' class='mr12 btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-pencil'/></svg>
             </button>
+
+            <button @click='refresh' class='btn fr round btn--stroke color-gray color-blue-on-hover mr12'>
+                <svg class='icon'><use href='#icon-refresh'/></svg>
+            </button>
         </div>
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
             <template v-if='mode === "model"'>
@@ -22,10 +26,6 @@
 
                     <button @click='mode = "editPrediction"' class='btn fr mb6 round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
-                    </button>
-
-                    <button @click='getPredictions' class='btn fr round btn--stroke color-gray color-blue-on-hover mr12'>
-                        <svg class='icon'><use href='#icon-refresh'/></svg>
                     </button>
                 </div>
 
@@ -69,12 +69,39 @@
 
                     </template>
                 </div>
+
+                <div class='col col--12 border-b border--gray-light clearfix pt24'>
+                    <h3 class='fl mt6 cursor-default'>Imagery:</h3>
+
+                    <button @click='mode = "editImagery"' class='btn fr mb6 round btn--stroke color-gray color-green-on-hover'>
+                        <svg class='icon'><use href='#icon-plus'/></svg>
+                    </button>
+                </div>
+
+                <div class='grid grid--gut12'>
+                    <template v-if='imagery.length === 0'>
+                        <div class='col col--12 py6'>
+                            <div class='flex-parent flex-parent--center-main pt36'>
+                                <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+                            </div>
+
+                            <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                                <h1 class='flex-child txt-h4 cursor-default'>No Imagery Yet</h1>
+                            </div>
+                        </div>
+                    </template>
+                    <template v-else>
+                    </template>
+                </div>
+            </template>
+            <template v-else-if='mode === "editImagery"'>
+                <Imagery :modelid='model.modelId' v-on:close='refresh'/>
             </template>
             <template v-else-if='mode === "editPrediction"'>
-                <CreatePrediction :modelid='model.modelId' v-on:close='getPredictions' />
+                <CreatePrediction :modelid='model.modelId' v-on:close='refresh' />
             </template>
             <template v-else-if='mode === "showPrediction"'>
-                <Prediction :model='model' :prediction='prediction' v-on:close='getPredictions' />
+                <Prediction :model='model' :prediction='prediction' v-on:close='refresh' />
             </template>
         </div>
     </div>
@@ -84,6 +111,7 @@
 import vSort from 'semver-sort';
 import Prediction from './Prediction.vue';
 import CreatePrediction from './CreatePrediction.vue';
+import Imagery from './Imagery.vue';
 
 export default {
     name: 'Model',
@@ -92,6 +120,7 @@ export default {
         return {
             mode: 'model',
             predictions: [],
+            imagery: [],
             prediction: {
                 modelId: this.model.modelId,
                 version: '',
@@ -111,13 +140,17 @@ export default {
         }
     },
     components: {
+        Imagery,
         Prediction,
         CreatePrediction
     },
     mounted: function() {
-        this.getPredictions();
+        this.refresh();
     },
     methods: {
+        refresh: function() {
+            this.getPredictions();
+        },
         close: function() {
             this.$emit('close');
         },
