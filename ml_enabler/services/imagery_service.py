@@ -14,9 +14,10 @@ class ImageryService():
         :returns ID of the prediction
         """
 
-        imagery = Imagery.create(payload)
+        imagery = Imagery()
+        imagery.create(model_id, payload)
 
-        return new_prediction.id
+        return imagery.id
 
     @staticmethod
     def patch(imagery_id: int, update: dict) -> int:

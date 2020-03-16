@@ -27,14 +27,16 @@ class Imagery(db.Model):
     name = db.Column(db.String, nullable=False)
     url =  db.Column(db.String, nullable=False)
 
-    def create(self, imagery: dict):
+    def create(self, model_id: int, imagery: dict):
         """ Creates and saves the current model to the DB """
 
-        self.name = imagery.name
-        self.source = imagery.url
+        self.model_id = model_id
+        self.name = imagery.get("name")
+        self.url = imagery.get("url")
 
         db.session.add(self)
         db.session.commit()
+
         return self
 
 class PredictionTile(db.Model):
