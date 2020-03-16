@@ -12,6 +12,22 @@ import sqlalchemy
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, \
     MLModelVersionDTO, PredictionDTO
 
+class Imagery(db.Model):
+    """ Store an imagery source for a given model """
+    __tablename__ = 'imagery'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    model_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey('ml_models.id', name='fk_models'),
+        nullable=False
+    )
+
+    name = db.Column(db.String, nullable=False)
+    url =  db.Column(db.String, nullable=False)
+
+
 
 class PredictionTile(db.Model):
     """ Store individual tile predictions """
