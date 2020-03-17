@@ -37,13 +37,14 @@ def init_routes(app):
 
     api.add_resource(GetAllModels,          '/v1/model/all', methods=['GET'])
     api.add_resource(MLModelAPI,            '/v1/model', endpoint="post", methods=['POST'])
+
     api.add_resource(MLModelAPI,            '/v1/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
 
     api.add_resource(MLModelTilesAPI,       '/v1/model/<int:model_id>/tiles', methods=['GET'])
     api.add_resource(MLModelTilesGeojsonAPI,'/v1/model/<int:model_id>/tiles/geojson', methods=['POST'])
 
-    api.add_resource(ImageryAPI,            '/v1/model/<int:model_id>/imagery', methods=['GET', 'POST'])
-    api.add_resource(ImageryAPI,            '/v1/model/<int:model_id>/imagery/<int:imagery_id>', endpoint="patch", methods=['PATCH'])
+    api.add_resource(ImageryAPI,            '/v1/model/<int:model_id>/imagery', methods=['POST', 'GET'])
+    api.add_resource(ImageryAPI,            '/v1/model/<int:model_id>/imagery/<int:imagery_id>', endpoint="ImageryAPI.patch", methods=['PATCH'])
 
     api.add_resource(PredictionAPI,         '/v1/model/<int:model_id>/prediction', methods=['POST', 'GET'])
     api.add_resource(GetAllPredictions,     '/v1/model/<int:model_id>/prediction/all', methods=['GET'])

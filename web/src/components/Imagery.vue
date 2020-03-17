@@ -68,14 +68,14 @@ export default {
                 return res.json();
             }).then((res) => {
                 this.imagery = res.filter((img) => {
-                    return img.id !== this.imageryid;
+                    return img.id === this.imageryid;
                 })[0];
             }).catch((err) => {
                 alert(err);
             });
         },
         postImagery: function() {
-            fetch(`/v1/model/${this.modelid}/imagery`, {
+            fetch(`/v1/model/${this.modelid}/imagery${this.imageryid ? '/' + this.imageryid : ''}`, {
                 method: this.imageryid ? 'PATCH' : 'POST',
                 headers: {
                     'Content-Type': 'application/json'

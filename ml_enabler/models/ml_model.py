@@ -39,6 +39,16 @@ class Imagery(db.Model):
 
         return self
 
+    def get(imagery_id: int):
+        query = db.session.query(
+            Imagery.id,
+            Imagery.name,
+            Imagery.url,
+            Imagery.model_id
+        ).filter(Imagery.id == imagery_id)
+
+        return Imagery.query.get(imagery_id)
+
     def list(model_id: int):
         query = db.session.query(
             Imagery.id,
@@ -56,7 +66,7 @@ class Imagery(db.Model):
 
         return imagery
 
-    def imagery(update: dict):
+    def update(self, update: dict):
         if update.get("name") is not None:
             self.name = update["name"]
         if update.get("url") is not None:
