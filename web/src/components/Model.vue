@@ -73,7 +73,7 @@
                 <div class='col col--12 border-b border--gray-light clearfix pt24'>
                     <h3 class='fl mt6 cursor-default'>Imagery:</h3>
 
-                    <button @click='mode = "editImagery"' class='btn fr mb6 round btn--stroke color-gray color-green-on-hover'>
+                    <button @click='editImagery()' class='btn fr mb6 round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
                     </button>
                 </div>
@@ -91,7 +91,7 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div :key='img.id' v-for='img in imagery' @click='showImagery(img)' class='cursor-pointer col col--12'>
+                        <div :key='img.id' v-for='img in imagery' @click='editImagery(img.id)' class='cursor-pointer col col--12'>
                             <div class='col col--12 grid py6 px12 bg-darken10-on-hover'>
                                 <h3 class='txt-h4 fl' v-text='img.name'></h3>
                             </div>
@@ -100,7 +100,7 @@
                 </div>
             </template>
             <template v-else-if='mode === "editImagery"'>
-                <Imagery :modelid='model.modelId' v-on:close='refresh'/>
+                <Imagery :modelid='model.modelId' :imageryid='imageryid' v-on:close='refresh'/>
             </template>
             <template v-else-if='mode === "editPrediction"'>
                 <CreatePrediction :modelid='model.modelId' v-on:close='refresh' />
@@ -126,6 +126,7 @@ export default {
             mode: 'model',
             predictions: [],
             imagery: [],
+            imageryid: false,
             prediction: {
                 modelId: this.model.modelId,
                 version: '',
@@ -165,9 +166,6 @@ export default {
         edit: function() {
             this.$emit('edit', this.model);
         },
-        showImagery: function(img) {
-            img;
-        },
         showPrediction: function(pred) {
             this.prediction = pred;
             this.mode = 'showPrediction';
@@ -176,6 +174,15 @@ export default {
             if (!url) return;
 
             window.open(url, "_blank")
+        },
+        editImagery: function(imgid) {
+            if (imgid) {
+                this.imageryid = imgid;
+            } else {
+                this.imageryid = false;
+            }
+
+            this.mode = 'editImagery';
         },
         getPredictions: function() {
             fetch(`/v1/model/${this.model.modelId}/prediction/all`, {

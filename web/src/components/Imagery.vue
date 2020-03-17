@@ -1,7 +1,10 @@
 <template>
     <div class="col col--12">
         <div class='col col--12 clearfix py6'>
-            <h2 class='fl cursor-default'>Add Imagery</h2>
+            <h2 class='fl cursor-default'>
+                <span v-if='imageryid'>Update Imagery</span>
+                <span v-else=''>Add Imagery</span>
+            </h2>
 
             <button @click='close' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-close'/></svg>
@@ -20,7 +23,12 @@
                 </div>
 
                 <div class='col col--12 py12'>
-                    <button @click='postImagery' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Imagery</button>
+                    <template v-if='imageryid'>
+                        <button @click='postImagery' class='btn btn--stroke round fr color-blue-light color-green-on-hover'>Update Imagery</button>
+                    </template>
+                    <template v-else>
+                        <button @click='postImagery' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Imagery</button>
+                    </template>
                 </div>
             </div>
         </div>
@@ -31,9 +39,13 @@
 <script>
 export default {
     name: 'Imagery',
-    props: ['modelid'],
+    props: ['modelid', 'imageryid'],
     mounted: function() {
         this.imagery.modelId = this.modelid;
+
+        if (this.imageryid) {
+            this.getImagery();
+        }
     },
     data: function() {
         return {
@@ -49,9 +61,22 @@ export default {
         close: function() {
             this.$emit('close');
         },
+        getImagery: function() {
+            fetch(`/v1/model/${this.modelid}/imagery`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.imagery = res.filter((img) => {
+                    return img.id !== this.imageryid;
+                })[0];
+            }).catch((err) => {
+                alert(err);
+            });
+        },
         postImagery: function() {
             fetch(`/v1/model/${this.modelid}/imagery`, {
-                method: 'POST',
+                method: this.imageryid ? 'PATCH' : 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
