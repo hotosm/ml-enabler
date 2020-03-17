@@ -39,6 +39,23 @@ class Imagery(db.Model):
 
         return self
 
+    def list(model_id: int):
+        query = db.session.query(
+            Imagery.id,
+            Imagery.name,
+            Imagery.url
+        ).filter(Imagery.model_id == model_id)
+
+        imagery = []
+        for img in query.all():
+            imagery.append({
+                "id": img[0],
+                "name": img[1],
+                "url": img[2]
+            })
+
+        return imagery
+
 class PredictionTile(db.Model):
     """ Store individual tile predictions """
     __tablename__ = 'prediction_tiles'

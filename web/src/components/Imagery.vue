@@ -64,6 +64,7 @@ export default {
                 return res.json();
             }).then((res) => {
                 this.imagery.imageryId = res.imageryId;
+                this.close();
             }).catch((err) => {
                 alert(err);
             });

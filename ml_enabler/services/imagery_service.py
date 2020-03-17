@@ -35,17 +35,17 @@ class ImageryService():
 
             return prediction_id
         else:
-            raise NotFound('Prediction does not exist')
+            raise ImageryNotFound('Imagery Not Found')
 
     @staticmethod
-    def get(imagery_id: int):
+    def list(model_id: int):
         """
-        Fetch imagery source by id
+        Fetch imagery sources for a given model
         :params imagery_id
 
         :raises ImagerysNotFound
         :returns imagery
         """
 
-        return {}
+        return Imagery.list(model_id)
 

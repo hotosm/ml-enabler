@@ -7,7 +7,7 @@ from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionS
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.services.imagery_service import ImageryService
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
-    PredictionsNotFound
+    PredictionsNotFound, ImageryNotFound
 from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson
 from sqlalchemy.exc import IntegrityError
 import geojson
@@ -234,6 +234,34 @@ class ImageryAPI(Resource):
             error_msg = f'Imagery Post: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": "Failed to save imagery source to DB"}, 500
+
+    def get(self, model_id):
+        """
+        Fetch all imagery for the given model
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+        responses:
+            200:
+                description: All imagery for the given model
+            500:
+                description: Internal Server Error
+        """
+        try:
+            imagery = ImageryService.list(model_id)
+            return imagery, 200
+        except ImageryNotFound:
+            return {"error": "Imagery not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
 
 class PredictionUploadAPI(Resource):
     """ Upload raw ML Models to the platform """

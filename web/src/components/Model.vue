@@ -91,6 +91,11 @@
                         </div>
                     </template>
                     <template v-else>
+                        <div :key='img.id' v-for='img in imagery' @click='showImagery(img)' class='cursor-pointer col col--12'>
+                            <div class='col col--12 grid py6 px12 bg-darken10-on-hover'>
+                                <h3 class='txt-h4 fl' v-text='img.name'></h3>
+                            </div>
+                        </div>
                     </template>
                 </div>
             </template>
@@ -149,13 +154,19 @@ export default {
     },
     methods: {
         refresh: function() {
+            this.mode = 'model';
+
             this.getPredictions();
+            this.getImagery();
         },
         close: function() {
             this.$emit('close');
         },
         edit: function() {
             this.$emit('edit', this.model);
+        },
+        showImagery: function(img) {
+            img;
         },
         showPrediction: function(pred) {
             this.prediction = pred;
@@ -172,8 +183,6 @@ export default {
             }).then((res) => {
                 return res.json();
             }).then((res) => {
-                this.mode = 'model';
-
                 if (res.error) {
                     this.predictions = [];
                 } else {
@@ -186,6 +195,19 @@ export default {
                     this.predictions = vSort.desc(res.map(r => r.versionString)).map(r => {
                         return vMap[r];
                     });
+                }
+            });
+        },
+        getImagery: function() {
+            fetch(`/v1/model/${this.model.modelId}/imagery`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                if (res.error) {
+                    this.imagery = [];
+                } else {
+                    this.imagery = res;
                 }
             });
         }
