@@ -8,7 +8,9 @@ class ImageryService():
         """
         Validate and add imagery from a model to the database
 
-        :params model_id, payload
+        :params model_id
+        :params payload
+        :returns imagery_id
 
         :raises DataError
         :returns ID of the prediction
@@ -20,12 +22,25 @@ class ImageryService():
         return imagery.id
 
     @staticmethod
+    def delete(model_id: int, imagery_id: int):
+        """
+        Delete an imagery source by id
+
+        :params model_id
+        :params imagery_id
+        """
+
+        imagery = Imagery.get(imagery_id)
+        imagery.delete()
+
+    @staticmethod
     def patch(model_id: int, imagery_id: int, update: dict) -> int:
         """
-        Patch a prediction by ID
-        :params prediction_id
+        Patch an imagery source by ID
+        :params model_id
+        :params imagery_id
         :params update
-        :returns prediction
+        :returns imagery_id
         """
 
         imagery = Imagery.get(imagery_id)

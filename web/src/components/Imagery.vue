@@ -9,6 +9,10 @@
             <button @click='close' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-close'/></svg>
             </button>
+
+            <button v-if='imageryid' @click='deleteImagery' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
+                <svg class='icon'><use href='#icon-trash'/></svg>
+            </button>
         </div>
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
             <div class='grid grid--gut12'>
@@ -70,6 +74,15 @@ export default {
                 this.imagery = res.filter((img) => {
                     return img.id === this.imageryid;
                 })[0];
+            }).catch((err) => {
+                alert(err);
+            });
+        },
+        deleteImagery: function() {
+            fetch(`/v1/model/${this.modelid}/imagery/${this.imageryid}`, {
+                method: 'DELETE'
+            }).then(() => {
+                this.close();
             }).catch((err) => {
                 alert(err);
             });

@@ -212,6 +212,32 @@ class GetAllModels(Resource):
 class ImageryAPI(Resource):
     """ Upload imagery sources for a given model """
 
+    def delete(self, model_id, imagery_id):
+        """
+        Delete an imagery source
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+            - in: path
+              name: imagery_id
+              description: ID of the Imagery Source
+              required: true
+              type: integer
+        responses:
+            200:
+                description: ID of the imagery source
+        """
+
+        ImageryService.delete(model_id, imagery_id)
+
+        return "deleted", 200
+
     def patch(self, model_id, imagery_id):
         """
         Update an existing imagery source
@@ -223,7 +249,11 @@ class ImageryAPI(Resource):
               name: model_id
               description: ID of the Model
               required: true
-              type: integer
+            - in: path
+              name: imagery_id
+              description: ID of the Imagery Source
+              required: true
+              type: integer             type: integer
         responses:
             200:
                 description: ID of the imagery source

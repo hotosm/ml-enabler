@@ -45,6 +45,7 @@ def init_routes(app):
 
     api.add_resource(ImageryAPI,            '/v1/model/<int:model_id>/imagery', methods=['POST', 'GET'])
     api.add_resource(ImageryAPI,            '/v1/model/<int:model_id>/imagery/<int:imagery_id>', endpoint="ImageryAPI.patch", methods=['PATCH'])
+    api.add_resource(ImageryAPI,            '/v1/model/<int:model_id>/imagery/<int:imagery_id>', endpoint="ImageryAPI.delete", methods=['DELETE'])
 
     api.add_resource(PredictionAPI,         '/v1/model/<int:model_id>/prediction', methods=['POST', 'GET'])
     api.add_resource(GetAllPredictions,     '/v1/model/<int:model_id>/prediction/all', methods=['GET'])

@@ -49,6 +49,11 @@ class Imagery(db.Model):
 
         return Imagery.query.get(imagery_id)
 
+    def delete(self):
+        """ Deletes the current model from the DB """
+        db.session.delete(self)
+        db.session.commit()
+
     def list(model_id: int):
         query = db.session.query(
             Imagery.id,
