@@ -212,12 +212,43 @@ class GetAllModels(Resource):
 class ImageryAPI(Resource):
     """ Upload imagery sources for a given model """
 
+    def patch(self, model_id, imagery_id):
+        """
+        Update an existing imagery source
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
+        responses:
+            200:
+                description: ID of the imagery source
+        """
+        imagery = request.get_json();
+        imagery_id = ImageryService.patch(model_id, imagery_id, imagery)
+
+        return {
+            "model_id": model_id,
+            "imagery_id": imagery_id
+        }, 200
+
+
     def post(self, model_id):
         """
         Create a new imagery source
         ---
         produces:
             - application/json
+        parameters:
+            - in: path
+              name: model_id
+              description: ID of the Model
+              required: true
+              type: integer
         responses:
             200:
                 description: ID of the imagery source

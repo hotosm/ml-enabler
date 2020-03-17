@@ -56,6 +56,14 @@ class Imagery(db.Model):
 
         return imagery
 
+    def imagery(update: dict):
+        if update.get("name") is not None:
+            self.name = update["name"]
+        if update.get("url") is not None:
+            self.url = update["url"]
+
+        db.session.commit()
+
 class PredictionTile(db.Model):
     """ Store individual tile predictions """
     __tablename__ = 'prediction_tiles'

@@ -20,7 +20,7 @@ class ImageryService():
         return imagery.id
 
     @staticmethod
-    def patch(imagery_id: int, update: dict) -> int:
+    def patch(model_id: int, imagery_id: int, update: dict) -> int:
         """
         Patch a prediction by ID
         :params prediction_id
@@ -31,9 +31,9 @@ class ImageryService():
         imagery = Imagery.get(imagery_id)
 
         if (imagery):
-            prediction.link(update)
+            imagery.update(update)
 
-            return prediction_id
+            return imagery.id
         else:
             raise ImageryNotFound('Imagery Not Found')
 
