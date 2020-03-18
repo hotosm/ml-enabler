@@ -1,0 +1,158 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Parameters": {
+        "StackName": {
+            "Type": "String",
+            "Description": "Name of parent stack"
+        },
+        "ImageTag": {
+            "Type": "String",
+            "Description": "ECR Image tag to deploy"
+        }
+    },
+    "Resources" : {
+        "PredServiceSecurityGroup": {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties": {
+                 "GroupDescription": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "pred-ec2-sg"
+                 ]]},
+                "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "vpc"
+                ]]}},
+                "SecurityGroupIngress": [{
+                    "CidrIp": "0.0.0.0/0",
+                    "IpProtocol": "tcp",
+                    "FromPort": 8501,
+                    "ToPort": 8501
+                }]
+            }
+        },
+        "PredService": {
+            "Type": "AWS::ECS::Service",
+            "Properties": {
+                "ServiceName": { "Ref": "ImageTag" },
+                "Cluster": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "cluster"
+                ]]}},
+                "TaskDefinition": { "Ref": "PredTaskDefinition" },
+                "LaunchType": "FARGATE",
+                "HealthCheckGracePeriodSeconds": 300,
+                "DesiredCount": 1,
+                "NetworkConfiguration": {
+                    "AwsvpcConfiguration": {
+                        "AssignPublicIp": "DISABLED",
+                        "SecurityGroups": { "Ref": "PredServiceSecurityGroup" },
+                        "Subnets": [
+                            { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
+                            { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
+                        ]
+                    }
+                }
+            }
+        },
+        "PredTaskDefinition": {
+            "Type": "AWS::ECS::TaskDefinition",
+            "Properties": {
+                "Family": { "Ref" : "StackName" },
+                "Cpu": 2048,
+                "Memory": 1024,
+                "NetworkMode": "awsvpc",
+                "RequiresCompatibilities": ["FARGATE"],
+                "TaskRoleArn": { "Fn::GetAtt" : [ "PredTaskRole", "Arn" ] },
+                "ExecutionRoleArn": { "Fn::GetAtt" : [ "PredEecRole", "Arn" ] },
+                "ContainerDefinitions": [{
+                    "Name": "pred-app",
+                    "Image": { "Fn::Join" : [ "", [
+                        { "Ref": "AWS::AccountId" },
+                        ".dkr.ecr.",
+                        { "Ref": "AWS::Region" },
+                        ".amazonaws.com/",
+                        { "Ref": "AWS::StackName" },
+                        "-ecr:",
+                        { "Ref": "ImageTag" }
+                    ] ] },
+                    "PortMappings": [{
+                        "ContainerPort": 8501
+                    }],
+                    "Environment": [],
+                    "LogConfiguration": {
+                        "LogDriver": "awslogs",
+                        "Options": {
+                            "awslogs-group": { "Fn::Join": [ "-", [
+                                "awslogs",
+                                { "Ref": "StackName" }
+                            ]]},
+                            "awslogs-region": { "Ref": "AWS::Region" },
+                            "awslogs-stream-prefix": { "Fn::Join": [ "-", [
+                                "awslogs",
+                                { "Ref": "StackName" },
+                                "pred"
+                            ]]},
+                            "awslogs-create-group": true
+                        }
+                    },
+                    "Essential": true
+
+                }]
+            }
+        },
+        "PredTaskRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "ecs-tasks.amazonaws.com"
+                        },
+                        "Action": "sts:AssumeRole"
+                    }]
+                }
+            },
+            "Path": "/service-role/"
+        },
+        "PredExecRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "ecs-tasks.amazonaws.com"
+                        },
+                        "Action": "sts:AssumeRole"
+                    }]
+                },
+                "Policies": [{
+                    "PolicyName": "ml-enabler-pred-logging",
+                    "PolicyDocument": {
+                        "Statement": [{
+                            "Effect": "Allow",
+                            "Action": [
+                                "logs:CreateLogGroup",
+                                "logs:CreateLogStream",
+                                "logs:PutLogEvents",
+                                "logs:DescribeLogStreams"
+                            ],
+                            "Resource": [ "arn:aws:logs:*:*:*" ]
+                        }]
+                    }
+                }],
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
+                    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+                    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+                ],
+                "Path": "/service-role/"
+            }
+        }
+    },
+    "Outputs" : {
+    }
+}

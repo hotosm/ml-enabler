@@ -292,36 +292,6 @@ const Resources = {
                     }
                 },
                 Essential: true
-            },{
-                Name: 'migration',
-                Image: cf.join([cf.accountId, '.dkr.ecr.', cf.region, '.amazonaws.com/ml-enabler:', cf.ref('GitSha')]),
-                Environment: [{
-                    Name:'POSTGRES_DB',
-                    Value: 'mlenabler'
-                },{
-                    Name:'POSTGRES_USER',
-                    Value: cf.ref('DatabaseUser')
-                },{
-                    Name:'POSTGRES_PASSWORD',
-                    Value: cf.ref('DatabasePassword')
-                },{
-                    Name:'POSTGRES_ENDPOINT',
-                    Value: cf.getAtt('MLEnablerRDS', 'Endpoint.Address')
-                },{
-                    Name:'POSTGRES_PORT',
-                    Value: '5432'
-                },{
-                    Name: 'FLASK_APP',
-                    Value: 'ml_enabler'
-                },{
-                    Name: 'ASSET_BUCKET',
-                    Value: cf.ref('MLEnablerBucket')
-                }],
-                PortMappings: [{
-                    ContainerPort: 5432
-                }],
-                Command: ['flask','db', 'upgrade'],
-                Essential: false
             }]
         }
     },
@@ -532,6 +502,26 @@ const Conditions = {
 }
 
 const Outputs = {
+    InternalVPC: {
+        Description: 'The ARN of the VPC',
+        Value: cf.ref('MLEnablerVPC'),
+        Export: cf.join('-', [cf.stackName, 'cluster'])
+    },
+    InternalCluster: {
+        Description: 'The ARN of the Cluster',
+        Value: cf.getAtt('MLEnablerECSCluster', 'Arn'),
+        Export: cf.join('-', [cf.stackName, 'vpc'])
+    },
+    InternalSubA: {
+        Description: 'SubnetA',
+        Value: cf.ref('MLEnablerSubA'),
+        Export: cf.join('-', [cf.stackName, 'suba'])
+    },
+    InternalSubB: {
+        Description: 'SubnetA',
+        Value: cf.ref('MLEnablerSubA'),
+        Export: cf.join('-', [cf.stackName, 'subb'])
+    },
     API: {
         Description: 'API URL',
         Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')])
