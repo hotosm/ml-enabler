@@ -1,7 +1,7 @@
 <template>
     <div class="col col--12">
         <div class='col col--12 clearfix py6'>
-            <h2 class='fl cursor-default' v-text='model.name + " - " + model.source'></h2>
+            <h2 @click='mode = "model"' class='fl cursor-pointer txt-underline-on-hover' v-text='model.name + " - " + model.source'></h2>
 
             <button @click='close' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-close'/></svg>

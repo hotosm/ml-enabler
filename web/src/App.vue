@@ -2,7 +2,7 @@
     <div id="app" class='flex-parent flex-parent--center-main'>
         <div class='flex-child wmax600 col col--12'>
             <div class='flex-parent flex-parent--center-main py36'>
-                <h1 class='flex-child txt-h3 cursor-default'>ML Enabler</h1>
+                <h1 @click='mode = "models"' class='flex-child txt-h3 cursor-default txt-underline-on-hover cursor-pointer'>ML Enabler</h1>
             </div>
 
             <template v-if='mode === "models"'>
