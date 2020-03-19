@@ -4,7 +4,7 @@ const batch = require('./batch');
 const Parameters = {
     GitSha: {
         Type: 'String',
-        Description: 'Gitsha to Deploy'
+        Description: 'GitSha to Deploy'
     },
     ContainerCpu: {
         Description: 'How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations',
@@ -302,7 +302,6 @@ const Resources = {
             Cluster: cf.ref('MLEnablerECSCluster'),
             TaskDefinition: cf.ref('MLEnablerTaskDefinition'),
             LaunchType: 'FARGATE',
-            HealthCheckGracePeriodSeconds: 300,
             DesiredCount: 1,
             NetworkConfiguration: {
                 AwsvpcConfiguration: {
@@ -505,22 +504,30 @@ const Outputs = {
     InternalVPC: {
         Description: 'The ARN of the VPC',
         Value: cf.ref('MLEnablerVPC'),
-        Export: cf.join('-', [cf.stackName, 'cluster'])
+        Export: {
+            "Name": cf.join('-', [cf.stackName, 'vpc'])
+        }
     },
     InternalCluster: {
         Description: 'The ARN of the Cluster',
         Value: cf.getAtt('MLEnablerECSCluster', 'Arn'),
-        Export: cf.join('-', [cf.stackName, 'vpc'])
+        Export: {
+            "Name": cf.join('-', [cf.stackName, 'cluster'])
+        }
     },
     InternalSubA: {
         Description: 'SubnetA',
         Value: cf.ref('MLEnablerSubA'),
-        Export: cf.join('-', [cf.stackName, 'suba'])
+        Export: {
+            "Name": cf.join('-', [cf.stackName, 'suba'])
+        }
     },
     InternalSubB: {
         Description: 'SubnetA',
-        Value: cf.ref('MLEnablerSubA'),
-        Export: cf.join('-', [cf.stackName, 'subb'])
+        Value: cf.ref('MLEnablerSubB'),
+        Export: {
+            "Name": cf.join('-', [cf.stackName, 'subb'])
+        }
     },
     API: {
         Description: 'API URL',

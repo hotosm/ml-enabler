@@ -1,6 +1,10 @@
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
     "Parameters": {
+        "GitSha": {
+            "Type": "String",
+            "Description": "GitSha to Deploy"
+        },
         "StackName": {
             "Type": "String",
             "Description": "Name of parent stack"
@@ -40,12 +44,11 @@
                 ]]}},
                 "TaskDefinition": { "Ref": "PredTaskDefinition" },
                 "LaunchType": "FARGATE",
-                "HealthCheckGracePeriodSeconds": 300,
                 "DesiredCount": 1,
                 "NetworkConfiguration": {
                     "AwsvpcConfiguration": {
-                        "AssignPublicIp": "DISABLED",
-                        "SecurityGroups": { "Ref": "PredServiceSecurityGroup" },
+                        "AssignPublicIp": "ENABLED",
+                        "SecurityGroups": [{ "Ref": "PredServiceSecurityGroup" }],
                         "Subnets": [
                             { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
                             { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
@@ -58,12 +61,12 @@
             "Type": "AWS::ECS::TaskDefinition",
             "Properties": {
                 "Family": { "Ref" : "StackName" },
-                "Cpu": 2048,
-                "Memory": 1024,
+                "Cpu": 1024,
+                "Memory": 2048,
                 "NetworkMode": "awsvpc",
                 "RequiresCompatibilities": ["FARGATE"],
                 "TaskRoleArn": { "Fn::GetAtt" : [ "PredTaskRole", "Arn" ] },
-                "ExecutionRoleArn": { "Fn::GetAtt" : [ "PredEecRole", "Arn" ] },
+                "ExecutionRoleArn": { "Fn::GetAtt" : [ "PredExecRole", "Arn" ] },
                 "ContainerDefinitions": [{
                     "Name": "pred-app",
                     "Image": { "Fn::Join" : [ "", [
@@ -71,7 +74,7 @@
                         ".dkr.ecr.",
                         { "Ref": "AWS::Region" },
                         ".amazonaws.com/",
-                        { "Ref": "AWS::StackName" },
+                        { "Ref": "StackName" },
                         "-ecr:",
                         { "Ref": "ImageTag" }
                     ] ] },
@@ -96,7 +99,6 @@
                         }
                     },
                     "Essential": true
-
                 }]
             }
         },
@@ -112,9 +114,9 @@
                         },
                         "Action": "sts:AssumeRole"
                     }]
-                }
-            },
-            "Path": "/service-role/"
+                },
+                "Path": "/service-role/"
+            }
         },
         "PredExecRole": {
             "Type": "AWS::IAM::Role",
