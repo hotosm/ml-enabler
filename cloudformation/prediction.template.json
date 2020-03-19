@@ -12,9 +12,95 @@
         "ImageTag": {
             "Type": "String",
             "Description": "ECR Image tag to deploy"
+        },
+        "MaxSize": {
+            "Type": "Number",
+            "Description": "Max number of TFServing Images"
         }
     },
     "Resources" : {
+        "PredTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "Port": 8501,
+                "Protocol": "HTTP",
+                "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "vpc"
+                ]]}},
+                "TargetType": "ip",
+                "Matcher": {
+                    "HttpCode": "200,202,302,304"
+                }
+            }
+        },
+        "PredHTTPListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [{
+                    "Type": "forward",
+                    "TargetGroupArn": { "Ref": "PredTargetGroup" }
+                }],
+                "LoadBalancerArn": { "Ref": "PredELB" },
+                "Port": 80,
+                "Protocol": "HTTP"
+            }
+        },
+        "PredELB": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Name": { "Ref": "AWS::StackName" },
+                "Type": "application",
+                "SecurityGroups": [{ "Ref": "PredELBSecurityGroup" }],
+                "Subnets": [
+                    { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
+                    { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
+                ]
+            }
+        },
+        "PredELBSecurityGroup": {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties": {
+                 "GroupDescription": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "pred-elb-sg"
+                 ]]},
+                "SecurityGroupIngress": [{
+                    "CidrIp": "0.0.0.0/0",
+                    "IpProtocol": "tcp",
+                    "FromPort": 80,
+                    "ToPort": 80
+                }],
+                "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "vpc"
+                ]]}}
+            }
+        },
+
+        "PredTileQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+                "QueueName": { "Fn::Join": [ "-", [
+                    { "Ref": "AWS::StackName" },
+                    "queue"
+                ]]},
+                "VisibilityTimeout": 60,
+                "RedrivePolicy": {
+                    "deadLetterTargetArn": { "Fn::GetAtt": [ "PredDeadQueue", "Arn" ] },
+                    "maxReceiveCount": 3
+                }
+            }
+        },
+        "PredDeadQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+                "QueueName": { "Fn::Join": [ "-", [
+                    { "Ref": "AWS::StackName" },
+                    "dead-queue"
+                ]]}
+            }
+        },
         "PredServiceSecurityGroup": {
             "Type" : "AWS::EC2::SecurityGroup",
             "Properties": {
@@ -32,6 +118,69 @@
                     "FromPort": 8501,
                     "ToPort": 8501
                 }]
+            }
+        },
+        "PredServiceScalingRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": ["application-autoscaling.amazonaws.com"]
+                        },
+                        "Action": ["sts:AssumeRole"]
+                    }]
+                },
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": "service-autoscaling",
+                    "PolicyDocument": {
+                        "Statement": [{
+                            "Effect": "Allow",
+                            "Action": [
+                                "application-autoscaling:*",
+                                "cloudwatch:DescribeAlarms",
+                                "cloudwatch:PutMetricAlarm",
+                                "ecs:DescribeServices",
+                                "ecs:UpdateService"
+                            ],
+                            "Resource": "*"
+                        }]
+                    }
+                }]
+            }
+        },
+        "PredServiceScalingTarget": {
+            "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+            "Properties": {
+                "MaxCapacity": { "Ref": "MaxSize" },
+                "MinCapacity": 1,
+                "ResourceId": { "Fn::Join": ["", [
+                    "service/",
+                    { "Ref": "StackName" }, "-cluster/",
+                    { "Fn::GetAtt": [ "PredService", "Name" ] }
+                ]]},
+                "RoleARN": { "Fn::GetAtt": [ "PredServiceScalingRole", "Arn" ]},
+                "ScalableDimension": "ecs:service:DesiredCount",
+                "ServiceNamespace": "ecs"
+            }
+        },
+        "PredServiceScaling": {
+            "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+            "Properties": {
+                "PolicyName": { "Fn::Join": [ "-" , [{ "Ref": "AWS::StackName" }, "autoscale" ]]},
+                "PolicyType": "TargetTrackingScaling",
+                "ScalingTargetId": { "Ref": "PredServiceScalingTarget" },
+                "TargetTrackingScalingPolicyConfiguration": {
+                    "DisableScaleIn": false,
+                    "TargetValue": 80,
+                    "ScaleInCooldown": 60,
+                    "ScaleOutCooldown": 60,
+                    "PredefinedMetricSpecification": {
+                        "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+                    }
+                }
             }
         },
         "PredService": {
@@ -54,7 +203,12 @@
                             { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
                         ]
                     }
-                }
+                },
+                "LoadBalancers": [{
+                    "ContainerName": "pred-app",
+                    "ContainerPort": 8501,
+                    "TargetGroupArn": { "Ref": "PredTargetGroup" }
+                }]
             }
         },
         "PredTaskDefinition": {
@@ -156,5 +310,9 @@
         }
     },
     "Outputs" : {
+        "API": {
+            "Description": "API URL",
+            "Value": { "Fn::Join": ["", ["http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}]]}
+        }
     }
 }
