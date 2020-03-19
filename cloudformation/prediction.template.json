@@ -24,6 +24,7 @@
             "Properties": {
                 "Port": 8501,
                 "Protocol": "HTTP",
+                "HealthCheckPath": "/v1/models/default",
                 "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                     { "Ref": "StackName" },
                     "vpc"
@@ -185,6 +186,7 @@
         },
         "PredService": {
             "Type": "AWS::ECS::Service",
+            "DependsOn": "PredHTTPListener",
             "Properties": {
                 "ServiceName": { "Ref": "ImageTag" },
                 "Cluster": { "Fn::ImportValue": { "Fn::Join": [ "-", [
@@ -214,7 +216,7 @@
         "PredTaskDefinition": {
             "Type": "AWS::ECS::TaskDefinition",
             "Properties": {
-                "Family": { "Ref" : "StackName" },
+                "Family": { "Ref" : "ImageTag" },
                 "Cpu": 1024,
                 "Memory": 2048,
                 "NetworkMode": "awsvpc",
