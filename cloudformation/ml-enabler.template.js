@@ -208,6 +208,16 @@ const Resources = {
                     Statement: [{
                         Effect: 'Allow',
                         Action: [
+                            'clouudformation:CreateStack',
+                            'cloudformation:DeleteStack',
+                            'cloudformation:DescribeStacks',
+                            'cloudformation:DescribeStackEvents',
+                            'cloudformation:DescribeStackResources'
+                        ],
+                        Resource: [ cf.join(['arn:aws:cloudformation:', cf.region, ':', cf.accountId,':stack/', cf.stackName, '-*' ])]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
                             'batch:SubmitJob',
                             'batch:ListJobs',
                             'batch:DescribeJobs'
