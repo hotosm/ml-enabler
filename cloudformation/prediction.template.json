@@ -19,6 +19,19 @@
         }
     },
     "Resources" : {
+        "PredLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": "devseed-artifacts",
+                    "S3Key": { "Fn::ImportValue": { "Fn::Join": [ "", [
+                        "ml-enabler/lambda-",
+                        { "Ref": "GitSha" },
+                        ".zip"
+                    ]]}}
+                }
+            }
+        },
         "PredTargetGroup": {
             "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
             "Properties": {
