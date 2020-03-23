@@ -14,7 +14,6 @@
                 <div class='col col--12 border-b border--gray-light clearfix mb6'>
                     <h3 class='fl mt6 cursor-default'>Assets:</h3>
 
-                    <
                     <button v-if='prediction.logLink' @click='logLink(prediction.logLink)' class='fr btn btn--s btn--stroke color-gray color-blue-on-hover round ml6'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg>Build Log</button>
                     <button v-if='prediction.dockerLink' @click='ecrLink(prediction.dockerLink)' class='fr btn btn--s btn--stroke color-gray color-blue-on-hover round mx6'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
                 </div>
