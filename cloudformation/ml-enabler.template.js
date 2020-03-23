@@ -515,33 +515,36 @@ const Outputs = {
         Description: 'The ARN of the VPC',
         Value: cf.ref('MLEnablerVPC'),
         Export: {
-            "Name": cf.join('-', [cf.stackName, 'vpc'])
+            Name: cf.join('-', [cf.stackName, 'vpc'])
         }
     },
     InternalCluster: {
         Description: 'The ARN of the Cluster',
         Value: cf.getAtt('MLEnablerECSCluster', 'Arn'),
         Export: {
-            "Name": cf.join('-', [cf.stackName, 'cluster'])
+            Name: cf.join('-', [cf.stackName, 'cluster'])
         }
     },
     InternalSubA: {
         Description: 'SubnetA',
         Value: cf.ref('MLEnablerSubA'),
         Export: {
-            "Name": cf.join('-', [cf.stackName, 'suba'])
+            Name: cf.join('-', [cf.stackName, 'suba'])
         }
     },
     InternalSubB: {
         Description: 'SubnetA',
         Value: cf.ref('MLEnablerSubB'),
         Export: {
-            "Name": cf.join('-', [cf.stackName, 'subb'])
+            Name: cf.join('-', [cf.stackName, 'subb'])
         }
     },
     API: {
         Description: 'API URL',
-        Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')])
+        Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')]),
+        Export: {
+            Name: cf.join('-', [cf.stackName, 'api'])
+        }
     },
     UI: {
         Description: 'UI URL',

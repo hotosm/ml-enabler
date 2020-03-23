@@ -13,22 +13,99 @@
             "Type": "String",
             "Description": "ECR Image tag to deploy"
         },
+        "TileEndpoint": {
+            "Type": "String",
+            "Description": "WMS Endpoint from which to pull chips"
+        },
         "MaxSize": {
             "Type": "Number",
             "Description": "Max number of TFServing Images"
         }
     },
     "Resources" : {
+        "PredLambdaFunctionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": { "Fn::Join": ["-", [ { "Ref": "StackName" }, "queue-role" ]]},
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "lambda.amazonaws.com"
+                        },
+                        "Action": "sts:AssumeRole"
+                    }]
+                },
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": { "Fn::Join": ["-", [ { "Ref": "StackName" }, "queue-policy" ]]},
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [{
+                            "Effect": "Allow",
+                            "Action": [
+                                "lambda:GetFunction",
+                                "lambda:invokeFunction",
+                                "logs:CreateLogGroup",
+                                "logs:CreateLogStream",
+                                "logs:DescribeLogStreams",
+                                "logs:PutLogEvents"
+                            ],
+                            "Resource": "*"
+                        },{
+                            "Effect": "Allow",
+                            "Action": [
+                                "sqs:SendMessage",
+                                "sqs:ReceiveMessage",
+                                "sqs:ChangeMessageVisibility",
+                                "sqs:DeleteMessage",
+                                "sqs:GetQueueUrl",
+                                "sqs:GetQueueAttributes"
+                            ],
+                            "Resource": { "Fn::Join": ["", [
+                                "arn:aws:sqs:",
+                                { "Ref": "AWS::Region" },
+                                ":",
+                                { "Ref": "AWS::AccountId" },
+                                ":",
+                                { "Ref": "AWS::StackName" },
+                                "-queue"
+                            ]]}
+                        }]
+                    }
+                }]
+            }
+        },
         "PredLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "Code": {
                     "S3Bucket": "devseed-artifacts",
-                    "S3Key": { "Fn::ImportValue": { "Fn::Join": [ "", [
+                    "S3Key": { "Fn::Join": [ "", [
                         "ml-enabler/lambda-",
                         { "Ref": "GitSha" },
                         ".zip"
-                    ]]}}
+                    ]]}
+                },
+                "FunctionName": { "Fn::Join": ["-", [
+                    { "Ref": "AWS::StackName" },
+                    "queue"
+                ]] },
+                "Role": { "Fn::GetAtt": ["PredLambdaFunctionRole", "Arn" ] },
+                "Handler": "download_and_predict.handler.handler",
+                "MemorySize": 512,
+                "Runtime": "python3.7",
+                "ReservedConcurrentExecutions": 100,
+                "Timeout": 60,
+                "Environment": {
+                    "Variables": {
+                        "StackName": { "Ref": "AWS::StackName" },
+                        "API": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                            { "Ref": "StackName" },
+                            "api"
+                        ]]}}
+                    }
                 }
             }
         },
