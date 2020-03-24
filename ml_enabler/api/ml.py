@@ -362,6 +362,9 @@ class PredictionStackAPI(Resource):
                     'ParameterKey': 'MaxSize',
                     'ParameterValue': '1',
                 }],
+                Capabilities=[
+                    'CAPABILITY_NAMED_IAM'
+                ],
                 OnFailure='DELETE',
             )
 
@@ -396,11 +399,17 @@ class PredictionStackAPI(Resource):
                 StackName=stack
             )
 
-            return res, 200
+            stack = {
+                "id": res.get("Stacks")[0].get("StackId"),
+                "name": stack,
+                "status": res.get("Stacks")[0].get("StackStatus")
+            }
+
+            return stack, 200
         except Exception as e:
             if str(e).find("does not exist") != -1:
                 return {
-                    "stack": stack,
+                    "name": stack,
                     "status": "None"
                 }, 200
             else:
