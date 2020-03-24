@@ -1,5 +1,15 @@
 <template>
-    <div class='col col--12'>
+    <div class='col col--12 relative'>
+        <div class='absolute right top'>
+            <button @click='refresh' class='btn fr round btn--stroke btn--gray'>
+                <svg class='icon'><use href='#icon-refresh'/></svg>
+            </button>
+
+            <button v-if='stack.status === "CREATE_COMPLETE"' @click='deleteStack' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
+                <svg class='icon'><use href='#icon-trash'/></svg>
+            </button>
+        </div>
+
         <template v-if='loading'>
             <div class='flex-parent flex-parent--center-main w-full py24'>
                 <div class='flex-child loading py24'></div>
@@ -9,6 +19,11 @@
             <h2 class='w-full align-center txt-h4 py12'>No Stack Deployed</h2>
             <div class='flex-parent flex-parent--center-main py12'>
                 <button @click='createStack' class='flex-child btn btn--stroke round'>Create Stack</button>
+            </div>
+        </template>
+        <template v-else-if='stack.status === "CREATE_COMPLETE"'>
+            <div class='col col--12'>
+                <span v-text='stack.name'/>
             </div>
         </template>
         <template v-else-if='stack.status !== "None"'>
@@ -38,11 +53,20 @@ export default {
         };
     },
     mounted: function() {
-        this.getStatus();
+        this.refresh();
     },
     methods: {
+        refresh: function() {
+            this.getStatus();
+        },
         loop: function() {
-            if (this.stack.status === 'None') return;
+            if ([
+                'None',
+                'CREATE_COMPLETE',
+                'DELETE_COMPLETE'
+            ].includes(this.stack.status)) {
+                return;
+            }
 
             setTimeout(() => {
                 this.loop();
@@ -59,6 +83,20 @@ export default {
             }).then((stack) => {
                 this.stack = stack;
                 this.loading = false;
+            });
+        },
+        deleteStack: function() {
+            this.loading = true;
+
+            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
+                method: 'DELETE'
+            }).then((res) => {
+                return res.json();
+            }).then((stack) => {
+                this.stack = stack;
+                this.loading = false;
+
+                this.loop();
             });
         },
         createStack: function() {

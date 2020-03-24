@@ -148,7 +148,6 @@
         "PredELB": {
             "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
             "Properties": {
-                "Name": { "Ref": "AWS::StackName" },
                 "Type": "application",
                 "SecurityGroups": [{ "Ref": "PredELBSecurityGroup" }],
                 "Subnets": [

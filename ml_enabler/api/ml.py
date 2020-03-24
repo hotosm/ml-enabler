@@ -365,7 +365,7 @@ class PredictionStackAPI(Resource):
                 Capabilities=[
                     'CAPABILITY_NAMED_IAM'
                 ],
-                OnFailure='DELETE',
+                OnFailure='ROLLBACK',
             )
 
             return self.get(model_id, prediction_id)
