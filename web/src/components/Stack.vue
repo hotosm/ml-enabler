@@ -11,6 +11,14 @@
                 <button @click='createStack' class='flex-child btn btn--stroke round'>Create Stack</button>
             </div>
         </template>
+        <template v-else-if='stack.status !== "None"'>
+            <div class='flex-parent flex-parent--center-main w-full py24'>
+                <div class='flex-child loading py24'></div>
+            </div>
+            <div class='flex-parent flex-parent--center-main w-full'>
+                <div class='flex-child py24'><span v-text='stack.status'/></div>
+            </div>
+        </template>
     </div>
 </template>
 
@@ -23,8 +31,9 @@ export default {
         return {
             loading: true,
             stack: {
+                id: false,
                 name: '',
-                stack: 'None'
+                status: 'None'
             }
         };
     },
