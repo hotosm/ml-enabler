@@ -343,7 +343,7 @@ class PredictionStackAPI(Resource):
             template = file.read()
 
         try:
-            res = boto3.client('cloudformation').create_stack(
+            boto3.client('cloudformation').create_stack(
                 StackName=stack,
                 TemplateBody=template,
                 Parameters=[{
@@ -373,6 +373,31 @@ class PredictionStackAPI(Resource):
             error_msg = f'Prediction Stack Creation Error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": "Failed to create stack info"}, 500
+
+    def delete(self, model_id, prediction_id):
+        try:
+            stack = "{stack}-models-{model}-prediction-{prediction}".format(
+                stack=CONFIG.EnvironmentConfig.STACK,
+                model=model_id,
+                prediction=prediction_id
+            )
+
+            boto3.client('cloudformation').delete_stack(
+                StackName=stack
+            )
+
+            return self.get(model_id, prediction_id)
+        except Exception as e:
+            if str(e).find("does not exist") != -1:
+                return {
+                    "name": stack,
+                    "status": "None"
+                }, 200
+            else:
+                error_msg = f'Prediction Stack Info Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {"error": "Failed to get stack info"}, 500
+
 
     def get(self, model_id, prediction_id):
         """

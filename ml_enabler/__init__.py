@@ -52,7 +52,7 @@ def init_routes(app):
     api.add_resource(GetAllPredictions,     '/v1/model/<int:model_id>/prediction/all', methods=['GET'])
     api.add_resource(PredictionAPI,         '/v1/model/<int:model_id>/prediction/<int:prediction_id>', endpoint="patch", methods=['PATCH'])
     api.add_resource(PredictionUploadAPI,   '/v1/model/<int:model_id>/prediction/<int:prediction_id>/upload', methods=['POST'])
-    api.add_resource(PredictionStackAPI,    '/v1/model/<int:model_id>/prediction/<int:prediction_id>/stack', methods=['GET', 'POST'])
+    api.add_resource(PredictionStackAPI,    '/v1/model/<int:model_id>/prediction/<int:prediction_id>/stack', methods=['GET', 'POST', 'DELETE'])
     api.add_resource(PredictionTileAPI,     '/v1/model/<int:model_id>/prediction/<int:prediction_id>/tiles', endpoint="get", methods=['GET'])
     api.add_resource(PredictionTileMVT,     '/v1/model/<int:model_id>/prediction/<int:prediction_id>/tiles/<int:z>/<int:x>/<int:y>.mvt', methods=['GET'])
 
