@@ -23,6 +23,14 @@
         }
     },
     "Resources" : {
+        "PredLambdaSource": {
+            "Type": "AWS::Lambda::EventSourceMapping",
+            "Properties": {
+                "Enabled": "True",
+                "EventSourceArn":  { "Fn::GetAtt": [ "PredTileQueue", "Arn" ] },
+                "FunctionName": { "Ref": "PredLambdaFunction" }
+            }
+        },
         "PredLambdaFunctionRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
