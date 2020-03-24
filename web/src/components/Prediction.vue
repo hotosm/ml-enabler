@@ -57,7 +57,10 @@
                     </div>
                 </template>
                 <template v-else>
-                    <Stack :prediction='prediction'/>
+                    <Stack
+                        :model='model'
+                        :prediction='prediction'
+                    />
                 </template>
             </template>
             <template v-else-if='mode === "map"'>

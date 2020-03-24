@@ -324,6 +324,46 @@ class ImageryAPI(Resource):
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
 
+class PredictionStackAPI(Resource):
+    """ Create, Manage & Destroy Prediction Stacks """
+
+    def get(self, model_id, prediction_id):
+        """
+        Return status of a prediction stack
+        ---
+        produces:
+            - application/json
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+        try:
+            stack = "{stack}-models-{model}-prediction-{prediction}".format(
+                stack=CONFIG.EnvironmentConfig.STACK,
+                model=model_id,
+                prediction=prediction_id
+            )
+
+            res = boto3.client('cloudformation').describe_stacks(
+                StackName=stack
+            )
+
+            return res, 200
+        except Exception as e:
+            if str(e).find("does not exist") != -1:
+                return {
+                    "stack": stack,
+                    "status": "None"
+                }, 200
+            else:
+                error_msg = f'Prediction Stack Info Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {"error": "Failed to get stack info"}, 500
+
 class PredictionUploadAPI(Resource):
     """ Upload raw ML Models to the platform """
 
