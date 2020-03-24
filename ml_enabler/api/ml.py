@@ -327,6 +327,50 @@ class ImageryAPI(Resource):
 class PredictionStackAPI(Resource):
     """ Create, Manage & Destroy Prediction Stacks """
 
+    def post(self, model_id, prediction_id):
+        image = "models-{model}-prediction-{prediction}".format(
+            model=model_id,
+            prediction=prediction_id
+        )
+
+        stack = "{stack}-{image}".format(
+            stack=CONFIG.EnvironmentConfig.STACK,
+            image=image
+        )
+
+        template = ''
+        with open('cloudformation/prediction.template.json', 'r') as file:
+            template = file.read()
+
+        try:
+            res = boto3.client('cloudformation').create_stack(
+                StackName=stack,
+                TemplateBody=template,
+                Parameters=[{
+                    'ParameterKey': 'GitSha',
+                    'ParameterValue': CONFIG.EnvironmentConfig.GitSha,
+                },{
+                    'ParameterKey': 'StackName',
+                    'ParameterValue': CONFIG.EnvironmentConfig.STACK,
+                },{
+                    'ParameterKey': 'ImageTag',
+                    'ParameterValue': image,
+                },{
+                    'ParameterKey': 'TileEndpoint',
+                    'ParameterValue': '',
+                },{
+                    'ParameterKey': 'MaxSize',
+                    'ParameterValue': '1',
+                }],
+                OnFailure='DELETE',
+            )
+
+            return self.get(model_id, prediction_id)
+        except Exception as e:
+            error_msg = f'Prediction Stack Creation Error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": "Failed to create stack info"}, 500
+
     def get(self, model_id, prediction_id):
         """
         Return status of a prediction stack

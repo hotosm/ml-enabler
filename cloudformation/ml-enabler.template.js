@@ -283,6 +283,9 @@ const Resources = {
                     Name: 'ECS_LOG_LEVEL',
                     Value: 'debug'
                 },{
+                    Name: 'GitSha',
+                    Value: cf.ref('GitSha')
+                },{
                     Name: 'STACK',
                     Value: cf.stackName
                 },{

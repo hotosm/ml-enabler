@@ -8,7 +8,7 @@
         <template v-else-if='stack.status === "None"'>
             <h2 class='w-full align-center txt-h4 py12'>No Stack Deployed</h2>
             <div class='flex-parent flex-parent--center-main py12'>
-                <button class='flex-child btn btn--stroke round'>Create Stack</button>
+                <button @click='createStack' class='flex-child btn btn--stroke round'>Create Stack</button>
             </div>
         </template>
     </div>
@@ -32,9 +32,23 @@ export default {
         this.getStatus();
     },
     methods: {
-        getStatus() {
+        getStatus: function() {
+            this.loading = true;
+
             fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
                 method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((stack) => {
+                this.stack = stack;
+                this.loading = false;
+            });
+        },
+        createStack: function() {
+            this.loading = true;
+
+            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
+                method: 'POST'
             }).then((res) => {
                 return res.json();
             }).then((stack) => {

@@ -17,6 +17,7 @@ class EnvironmentConfig:
 
     ASSET_BUCKET=os.getenv('ASSET_BUCKET', None)
     STACK=os.getenv('STACK', 'ml-enabler')
+    GitSha=os.getenv('GitSha', None)
 
     MAPBOX_TOKEN=os.getenv('MAPBOX_TOKEN', None)
 
