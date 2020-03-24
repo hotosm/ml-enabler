@@ -41,6 +41,14 @@ export default {
         this.getStatus();
     },
     methods: {
+        loop: function() {
+            if (this.stack.status === 'None') return;
+
+            setTimeout(() => {
+                this.loop();
+                this.getStatus();
+            }, 5000);
+        },
         getStatus: function() {
             this.loading = true;
 
@@ -63,6 +71,7 @@ export default {
             }).then((stack) => {
                 this.stack = stack;
                 this.loading = false;
+                this.loop();
             });
         }
     }
