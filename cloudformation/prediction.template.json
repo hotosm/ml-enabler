@@ -46,7 +46,10 @@
                     { "Ref": "AWS::StackName" },
                     "queue"
                 ]] },
-                "Role": { "Fn::GetAtt": ["PredLambdaFunctionRole", "Arn" ] },
+                "Role": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "lambda-role"
+                ]]}},
                 "Handler": "download_and_predict.handler.handler",
                 "MemorySize": 512,
                 "Runtime": "python3.7",
@@ -155,7 +158,10 @@
                     { "Ref": "StackName" }, "-cluster/",
                     { "Fn::GetAtt": [ "PredService", "Name" ] }
                 ]]},
-                "RoleARN": { "Fn::GetAtt": [ "PredServiceScalingRole", "Arn" ]},
+                "RoleARN": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "scaling-role"
+                ]]}},
                 "ScalableDimension": "ecs:service:DesiredCount",
                 "ServiceNamespace": "ecs"
             }
@@ -192,7 +198,7 @@
                 "NetworkConfiguration": {
                     "AwsvpcConfiguration": {
                         "AssignPublicIp": "ENABLED",
-                        "SecurityGroups": [{ "Ref": "PredServiceSecurityGroup" }],
+                        "SecurityGroups": [{ "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "sg" ]]}}],
                         "Subnets": [
                             { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
                             { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
@@ -214,8 +220,14 @@
                 "Memory": 2048,
                 "NetworkMode": "awsvpc",
                 "RequiresCompatibilities": ["FARGATE"],
-                "TaskRoleArn": { "Fn::GetAtt" : [ "PredTaskRole", "Arn" ] },
-                "ExecutionRoleArn": { "Fn::GetAtt" : [ "PredExecRole", "Arn" ] },
+                "TaskRoleArn": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "task-role"
+                ]]}},
+                "ExecutionRoleArn": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "exec-role"
+                ]]}},
                 "ContainerDefinitions": [{
                     "Name": "pred-app",
                     "Image": { "Fn::Join" : [ "", [
