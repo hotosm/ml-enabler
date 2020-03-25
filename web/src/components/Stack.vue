@@ -18,12 +18,27 @@
         <template v-else-if='stack.status === "None"'>
             <h2 class='w-full align-center txt-h4 py12'>No Stack Deployed</h2>
             <div class='flex-parent flex-parent--center-main py12'>
-                <button @click='createStack' class='flex-child btn btn--stroke round'>Create Stack</button>
+                <button @click='createStack' class='flex-child btn btn--stroke color-gray color-green-on-hover round'>Create Stack</button>
             </div>
         </template>
         <template v-else-if='stack.status === "CREATE_COMPLETE"'>
-            <div class='col col--12'>
-                <span v-text='stack.name'/>
+            <div class='col col--12 grid'>
+                <div class='col col--12 grid'>
+                    <span v-text='stack.name'/>
+                </div>
+                <div class='col col--12 pt12 flex-parent flex-parent--center-main'>
+                    Imagery Chip Submission
+                </div>
+                <div class='col col--6'>
+                    <div class='flex-parent flex-parent--center-main py12'>
+                        <button @click='createStack' style='width: 200px;' class='flex-child btn btn--stroke round btn--gray'>ZXY List</button>
+                    </div>
+                </div>
+                <div class='col col--6'>
+                    <div class='flex-parent flex-parent--center-main py12'>
+                        <button @click='createStack' style='width: 200px;' class='flex-child btn btn--stroke round btn--gray'>Bounding Box</button>
+                    </div>
+                </div>
             </div>
         </template>
         <template v-else-if='stack.status !== "None"'>
@@ -45,6 +60,7 @@ export default {
     data: function() {
         return {
             loading: true,
+            looping: false,
             stack: {
                 id: false,
                 name: '',
@@ -60,15 +76,27 @@ export default {
             this.getStatus();
         },
         loop: function() {
+            this.looping = true;
+
             if ([
                 'None',
                 'CREATE_COMPLETE',
                 'DELETE_COMPLETE'
             ].includes(this.stack.status)) {
+                this.looping = false;
                 return;
             }
 
             setTimeout(() => {
+                if ([
+                    'None',
+                    'CREATE_COMPLETE',
+                    'DELETE_COMPLETE'
+                ].includes(this.stack.status)) {
+                    this.looping = false;
+                    return;
+                }
+
                 this.loop();
                 this.getStatus();
             }, 5000);
@@ -83,6 +111,8 @@ export default {
             }).then((stack) => {
                 this.stack = stack;
                 this.loading = false;
+
+                if (!this.looping) this.loop();
             });
         },
         deleteStack: function() {
@@ -96,7 +126,7 @@ export default {
                 this.stack = stack;
                 this.loading = false;
 
-                this.loop();
+                if (!this.looping) this.loop();
             });
         },
         createStack: function() {
@@ -109,7 +139,8 @@ export default {
             }).then((stack) => {
                 this.stack = stack;
                 this.loading = false;
-                this.loop();
+
+                if (!this.looping) this.loop();
             });
         }
     }

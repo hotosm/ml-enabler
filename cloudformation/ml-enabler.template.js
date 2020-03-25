@@ -45,11 +45,11 @@ const Parameters = {
 
 const Resources = {
     MLEnablerVPC: {
-        'Type' : 'AWS::EC2::VPC',
-        'Properties' : {
+        Type: 'AWS::EC2::VPC',
+        Properties: {
             EnableDnsHostnames: true,
             EnableDnsSupport: true,
-            CidrBlock : '172.31.0.0/16',
+            CidrBlock: '172.31.0.0/16',
             Tags: [{
                 Key: 'Name',
                 Value: cf.join('-', [cf.stackName, 'vpc'])
@@ -57,8 +57,8 @@ const Resources = {
         }
     },
     MLEnablerSubA: {
-        'Type' : 'AWS::EC2::Subnet',
-        'Properties' : {
+        Type: 'AWS::EC2::Subnet',
+        Properties: {
             AvailabilityZone: cf.findInMap('AWSRegion2AZ', cf.region, '1'),
             VpcId: cf.ref('MLEnablerVPC'),
             CidrBlock: '172.31.1.0/24',
@@ -66,8 +66,8 @@ const Resources = {
         }
     },
     MLEnablerSubB: {
-        'Type' : 'AWS::EC2::Subnet',
-        'Properties' : {
+        Type: 'AWS::EC2::Subnet',
+        Properties: {
             AvailabilityZone: cf.findInMap('AWSRegion2AZ', cf.region, '2'),
             VpcId: cf.ref('MLEnablerVPC'),
             CidrBlock: '172.31.2.0/24',
@@ -75,7 +75,7 @@ const Resources = {
         }
     },
     MLEnablerInternetGateway: {
-        'Type' : 'AWS::EC2::InternetGateway',
+        Type: 'AWS::EC2::InternetGateway',
         Properties: {
             Tags: [{
                 Key: 'Name',
@@ -87,16 +87,16 @@ const Resources = {
         }
     },
     MLEnablerVPCIG: {
-        'Type' : 'AWS::EC2::VPCGatewayAttachment',
-        'Properties' : {
-            'InternetGatewayId' : cf.ref('MLEnablerInternetGateway'),
-            'VpcId' : cf.ref('MLEnablerVPC')
+        Type: 'AWS::EC2::VPCGatewayAttachment',
+        Properties: {
+            InternetGatewayId: cf.ref('MLEnablerInternetGateway'),
+            VpcId: cf.ref('MLEnablerVPC')
         }
     },
     MLEnablerRouteTable: {
-        'Type' : 'AWS::EC2::RouteTable',
-        'Properties' : {
-            VpcId : cf.ref('MLEnablerVPC'),
+        Type: 'AWS::EC2::RouteTable',
+        Properties: {
+            VpcId: cf.ref('MLEnablerVPC'),
             Tags: [{
                 Key: 'Network',
                 Value: 'Public'
@@ -113,17 +113,17 @@ const Resources = {
         }
     },
     MLEnablerSubAAssoc: {
-        'Type' : 'AWS::EC2::SubnetRouteTableAssociation',
-        'Properties' : {
-            'RouteTableId': cf.ref('MLEnablerRouteTable'),
-            'SubnetId': cf.ref('MLEnablerSubA')
+        Type: 'AWS::EC2::SubnetRouteTableAssociation',
+        Properties: {
+            RouteTableId: cf.ref('MLEnablerRouteTable'),
+            SubnetId: cf.ref('MLEnablerSubA')
         }
     },
     MLEnablerSubBAssoc: {
-        'Type' : 'AWS::EC2::SubnetRouteTableAssociation',
-        'Properties' : {
-            'RouteTableId': cf.ref('MLEnablerRouteTable'),
-            'SubnetId': cf.ref('MLEnablerSubB')
+        Type: 'AWS::EC2::SubnetRouteTableAssociation',
+        Properties: {
+            RouteTableId: cf.ref('MLEnablerRouteTable'),
+            SubnetId: cf.ref('MLEnablerSubB')
         }
     },
     MLEnablerNatGateway: {
@@ -148,39 +148,39 @@ const Resources = {
         }
     },
     MLEnablerExecRole: {
-        'Type': 'AWS::IAM::Role',
-        'Properties': {
-            'AssumeRolePolicyDocument': {
-                'Version': '2012-10-17',
-                'Statement': [{
-                    'Effect': 'Allow',
+        Type: 'AWS::IAM::Role',
+        Properties: {
+            AssumeRolePolicyDocument: {
+                Version: '2012-10-17',
+                Statement: [{
+                    Effect: 'Allow',
                     Principal: {
-                        'Service': 'ecs-tasks.amazonaws.com'
+                        Service: 'ecs-tasks.amazonaws.com'
                     },
-                    'Action': 'sts:AssumeRole'
+                    Action: 'sts:AssumeRole'
                 }]
             },
             Policies: [{
                 PolicyName: 'ml-enabler-logging',
                 PolicyDocument: {
-                    'Statement': [{
-                        'Effect': 'Allow',
-                        'Action': [
+                    Statement: [{
+                        Effect: 'Allow',
+                        Action: [
                             'logs:CreateLogGroup',
                             'logs:CreateLogStream',
                             'logs:PutLogEvents',
                             'logs:DescribeLogStreams'
                         ],
-                        'Resource': [ 'arn:aws:logs:*:*:*' ]
+                        Resource: [ 'arn:aws:logs:*:*:*' ]
                     }]
                 }
             }],
-            'ManagedPolicyArns': [
+            ManagedPolicyArns: [
                 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
                 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role',
                 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly'
             ],
-            'Path': '/service-role/'
+            Path: '/service-role/'
         }
     },
     MLEnablerBucket: {
@@ -190,16 +190,16 @@ const Resources = {
         }
     },
     MLEnablerTaskRole: {
-        'Type': 'AWS::IAM::Role',
-        'Properties': {
-            'AssumeRolePolicyDocument': {
-                'Version': '2012-10-17',
-                'Statement': [{
-                    'Effect': 'Allow',
+        Type: 'AWS::IAM::Role',
+        Properties: {
+            AssumeRolePolicyDocument: {
+                Version: '2012-10-17',
+                Statement: [{
+                    Effect: 'Allow',
                     Principal: {
-                        'Service': 'ecs-tasks.amazonaws.com'
+                        Service: 'ecs-tasks.amazonaws.com'
                     },
-                    'Action': 'sts:AssumeRole'
+                    Action: 'sts:AssumeRole'
                 }]
             },
             Policies: [{
@@ -208,13 +208,41 @@ const Resources = {
                     Statement: [{
                         Effect: 'Allow',
                         Action: [
-                            'clouudformation:CreateStack',
+                            'cloudformation:CreateStack',
                             'cloudformation:DeleteStack',
                             'cloudformation:DescribeStacks',
                             'cloudformation:DescribeStackEvents',
                             'cloudformation:DescribeStackResources'
                         ],
                         Resource: [ cf.join(['arn:aws:cloudformation:', cf.region, ':', cf.accountId,':stack/', cf.stackName, '-*' ])]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            'ec2:DeleteSecurityGroup',
+                            'elasticloadbalancingv2:DeleteLoadBalancer',
+                            'elasticloadbalancingv2:DeleteListene',
+                            'elasticloadbalancingv2:DeleteTargetGroup',
+                            'iam:DetachRolePolicy',
+                            'iam:DeleteRolePolicy',
+                            'iam:DeleteRole',
+                            'sqs:DeleteQueue',
+                            'ecs:DeregisterTaskDefinition',
+                            'ecs:UpdateService',
+                            'lambda:DeleteFunction',
+                            'lambda:DeleteEventSourceMapping',
+                            'application-autoscaling:DeregisterScalableTarget',
+                            'application-autoscaling:DescribeScalingPolicies'
+                        ],
+                        Resource: [ '*' ]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            'sqs:CreateQueue',
+                            'iam:CreateRole',
+                            'ec2:CreateSecurityGroup',
+                            'elasticloadbalancingv2:CreateTargetGroup',
+                        ],
+                        Resource: [ '*' ]
                     },{
                         Effect: 'Allow',
                         Action: [
@@ -238,7 +266,7 @@ const Resources = {
                     }]
                 }
             }],
-            'Path': '/service-role/'
+            Path: '/service-role/'
         }
     },
     MLEnablerTaskDefinition: {
@@ -334,8 +362,8 @@ const Resources = {
         }
     },
     MLEnablerServiceSecurityGroup: {
-        'Type' : 'AWS::EC2::SecurityGroup',
-        'Properties' : {
+        Type: 'AWS::EC2::SecurityGroup',
+        Properties: {
             GroupDescription: cf.join('-', [cf.stackName, 'ec2-sg']),
             VpcId: cf.ref('MLEnablerVPC'),
             SecurityGroupIngress: [{
@@ -392,8 +420,8 @@ const Resources = {
         }
     },
     MLEnablerELBSecurityGroup: {
-        'Type' : 'AWS::EC2::SecurityGroup',
-        'Properties' : {
+        Type: 'AWS::EC2::SecurityGroup',
+        Properties: {
             GroupDescription: cf.join('-', [cf.stackName, 'alb-sg']),
             SecurityGroupIngress: [{
                 CidrIp: '0.0.0.0/0',
@@ -495,6 +523,162 @@ const Resources = {
                 EC2SecurityGroupId: cf.getAtt('MLEnablerServiceSecurityGroup', 'GroupId')
             },{
                   CIDRIP: '0.0.0.0/0'
+            }]
+        }
+    },
+    "PredLambdaFunctionRole": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+            "RoleName": { "Fn::Join": ["-", [ { "Ref": "StackName" }, "queue-role" ]]},
+            "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "lambda.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }]
+            },
+            "Path": "/",
+            "Policies": [{
+                "PolicyName": { "Fn::Join": ["-", [ { "Ref": "StackName" }, "queue-policy" ]]},
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Action": [
+                            "lambda:GetFunction",
+                            "lambda:invokeFunction",
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:DescribeLogStreams",
+                            "logs:PutLogEvents"
+                        ],
+                        "Resource": "*"
+                    },{
+                        "Effect": "Allow",
+                        "Action": [
+                            "sqs:SendMessage",
+                            "sqs:ReceiveMessage",
+                            "sqs:ChangeMessageVisibility",
+                            "sqs:DeleteMessage",
+                            "sqs:GetQueueUrl",
+                            "sqs:GetQueueAttributes"
+                        ],
+                        "Resource": { "Fn::Join": ["", [
+                            "arn:aws:sqs:",
+                            { "Ref": "AWS::Region" },
+                            ":",
+                            { "Ref": "AWS::AccountId" },
+                            ":",
+                            { "Ref": "AWS::StackName" },
+                            "-queue"
+                        ]]}
+                    }]
+                }
+            }]
+        }
+    },
+    "PredServiceScalingRole": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+            "AssumeRolePolicyDocument": {
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Principal": { 
+                        "Service": ["application-autoscaling.amazonaws.com"]
+                    },
+                    "Action": ["sts:AssumeRole"]
+                }]
+            },
+            "Path": "/",
+            "Policies": [{
+                "PolicyName": "mlservice-autoscaling",
+                "PolicyDocument": {
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Action": [
+                            "application-autoscaling:*",
+                            "cloudwatch:DescribeAlarms",
+                            "cloudwatch:PutMetricAlarm",
+                            "ecs:DescribeServices",
+                            "ecs:UpdateService"
+                        ],
+                        "Resource": "*"
+                    }]
+                }
+            }]
+        }
+    },
+    "PredExecRole": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+            "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "ecs-tasks.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }]
+            },
+            "Policies": [{
+                "PolicyName": "ml-enabler-pred-logging",
+                "PolicyDocument": {
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Action": [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:PutLogEvents",
+                            "logs:DescribeLogStreams"
+                        ],
+                        "Resource": [ "arn:aws:logs:*:*:*" ]
+                    }]
+                }
+            }],
+            "ManagedPolicyArns": [
+                "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
+                "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+                "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+            ],
+            "Path": "/service-role/"
+        }
+    },
+    "PredTaskRole": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+            "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [{
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "ecs-tasks.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }]
+            },
+            "Path": "/service-role/"
+        }
+    },
+    "PredServiceSecurityGroup": {
+        "Type" : "AWS::EC2::SecurityGroup",
+        "Properties": {
+             "GroupDescription": { "Fn::Join": [ "-", [
+                { "Ref": "StackName" },
+                "pred-ec2-sg"
+             ]]},
+            "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                { "Ref": "StackName" },
+                "vpc"
+            ]]}},
+            "SecurityGroupIngress": [{
+                "CidrIp": "0.0.0.0/0",
+                "IpProtocol": "tcp",
+                "FromPort": 8501,
+                "ToPort": 8501
             }]
         }
     }
