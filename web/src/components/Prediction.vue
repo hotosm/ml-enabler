@@ -59,6 +59,7 @@
                 <template v-else>
                     <Stack
                         :model='model'
+                        :tilejson='tiles'
                         :prediction='prediction'
                     />
                 </template>

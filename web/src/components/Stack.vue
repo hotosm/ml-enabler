@@ -29,15 +29,10 @@
                 <div class='col col--12 pt12 flex-parent flex-parent--center-main'>
                     Imagery Chip Submission
                 </div>
-                <div class='col col--6'>
-                    <div class='flex-parent flex-parent--center-main py12'>
-                        <button @click='createStack' style='width: 200px;' class='flex-child btn btn--stroke round btn--gray'>ZXY List</button>
-                    </div>
-                </div>
-                <div class='col col--6'>
-                    <div class='flex-parent flex-parent--center-main py12'>
-                        <button @click='createStack' style='width: 200px;' class='flex-child btn btn--stroke round btn--gray'>Bounding Box</button>
-                    </div>
+                <div class='col col--12'>
+                    <TileMap
+                        :tilejson='tilejson'
+                    />
                 </div>
             </div>
         </template>
@@ -53,10 +48,11 @@
 </template>
 
 <script>
+import TileMap from './TileMap.vue';
 
 export default {
     name: 'Stack',
-    props: ['model', 'prediction'],
+    props: ['model', 'prediction', 'tilejson'],
     data: function() {
         return {
             loading: true,
@@ -143,6 +139,9 @@ export default {
                 if (!this.looping) this.loop();
             });
         }
+    },
+    components: {
+        TileMap
     }
 }
 </script>
