@@ -17,6 +17,7 @@ Jinja2==2.10.1
 Mako==1.0.10
 MarkupSafe==1.1.1
 mercantile==1.0.4
+tiletanic==1.1.0
 psycopg2==2.8.2
 python-dateutil==2.8.0
 python-dotenv==0.10.2

@@ -21,6 +21,11 @@
                 <button @click='createStack' class='flex-child btn btn--stroke color-gray color-green-on-hover round'>Create Stack</button>
             </div>
         </template>
+        <template v-else-if='submit'>
+            <div class='flex-parent flex-parent--center-main w-full'>
+                <div class='flex-child py24'>Inferences Submitted</div>
+            </div>
+        </template>
         <template v-else-if='stack.status === "CREATE_COMPLETE"'>
             <div class='col col--12 grid'>
                 <div class='col col--12 grid'>
@@ -32,6 +37,7 @@
                 <div class='col col--12'>
                     <TileMap
                         :tilejson='tilejson'
+                        v-on:queue='queue($event)'
                     />
                 </div>
             </div>
@@ -57,6 +63,7 @@ export default {
         return {
             loading: true,
             looping: false,
+            submit: false,
             stack: {
                 id: false,
                 name: '',
@@ -70,6 +77,22 @@ export default {
     methods: {
         refresh: function() {
             this.getStatus();
+        },
+        queue: function(geojson) {
+            this.loading = true;
+
+            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack/tiles`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(geojson.geometry)
+            }).then((res) => {
+                return res.json();
+            }).then(() => {
+                this.submit = true;
+                this.loading = false;
+            });
         },
         loop: function() {
             this.looping = true;

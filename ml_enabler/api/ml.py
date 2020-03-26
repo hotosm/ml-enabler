@@ -1,4 +1,6 @@
 import ml_enabler.config as CONFIG
+from tiletanic import tilecover, tileschemes
+from shapely.geometry import shape
 from flask import make_response
 from flask_restful import Resource, request, current_app
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
@@ -323,6 +325,31 @@ class ImageryAPI(Resource):
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
+
+class PredictionInfAPI(Resource):
+    """ Add GeoJSON to SQS Inference Queue """
+
+    def post(self, model_id, prediction_id):
+        payload = request.data
+
+        tiler = tileschemes.WebMercator()
+
+        try:
+            prediction = PredictionService.get_prediction_by_id(prediction_id)
+
+            poly = shape(geojson.loads(payload))
+
+            tiles = tilecover.cover_geometry(tiler, poly, prediction.tile_zoom)
+
+            for tile in tiles:
+                print(tile)
+
+            return {}, 200
+        except Exception as e:
+            error_msg = f'Predction Tiler Error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
+
 
 class PredictionStackAPI(Resource):
     """ Create, Manage & Destroy Prediction Stacks """

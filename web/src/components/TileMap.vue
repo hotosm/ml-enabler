@@ -6,7 +6,7 @@
             <input v-model='bounds' type='text' class='input' placeholder='minX, minY, maxX, maxY'/>
         </div>
         <div class='col col--2 mb12'>
-            <button class='btn btn--stroke round'>Submit</button>
+            <button @click='$emit("queue", poly)' class='btn btn--stroke round'>Submit</button>
         </div>
 
         <div id='map-container' class="col col--12 h600 w-full relative">
