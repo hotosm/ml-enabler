@@ -218,9 +218,37 @@ const Resources = {
                     },{
                         Effect: 'Allow',
                         Action: [
+                            's3:GetObject'
+                        ],
+                        Resource: [ 'arn:aws:s3:::devseed-artifacts/ml-enabler/*' ]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            'iam:PassRole',
+                            'sqs:GetQueueAttributes',
+                            'elasticloadbalancingv2:CreateTargetGroup',
+                            'elasticloadbalancingv2:DescribeTargetGroups',
+                            'elasticloadbalancing:DescribeTargetGroups',
+                            'elasticloadbalancing:CreateTargetGroup',
+                            'ec2:CreateSecurityGroup',
+                            'sqs:CreateQueue',
+                            'sqs:GetQueueAttributes',
+                            'lambda:GetFunction',
+                            'elasticloadbalancingv2:CreateTargetGroup',
+                            'ecs:RegisterTaskDefinition',
+                            'lambda:CreateFunction',
+                            'ec2:DescribeSecurityGroups'
+                        ],
+                        Resource: [ '*' ]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            'ec2:DeleteSecurityGroup',
                             'elasticloadbalancingv2:DeleteLoadBalancer',
                             'elasticloadbalancingv2:DeleteListener',
                             'elasticloadbalancingv2:DeleteTargetGroup',
+                            'elasticloadbalancing:DeleteTargetGroup',
+                            'ec2:DeleteSecurityGroup',
                             'sqs:DeleteQueue',
                             'ecs:DeregisterTaskDefinition',
                             'ecs:UpdateService',
