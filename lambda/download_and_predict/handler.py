@@ -1,7 +1,6 @@
 """Example AWS Lambda function for chip-n-scale"""
 
 import os
-import pg8000
 from typing import Dict, Any
 
 from download_and_predict.base import DownloadAndPredict

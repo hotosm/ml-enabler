@@ -13,7 +13,6 @@ from typing import Dict, List, NamedTuple, Callable, Optional, Tuple, Any, Itera
 
 from mercantile import Tile
 import requests
-import pg8000
 
 from download_and_predict.custom_types import SQSEvent
 
