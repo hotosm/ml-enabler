@@ -1,4 +1,5 @@
 import ml_enabler.config as CONFIG
+import json
 from tiletanic import tilecover, tileschemes
 from shapely.geometry import shape
 from flask import make_response
@@ -341,8 +342,24 @@ class PredictionInfAPI(Resource):
 
             tiles = tilecover.cover_geometry(tiler, poly, prediction.tile_zoom)
 
+            queue_name = "{stack}-models-{model}-prediction-{prediction}-queue".format(
+                stack=CONFIG.EnvironmentConfig.STACK,
+                model=model_id,
+                prediction=prediction_id
+            )
+
+            queue = boto3.resource('sqs').get_queue_by_name(
+                QueueName=queue_name
+            )
+
             for tile in tiles:
-                print(tile)
+                queue.send_message(
+                    MessageBody=json.dumps({
+                        "x": tile.x,
+                        "y": tile.y,
+                        "z": tile.z
+                    })
+                )
 
             return {}, 200
         except Exception as e:
