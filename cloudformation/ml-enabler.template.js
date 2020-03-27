@@ -222,7 +222,7 @@ const Resources = {
                         ],
                         Resource: [ 'arn:aws:s3:::devseed-artifacts/ml-enabler/*' ]
                     },{
-                        Effect: 'Allow',
+                        Effect: 'Allow', // These are all required to spin up a prediction stack
                         Action: [
                             'iam:PassRole',
                             'ecs:CreateService',
@@ -262,7 +262,7 @@ const Resources = {
                         ],
                         Resource: [ '*' ]
                     },{
-                        Effect: 'Allow',
+                        Effect: 'Allow', // And these are required to delete it
                         Action: [
                             'ecs:DeleteService',
                             'ec2:DeleteSecurityGroup',
@@ -283,6 +283,15 @@ const Resources = {
                             'application-autoscaling:DescribeScalableTargets'
                         ],
                         Resource: [ '*' ]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            'sqs:SendMessage',
+                            'sqs:ChangeMessageVisibility',
+                            'sqs:GetQueueUrl',
+                            'sqs:GetQueueAttributes'
+                        ],
+                        Resource: [ cf.join(['arn:aws:sqs:', cf.region, ':', cf.accountId, ':*']) ]
                     },{
                         Effect: 'Allow',
                         Action: [
