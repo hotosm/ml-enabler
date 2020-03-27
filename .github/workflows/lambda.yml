@@ -15,11 +15,6 @@ jobs:
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-1
 
-            - name: Set up Python 3.8
-              uses: actions/setup-python@v1
-              with:
-                python-version: '3.8'
-
             - name: Build Lambdas
               run: |
                 cd ./lambda
