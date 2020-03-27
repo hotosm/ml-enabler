@@ -26,7 +26,7 @@
                 <div class='flex-child py24'>Inferences Submitted</div>
             </div>
         </template>
-        <template v-else-if='stack.status === "CREATE_COMPLETE"'>
+        <template v-else-if='["CREATE_COMPLETE", "UPDATE_COMPLETE"].includes(stack.status)'>
             <div class='col col--12 grid'>
                 <div class='col col--12 grid'>
                     <span v-text='stack.name'/>
@@ -99,6 +99,7 @@ export default {
             if ([
                 'None',
                 'CREATE_COMPLETE',
+                'UPDATE_COMPLETE',
                 'DELETE_COMPLETE'
             ].includes(this.stack.status)) {
                 this.looping = false;
@@ -109,6 +110,7 @@ export default {
                 if ([
                     'None',
                     'CREATE_COMPLETE',
+                    'UPDATE_COMPLETE',
                     'DELETE_COMPLETE'
                 ].includes(this.stack.status)) {
                     this.looping = false;
