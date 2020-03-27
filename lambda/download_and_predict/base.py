@@ -23,10 +23,9 @@ class DownloadAndPredict(object):
     make machine learning predictions
     """
 
-    def __init__(self, imagery: str, db: str, prediction_endpoint: str):
+    def __init__(self, imagery: str, prediction_endpoint: str):
         super(DownloadAndPredict, self).__init__()
         self.imagery = imagery
-        self.db = db
         self.prediction_endpoint = prediction_endpoint
 
     @staticmethod
@@ -81,29 +80,3 @@ class DownloadAndPredict(object):
         r = requests.post(self.prediction_endpoint, data=payload)
         r.raise_for_status()
         return r.json()
-
-    def save_to_db(self, tiles:List[Tile], results:List[Any], result_wrapper:Optional[Callable]=None) -> None:
-        """
-        Save our prediction results to the provided database
-        tiles: list mercantile Tiles
-        results: list of predictions
-        db: str database connection string
-
-        """
-        db = urlparse(self.db)
-
-        conn = pg8000.connect(
-          user=db.username,
-          password=db.password,
-          host=db.hostname,
-          database=db.path[1:],
-          port=db.port
-        )
-        cursor = conn.cursor()
-
-        for i, output in enumerate(results):
-            result = result_wrapper(output) if result_wrapper else output
-            cursor.execute("INSERT INTO results VALUES (%s, %s) ON CONFLICT (tile) DO UPDATE SET output = %s", (tiles[i], result, result))
-
-        conn.commit()
-        conn.close()
