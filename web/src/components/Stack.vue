@@ -36,7 +36,6 @@
                 </div>
                 <div class='col col--12'>
                     <TileMap
-                        :tilejson='tilejson'
                         v-on:queue='queue($event)'
                     />
                 </div>
@@ -58,7 +57,7 @@ import TileMap from './TileMap.vue';
 
 export default {
     name: 'Stack',
-    props: ['model', 'prediction', 'tilejson'],
+    props: ['model', 'prediction'],
     data: function() {
         return {
             loading: true,

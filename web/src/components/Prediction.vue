@@ -59,7 +59,6 @@
                 <template v-else>
                     <Stack
                         :model='model'
-                        :tilejson='tiles'
                         :prediction='prediction'
                     />
                 </template>
@@ -133,12 +132,12 @@ export default {
                 if (res.status === 404) {
                     this.tiles = false;
                 } else {
-                    return res.json();
-                }
-            }).then((tilejson) => {
-                tilejson.tiles[0] = window.location.origin + tilejson.tiles[0];
+                    res.json().then((tilejson) => {
+                        tilejson.tiles[0] = window.location.origin + tilejson.tiles[0];
 
-                this.tiles = tilejson;
+                        this.tiles = tilejson;
+                    })
+                }
             });
         }
     }

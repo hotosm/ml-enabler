@@ -24,6 +24,7 @@ export default {
     data: function() {
         return {
             map: false,
+            token: false,
             bounds: '',
             poly: {
                 type: 'Feature',
@@ -36,7 +37,14 @@ export default {
         };
     },
     mounted: function() {
-        this.init();
+        fetch(`${window.location.origin}/v1/mapbox`, {
+            method: 'GET'
+        }).then((res) => {
+            return res.json();
+        }).then((res) => {
+            this.token = res.token;
+            this.init();
+        });
     },
     watch: {
         bounds: function() {
@@ -63,7 +71,7 @@ export default {
     },
     methods: {
         init: function() {
-            mapboxgl.accessToken = this.tilejson.token;
+            mapboxgl.accessToken = this.token;
 
             this.map = new mapboxgl.Map({
                 container: 'map',

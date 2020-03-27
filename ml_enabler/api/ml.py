@@ -31,6 +31,12 @@ class StatusCheckAPI(Resource):
     def get(self):
         return {'hello': 'world'}, 200
 
+class MapboxAPI(Resource):
+    def get(self):
+        return {
+            "token": CONFIG.EnvironmentConfig.MAPBOX_TOKEN
+        }, 200
+
 class MLModelAPI(Resource):
 
     def post(self):
