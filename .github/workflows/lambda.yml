@@ -21,4 +21,6 @@ jobs:
                 python-version: '3.x'
 
             - name: Build Lambdas
-              run: ./lambda/upload-lambda.sh
+              run: |
+                cp lambda
+                ./upload-lambda.sh
