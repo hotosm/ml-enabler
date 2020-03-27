@@ -6,12 +6,8 @@
 GITSHA=$(git rev-parse HEAD)
 echo "ok - ${GITSHA}"
 
-python3 -m venv v-env
-source v-env/bin/activate
-pip install .
+make -B build
 
-zip -qr /tmp/${GITSHA}.zip *
+aws s3 cp ./package.zip s3://devseed-artifacts/ml-enabler/lambda-${GITSHA}.zip
 
-aws s3 cp /tmp/${GITSHA}.zip s3://devseed-artifacts/ml-enabler/lambda-${GITSHA}.zip
-
-rm /tmp/${GITSHA}.zip
+rm ./package.zip
