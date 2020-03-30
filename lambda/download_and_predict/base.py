@@ -71,7 +71,10 @@ class DownloadAndPredict(object):
         tile_indices, images = zip(*tiles_and_images)
 
         instances = [dict(image_bytes=dict(b64=self.b64encode_image(img))) for img in images]
-        payload = json.dumps(dict(instances=instances))
+        payload = json.dumps({
+            "signature_name": "predict",
+            "instances": instances
+        })
 
         return (list(tile_indices), payload)
 
