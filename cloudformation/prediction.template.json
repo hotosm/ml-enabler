@@ -60,7 +60,7 @@
                         "StackName": { "Ref": "AWS::StackName" },
                         "TILE_ENDPOINT": { "Ref": "TileEndpoint" },
                         "PREDICTION_ENDPOINT": { "Fn::Join": ["", [
-                            "http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}]
+                            "http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}, "/v1/models/default"]
                         ]},
                         "MLENABLER_ENDPOINT": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                             { "Ref": "StackName" },
