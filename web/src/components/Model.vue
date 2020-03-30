@@ -106,7 +106,7 @@
                 <CreatePrediction :modelid='model.modelId' v-on:close='refresh' />
             </template>
             <template v-else-if='mode === "showPrediction"'>
-                <Prediction :model='model' :prediction='prediction' v-on:close='refresh' />
+                <Prediction :imagery='imagery' :model='model' :prediction='prediction' v-on:close='refresh' />
             </template>
         </div>
     </div>

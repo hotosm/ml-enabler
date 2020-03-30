@@ -15,8 +15,23 @@
                 <div class='flex-child loading py24'></div>
             </div>
         </template>
+        <template v-else-if='!imagery || !imagery.length'>
+            <div class='flex-parent flex-parent--center-main py12'>
+                No imagery sources found to create a stack with
+            </div>
+        </template>
         <template v-else-if='stack.status === "None"'>
             <h2 class='w-full align-center txt-h4 py12'>No Stack Deployed</h2>
+
+            <div class='flex-parent flex-parent--center-main py12'>
+                Choose Imagery Source
+            </div>
+
+            <div @click='image = img.id' :key='img.id' v-for='img in imagery' class='col col--12 grid cursor-pointer bg-darken10-on-hover'>
+                <h3 v-if='image === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
+                <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
+            </div>
+
             <div class='flex-parent flex-parent--center-main py12'>
                 <button @click='createStack' class='flex-child btn btn--stroke color-gray color-green-on-hover round'>Create Stack</button>
             </div>
@@ -57,11 +72,12 @@ import TileMap from './TileMap.vue';
 
 export default {
     name: 'Stack',
-    props: ['model', 'prediction'],
+    props: ['model', 'prediction', 'imagery'],
     data: function() {
         return {
             loading: true,
             looping: false,
+            image: '',
             submit: false,
             stack: {
                 id: false,
@@ -150,6 +166,8 @@ export default {
             });
         },
         createStack: function() {
+            if (!this.image) return;
+
             this.loading = true;
 
             fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {

@@ -59,6 +59,7 @@
                 <template v-else>
                     <Stack
                         :model='model'
+                        :imagery='imagery'
                         :prediction='prediction'
                     />
                 </template>
@@ -92,7 +93,7 @@ import Map from './Map.vue';
 
 export default {
     name: 'Prediction',
-    props: ['model', 'prediction'],
+    props: ['imagery', 'model', 'prediction'],
     data: function() {
         return {
             mode: 'assets',
