@@ -27,8 +27,8 @@
                 Choose Imagery Source
             </div>
 
-            <div @click='image = img.id' :key='img.id' v-for='img in imagery' class='col col--12 grid cursor-pointer bg-darken10-on-hover'>
-                <h3 v-if='image === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
+            <div @click='image = img' :key='img.id' v-for='img in imagery' class='col col--12 grid cursor-pointer bg-darken10-on-hover'>
+                <h3 v-if='image.id === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
                 <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
             </div>
 
@@ -171,7 +171,13 @@ export default {
             this.loading = true;
 
             fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    imagery: this.image.url
+                })
             }).then((res) => {
                 return res.json();
             }).then((stack) => {

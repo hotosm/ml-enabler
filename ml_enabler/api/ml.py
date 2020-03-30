@@ -378,6 +378,8 @@ class PredictionStackAPI(Resource):
     """ Create, Manage & Destroy Prediction Stacks """
 
     def post(self, model_id, prediction_id):
+        payload = request.get_json()
+
         image = "models-{model}-prediction-{prediction}".format(
             model=model_id,
             prediction=prediction_id
@@ -407,7 +409,7 @@ class PredictionStackAPI(Resource):
                     'ParameterValue': image,
                 },{
                     'ParameterKey': 'TileEndpoint',
-                    'ParameterValue': '',
+                    'ParameterValue': payload["imagery"],
                 },{
                     'ParameterKey': 'MaxSize',
                     'ParameterValue': '1',

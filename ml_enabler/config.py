@@ -19,6 +19,10 @@ class EnvironmentConfig:
     STACK=os.getenv('STACK', 'ml-enabler-staging')
     GitSha=os.getenv('GitSha', None)
 
+    if GitSha is None:
+        print("GitSha Env Var Required")
+        raise
+
     MAPBOX_TOKEN=os.getenv('MAPBOX_TOKEN', None)
 
     if os.getenv('MLENABLER_DB', False):
