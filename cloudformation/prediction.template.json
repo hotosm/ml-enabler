@@ -59,6 +59,9 @@
                     "Variables": {
                         "StackName": { "Ref": "AWS::StackName" },
                         "TILE_ENDPOINT": { "Ref": "TileEndpoint" },
+                        "PREDICTION_ENDPOINT": { "Fn::Join": ["", [
+                            "http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}]
+                        ]},
                         "MLENABLER_ENDPOINT": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                             { "Ref": "StackName" },
                             "api"
