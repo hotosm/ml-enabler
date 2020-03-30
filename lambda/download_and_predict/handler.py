@@ -10,9 +10,11 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
     # read all our environment variables to throw errors early
     imagery = os.getenv('TILE_ENDPOINT')
     prediction_endpoint=os.getenv('PREDICTION_ENDPOINT')
+    mlenabler_endpoint=os.getenv('MLENABLER_ENDPOINT')
 
     assert(imagery)
     assert(prediction_endpoint)
+    assert(mlenabler_endpoint)
 
     # instantiate our DownloadAndPredict class
     dap = DownloadAndPredict(
@@ -28,5 +30,5 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
 
     # send prediction request
     content = dap.post_prediction(payload)
-    
+
     print(content);

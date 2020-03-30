@@ -58,7 +58,8 @@
                 "Environment": {
                     "Variables": {
                         "StackName": { "Ref": "AWS::StackName" },
-                        "API": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                        "TILE_ENDPOINT": { "Ref": "TileEndpoint" },
+                        "MLENABLER_ENDPOINT": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                             { "Ref": "StackName" },
                             "api"
                         ]]}}
