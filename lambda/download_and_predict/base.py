@@ -51,6 +51,7 @@ class DownloadAndPredict(object):
     def get_images(self, tiles: List[Tile]) -> Iterator[Tuple[Tile, bytes]]:
         for tile in tiles:
             url = self.imagery.format(x=tile.x, y=tile.y, z=tile.z)
+            print("IMAGE: " + url)
             r = requests.get(url)
             yield (tile, r.content)
 
