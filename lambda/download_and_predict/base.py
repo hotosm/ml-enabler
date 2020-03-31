@@ -96,7 +96,7 @@ class DownloadAndPredict(object):
                 print(i, j)
                 print(self.inferences)
                 print(preds)
-                pred_dict[self.inferences[i]] = preds[j]
+                pred_dict[self.inferences[i]] = preds[i][j]
 
             pred_list.append({
                 "quadkey": mercantile.quadkey(tiles[i].x, tiles[i].y, tiles[i].z),
