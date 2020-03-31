@@ -37,7 +37,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
     tile_indices, payload = dap.get_prediction_payload(tiles)
 
     # send prediction request
-    preds = dap.post_prediction(payload, inferences, tiles, prediction_id)
+    preds = dap.post_prediction(payload, tiles, prediction_id)
 
     print(preds);
 
