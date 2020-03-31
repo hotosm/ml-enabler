@@ -113,4 +113,4 @@ class DownloadAndPredict(object):
 
         print(r.text)
 
-        return true
+        return True
