@@ -80,6 +80,7 @@ class DownloadAndPredict(object):
         return (list(tile_indices), payload)
 
     def post_prediction(self, payload:str) -> Dict[str, Any]:
+        print(payload)
         r = requests.post(self.prediction_endpoint, data=payload)
         r.raise_for_status()
         return r.json()
