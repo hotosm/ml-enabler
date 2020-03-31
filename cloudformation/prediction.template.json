@@ -17,6 +17,10 @@
             "Type": "String",
             "Description": "Ordered, CSV Delimited list of name for prediction values"
         },
+        "PredictionId": {
+            "Type": "String",
+            "Description": "MLEnabler Prediction ID"
+        },
         "TileEndpoint": {
             "Type": "String",
             "Description": "WMS Endpoint from which to pull chips"
@@ -63,6 +67,7 @@
                     "Variables": {
                         "StackName": { "Ref": "AWS::StackName" },
                         "INFERENCES": { "Ref": "Inferences" },
+                        "PREDICTION_ID": { "Ref": "PredictionId" },
                         "TILE_ENDPOINT": { "Ref": "TileEndpoint" },
                         "PREDICTION_ENDPOINT": { "Fn::Join": ["", [
                             "http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}, "/v1/models/default/versions/001:predict"]

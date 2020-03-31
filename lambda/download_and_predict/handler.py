@@ -10,17 +10,23 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
     # read all our environment variables to throw errors early
     imagery = os.getenv('TILE_ENDPOINT')
     inferences = os.getenv('INFERENCES')
+    prediction_id = os.getenv('PREDICTION_ID')
     prediction_endpoint = os.getenv('PREDICTION_ENDPOINT')
     mlenabler_endpoint = os.getenv('MLENABLER_ENDPOINT')
 
     assert(imagery)
     assert(inferences)
+    assert(prediction_id)
     assert(prediction_endpoint)
     assert(mlenabler_endpoint)
+
+    inferences = inferences.split(',')
 
     # instantiate our DownloadAndPredict class
     dap = DownloadAndPredict(
         imagery=imagery,
+        inferences=inferences
+        mlenabler_endpoint=mlenabler_endpoint
         prediction_endpoint=prediction_endpoint
     )
 
@@ -31,6 +37,10 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
     tile_indices, payload = dap.get_prediction_payload(tiles)
 
     # send prediction request
-    content = dap.post_prediction(payload)
+    preds = dap.post_prediction(payload, inferences, tiles, prediction_id)
 
-    print(content);
+    print(preds);
+
+    # Save the prediction to ML-Enabler
+    dap.save_prediction(prediction_id, preds)
+

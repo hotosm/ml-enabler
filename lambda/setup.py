@@ -12,7 +12,7 @@ extra_reqs = {"test": ["pytest", "pytest-cov"]}
 
 setup(
     name="app",
-    version="0.0.1",
+    version="0.5.0",
     description=u"Lambda Download and Predict",
     python_requires=">=3",
     keywords="AWS-Lambda Python",

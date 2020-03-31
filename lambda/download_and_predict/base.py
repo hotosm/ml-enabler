@@ -11,6 +11,7 @@ from base64 import b64encode
 from urllib.parse import urlparse
 from typing import Dict, List, NamedTuple, Callable, Optional, Tuple, Any, Iterator
 
+import mercantile
 from mercantile import Tile
 import requests
 
@@ -22,9 +23,12 @@ class DownloadAndPredict(object):
     make machine learning predictions
     """
 
-    def __init__(self, imagery: str, prediction_endpoint: str):
+    def __init__(self, imagery: str, inferences: List[str], mlenabler_endpoint: str, prediction_endpoint: str):
         super(DownloadAndPredict, self).__init__()
+
         self.imagery = imagery
+        self.inferences = inferences
+        self.mlenabler_endpoint = mlenabler_endpoint
         self.prediction_endpoint = prediction_endpoint
 
     @staticmethod
@@ -78,11 +82,35 @@ class DownloadAndPredict(object):
 
         return (list(tile_indices), payload)
 
-    def post_prediction(self, payload:str) -> Dict[str, Any]:
-        print(payload)
+    def post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str) -> List[Dict[str, Any]]:
         r = requests.post(self.prediction_endpoint, data=payload)
-        print(r.text)
         r.raise_for_status()
-        return r.json()
 
-    def save_prediction():
+        preds = r.json()["predictions"]
+        pred_list = [];
+
+        for i in range(len(tiles)):
+            pred_dict = {}
+
+            for j in range(len(preds[i])):
+                 pred_dict[self.inferences[i]] = preds[j]
+
+            pred_list.append({
+                "quadkey": mercantile.quadkey(tiles[i].x, tiles[i].y, tiles[i].z),
+                "predictions": pred_dict,
+                "prediction_id": prediction_id
+            })
+
+        return {
+            "predictionId": prediction_id,
+            "predictions" pred_list
+        }
+
+    def save_prediction(prediction_id: str, payload):
+        url = self.mlenabler_endpoint + "/v1/model/prediction/" + prediction_id + "/tiles"
+        r = requests.post(url, data=payload):
+        r.raise_for_status()
+
+        print(r.text)
+
+        return true
