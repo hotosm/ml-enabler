@@ -25,8 +25,8 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
     # instantiate our DownloadAndPredict class
     dap = DownloadAndPredict(
         imagery=imagery,
-        inferences=inferences
-        mlenabler_endpoint=mlenabler_endpoint
+        inferences=inferences,
+        mlenabler_endpoint=mlenabler_endpoint,
         prediction_endpoint=prediction_endpoint
     )
 

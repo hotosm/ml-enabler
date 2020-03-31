@@ -103,12 +103,12 @@ class DownloadAndPredict(object):
 
         return {
             "predictionId": prediction_id,
-            "predictions" pred_list
+            "predictions": pred_list
         }
 
     def save_prediction(prediction_id: str, payload):
         url = self.mlenabler_endpoint + "/v1/model/prediction/" + prediction_id + "/tiles"
-        r = requests.post(url, data=payload):
+        r = requests.post(url, data=payload)
         r.raise_for_status()
 
         print(r.text)
