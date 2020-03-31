@@ -73,7 +73,6 @@ class DownloadAndPredict(object):
 
         instances = [dict(image_bytes=dict(b64=self.b64encode_image(img))) for img in images]
         payload = json.dumps({
-            "signature_name": "predict",
             "instances": instances
         })
 
@@ -82,5 +81,6 @@ class DownloadAndPredict(object):
     def post_prediction(self, payload:str) -> Dict[str, Any]:
         print(payload)
         r = requests.post(self.prediction_endpoint, data=payload)
+        print(r.text)
         r.raise_for_status()
         return r.json()
