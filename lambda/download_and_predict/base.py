@@ -93,10 +93,7 @@ class DownloadAndPredict(object):
             pred_dict = {}
 
             for j in range(len(preds[i])):
-                print(i, j)
-                print(self.inferences)
-                print(preds)
-                pred_dict[self.inferences[i]] = preds[i][j]
+                pred_dict[self.inferences[j]] = preds[i][j]
 
             pred_list.append({
                 "quadkey": mercantile.quadkey(tiles[i].x, tiles[i].y, tiles[i].z),
@@ -109,7 +106,7 @@ class DownloadAndPredict(object):
             "predictions": pred_list
         }
 
-    def save_prediction(prediction_id: str, payload):
+    def save_prediction(self, prediction_id: str, payload):
         url = self.mlenabler_endpoint + "/v1/model/prediction/" + prediction_id + "/tiles"
         r = requests.post(url, data=payload)
         r.raise_for_status()
