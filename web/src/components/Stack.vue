@@ -23,13 +23,20 @@
         <template v-else-if='stack.status === "None"'>
             <h2 class='w-full align-center txt-h4 py12'>No Stack Deployed</h2>
 
-            <div class='flex-parent flex-parent--center-main py12'>
-                Choose Imagery Source
+            <div class='col col--12 py6 border-b border--gray-light'>
+                Imagery Source:
             </div>
 
             <div @click='image = img' :key='img.id' v-for='img in imagery' class='col col--12 grid cursor-pointer bg-darken10-on-hover'>
                 <h3 v-if='image.id === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
                 <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
+            </div>
+
+            <div class='col col--12 py6'>
+                Inferences List:
+            </div>
+            <div class='col col--12 py3'>
+                <input v-model='inferences' type='text' class='input' placeholder='buildings,schools,roads,...'/>
             </div>
 
             <div class='flex-parent flex-parent--center-main py12'>
@@ -81,6 +88,7 @@ export default {
             loading: true,
             looping: false,
             image: '',
+            inferences: '',
             submit: false,
             stack: {
                 id: false,
@@ -170,6 +178,7 @@ export default {
         },
         createStack: function() {
             if (!this.image) return;
+            if (!this.inferences) return;
 
             this.loading = true;
 
@@ -179,7 +188,8 @@ export default {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    imagery: this.image.url
+                    imagery: this.image.url,
+                    inferences: this.inferences
                 })
             }).then((res) => {
                 return res.json();
