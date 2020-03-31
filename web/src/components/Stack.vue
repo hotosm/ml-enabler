@@ -40,6 +40,9 @@
             <div class='flex-parent flex-parent--center-main w-full'>
                 <div class='flex-child py24'>Inferences Submitted</div>
             </div>
+            <div class='flex-parent flex-parent--center-main w-full'>
+                <button @click='submit = false' class='flex-child btn btn--stroke color-gray color-blue-on-hover round'>Close</button>
+            </div>
         </template>
         <template v-else-if='["CREATE_COMPLETE", "UPDATE_COMPLETE"].includes(stack.status)'>
             <div class='col col--12 grid'>
