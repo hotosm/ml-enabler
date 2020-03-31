@@ -13,6 +13,10 @@
             "Type": "String",
             "Description": "ECR Image tag to deploy"
         },
+        "Inferences": {
+            "Type": "String",
+            "Description": "Ordered, CSV Delimited list of name for prediction values"
+        },
         "TileEndpoint": {
             "Type": "String",
             "Description": "WMS Endpoint from which to pull chips"
@@ -58,6 +62,7 @@
                 "Environment": {
                     "Variables": {
                         "StackName": { "Ref": "AWS::StackName" },
+                        "INFERENCES": { "Ref": "Inferences" },
                         "TILE_ENDPOINT": { "Ref": "TileEndpoint" },
                         "PREDICTION_ENDPOINT": { "Fn::Join": ["", [
                             "http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}, "/v1/models/default/versions/001:predict"]

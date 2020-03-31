@@ -84,3 +84,5 @@ class DownloadAndPredict(object):
         print(r.text)
         r.raise_for_status()
         return r.json()
+
+    def save_prediction():
