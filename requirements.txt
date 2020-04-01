@@ -1,4 +1,5 @@
 boto3==1.12.7
+pyproj==2.6.0
 alembic==1.0.10
 aniso8601==6.0.0
 Click==7.0

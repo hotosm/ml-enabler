@@ -1,7 +1,10 @@
 import ml_enabler.config as CONFIG
+import pyproj
 import json
 from tiletanic import tilecover, tileschemes
 from shapely.geometry import shape
+from shapely.ops import transform
+from functools import partial
 from flask import make_response
 from flask_restful import Resource, request, current_app
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
@@ -346,6 +349,14 @@ class PredictionInfAPI(Resource):
 
             poly = shape(geojson.loads(payload))
 
+            project = partial(
+                pyproj.transform,
+                pyproj.Proj(init='epsg:4326'),
+                pyproj.Proj(init='epsg:3857')
+            )
+
+            poly = transform(project, poly)
+
             tiles = tilecover.cover_geometry(tiler, poly, prediction.tile_zoom)
 
             queue_name = "{stack}-models-{model}-prediction-{prediction}-queue".format(
@@ -358,14 +369,22 @@ class PredictionInfAPI(Resource):
                 QueueName=queue_name
             )
 
+            cache = []
             for tile in tiles:
-                queue.send_message(
-                    MessageBody=json.dumps({
-                        "x": tile.x,
-                        "y": tile.y,
-                        "z": tile.z
+                if len(cache) < 10:
+                    cache.append({
+                        "Id": str(tile.z) + "-" + str(tile.x) + "-" + str(tile.y),
+                        "MessageBody": json.dumps({
+                            "x": tile.x,
+                            "y": tile.y,
+                            "z": tile.z
+                        })
                     })
-                )
+                else:
+                    queue.send_messages(
+                        Entries=cache
+                    )
+                    cache = []
 
             return {}, 200
         except Exception as e:
