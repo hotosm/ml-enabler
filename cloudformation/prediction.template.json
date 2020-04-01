@@ -1,0 +1,287 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Parameters": {
+        "GitSha": {
+            "Type": "String",
+            "Description": "GitSha to Deploy"
+        },
+        "StackName": {
+            "Type": "String",
+            "Description": "Name of parent stack"
+        },
+        "ImageTag": {
+            "Type": "String",
+            "Description": "ECR Image tag to deploy"
+        },
+        "Inferences": {
+            "Type": "String",
+            "Description": "Ordered, CSV Delimited list of name for prediction values"
+        },
+        "PredictionId": {
+            "Type": "String",
+            "Description": "MLEnabler Prediction ID"
+        },
+        "TileEndpoint": {
+            "Type": "String",
+            "Description": "WMS Endpoint from which to pull chips"
+        },
+        "MaxSize": {
+            "Type": "Number",
+            "Description": "Max number of TFServing Images"
+        }
+    },
+    "Resources" : {
+        "PredLambdaSource": {
+            "Type": "AWS::Lambda::EventSourceMapping",
+            "Properties": {
+                "Enabled": "True",
+                "EventSourceArn":  { "Fn::GetAtt": [ "PredTileQueue", "Arn" ] },
+                "FunctionName": { "Ref": "PredLambdaFunction" }
+            }
+        },
+        "PredLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": "devseed-artifacts",
+                    "S3Key": { "Fn::Join": [ "", [
+                        "ml-enabler/lambda-",
+                        { "Ref": "GitSha" },
+                        ".zip"
+                    ]]}
+                },
+                "FunctionName": { "Fn::Join": ["-", [
+                    { "Ref": "AWS::StackName" },
+                    "queue"
+                ]] },
+                "Role": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "lambda-role"
+                ]]}},
+                "Handler": "download_and_predict.handler.handler",
+                "MemorySize": 512,
+                "Runtime": "python3.8",
+                "ReservedConcurrentExecutions": 100,
+                "Timeout": 60,
+                "Environment": {
+                    "Variables": {
+                        "StackName": { "Ref": "AWS::StackName" },
+                        "INFERENCES": { "Ref": "Inferences" },
+                        "PREDICTION_ID": { "Ref": "PredictionId" },
+                        "TILE_ENDPOINT": { "Ref": "TileEndpoint" },
+                        "PREDICTION_ENDPOINT": { "Fn::Join": ["", [
+                            "http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}, "/v1/models/default/versions/001:predict"]
+                        ]},
+                        "MLENABLER_ENDPOINT": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                            { "Ref": "StackName" },
+                            "api"
+                        ]]}}
+                    }
+                }
+            }
+        },
+        "PredTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "Port": 8501,
+                "Protocol": "HTTP",
+                "HealthCheckPath": "/v1/models/default",
+                "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "vpc"
+                ]]}},
+                "TargetType": "ip",
+                "Matcher": {
+                    "HttpCode": "200,202,302,304"
+                }
+            }
+        },
+        "PredHTTPListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [{
+                    "Type": "forward",
+                    "TargetGroupArn": { "Ref": "PredTargetGroup" }
+                }],
+                "LoadBalancerArn": { "Ref": "PredELB" },
+                "Port": 80,
+                "Protocol": "HTTP"
+            }
+        },
+        "PredELB": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Type": "application",
+                "SecurityGroups": [{ "Ref": "PredELBSecurityGroup" }],
+                "Subnets": [
+                    { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
+                    { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
+                ]
+            }
+        },
+        "PredELBSecurityGroup": {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties": {
+                 "GroupDescription": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "pred-elb-sg"
+                 ]]},
+                "SecurityGroupIngress": [{
+                    "CidrIp": "0.0.0.0/0",
+                    "IpProtocol": "tcp",
+                    "FromPort": 80,
+                    "ToPort": 80
+                }],
+                "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "vpc"
+                ]]}}
+            }
+        },
+
+        "PredTileQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+                "QueueName": { "Fn::Join": [ "-", [
+                    { "Ref": "AWS::StackName" },
+                    "queue"
+                ]]},
+                "VisibilityTimeout": 60,
+                "RedrivePolicy": {
+                    "deadLetterTargetArn": { "Fn::GetAtt": [ "PredDeadQueue", "Arn" ] },
+                    "maxReceiveCount": 3
+                }
+            }
+        },
+        "PredDeadQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+                "QueueName": { "Fn::Join": [ "-", [
+                    { "Ref": "AWS::StackName" },
+                    "dead-queue"
+                ]]}
+            }
+        },
+        "PredServiceScalingTarget": {
+            "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+            "Properties": {
+                "MaxCapacity": { "Ref": "MaxSize" },
+                "MinCapacity": 1,
+                "ResourceId": { "Fn::Join": ["", [
+                    "service/",
+                    { "Ref": "StackName" }, "-cluster/",
+                    { "Fn::GetAtt": [ "PredService", "Name" ] }
+                ]]},
+                "RoleARN": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "scaling-role"
+                ]]}},
+                "ScalableDimension": "ecs:service:DesiredCount",
+                "ServiceNamespace": "ecs"
+            }
+        },
+        "PredServiceScaling": {
+            "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+            "Properties": {
+                "PolicyName": { "Fn::Join": [ "-" , [{ "Ref": "AWS::StackName" }, "autoscale" ]]},
+                "PolicyType": "TargetTrackingScaling",
+                "ScalingTargetId": { "Ref": "PredServiceScalingTarget" },
+                "TargetTrackingScalingPolicyConfiguration": {
+                    "DisableScaleIn": false,
+                    "TargetValue": 80,
+                    "ScaleInCooldown": 60,
+                    "ScaleOutCooldown": 60,
+                    "PredefinedMetricSpecification": {
+                        "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+                    }
+                }
+            }
+        },
+        "PredService": {
+            "Type": "AWS::ECS::Service",
+            "DependsOn": "PredHTTPListener",
+            "Properties": {
+                "ServiceName": { "Ref": "ImageTag" },
+                "Cluster": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "cluster"
+                ]]}},
+                "TaskDefinition": { "Ref": "PredTaskDefinition" },
+                "LaunchType": "FARGATE",
+                "DesiredCount": 1,
+                "NetworkConfiguration": {
+                    "AwsvpcConfiguration": {
+                        "AssignPublicIp": "ENABLED",
+                        "SecurityGroups": [{ "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "sg" ]]}}],
+                        "Subnets": [
+                            { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
+                            { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
+                        ]
+                    }
+                },
+                "LoadBalancers": [{
+                    "ContainerName": "pred-app",
+                    "ContainerPort": 8501,
+                    "TargetGroupArn": { "Ref": "PredTargetGroup" }
+                }]
+            }
+        },
+        "PredTaskDefinition": {
+            "Type": "AWS::ECS::TaskDefinition",
+            "Properties": {
+                "Family": { "Ref" : "ImageTag" },
+                "Cpu": 1024,
+                "Memory": 2048,
+                "NetworkMode": "awsvpc",
+                "RequiresCompatibilities": ["FARGATE"],
+                "TaskRoleArn": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "task-role"
+                ]]}},
+                "ExecutionRoleArn": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "exec-role"
+                ]]}},
+                "ContainerDefinitions": [{
+                    "Name": "pred-app",
+                    "Image": { "Fn::Join" : [ "", [
+                        { "Ref": "AWS::AccountId" },
+                        ".dkr.ecr.",
+                        { "Ref": "AWS::Region" },
+                        ".amazonaws.com/",
+                        { "Ref": "StackName" },
+                        "-ecr:",
+                        { "Ref": "ImageTag" }
+                    ] ] },
+                    "PortMappings": [{
+                        "ContainerPort": 8501
+                    }],
+                    "Environment": [],
+                    "LogConfiguration": {
+                        "LogDriver": "awslogs",
+                        "Options": {
+                            "awslogs-group": { "Fn::Join": [ "-", [
+                                "awslogs",
+                                { "Ref": "StackName" }
+                            ]]},
+                            "awslogs-region": { "Ref": "AWS::Region" },
+                            "awslogs-stream-prefix": { "Fn::Join": [ "-", [
+                                "awslogs",
+                                { "Ref": "StackName" },
+                                "pred"
+                            ]]},
+                            "awslogs-create-group": true
+                        }
+                    },
+                    "Essential": true
+                }]
+            }
+        }
+    },
+    "Outputs" : {
+        "API": {
+            "Description": "API URL",
+            "Value": { "Fn::Join": ["", ["http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}]]}
+        }
+    }
+}

@@ -55,8 +55,9 @@ class PredictionService():
         """
 
         prediction = Prediction.get(prediction_id)
+
         if prediction:
-            return Prediction.as_dto(prediction)
+            return prediction
         else:
             raise PredictionsNotFound
 

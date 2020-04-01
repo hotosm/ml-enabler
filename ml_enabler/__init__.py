@@ -29,11 +29,14 @@ def init_routes(app):
     # import apis
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, \
         PredictionAPI, PredictionUploadAPI, PredictionTileAPI, MLModelTilesAPI, \
-        MLModelTilesGeojsonAPI, GetAllPredictions, PredictionTileMVT, ImageryAPI
+        MLModelTilesGeojsonAPI, GetAllPredictions, PredictionTileMVT, ImageryAPI, \
+        PredictionStackAPI, PredictionInfAPI, MapboxAPI
     from ml_enabler.api.swagger import SwaggerDocsAPI
 
     api.add_resource(StatusCheckAPI,        '/')
     api.add_resource(SwaggerDocsAPI,        '/v1/docs')
+
+    api.add_resource(MapboxAPI,             '/v1/mapbox', methods=['GET'])
 
     api.add_resource(GetAllModels,          '/v1/model/all', methods=['GET'])
     api.add_resource(MLModelAPI,            '/v1/model', endpoint="post", methods=['POST'])
@@ -51,6 +54,9 @@ def init_routes(app):
     api.add_resource(GetAllPredictions,     '/v1/model/<int:model_id>/prediction/all', methods=['GET'])
     api.add_resource(PredictionAPI,         '/v1/model/<int:model_id>/prediction/<int:prediction_id>', endpoint="patch", methods=['PATCH'])
     api.add_resource(PredictionUploadAPI,   '/v1/model/<int:model_id>/prediction/<int:prediction_id>/upload', methods=['POST'])
+    api.add_resource(PredictionStackAPI,    '/v1/model/<int:model_id>/prediction/<int:prediction_id>/stack', methods=['GET', 'POST', 'DELETE'])
+    api.add_resource(PredictionInfAPI,      '/v1/model/<int:model_id>/prediction/<int:prediction_id>/stack/tiles', methods=['POST'])
+
     api.add_resource(PredictionTileAPI,     '/v1/model/<int:model_id>/prediction/<int:prediction_id>/tiles', endpoint="get", methods=['GET'])
     api.add_resource(PredictionTileMVT,     '/v1/model/<int:model_id>/prediction/<int:prediction_id>/tiles/<int:z>/<int:x>/<int:y>.mvt', methods=['GET'])
 

@@ -1,4 +1,10 @@
 import ml_enabler.config as CONFIG
+import pyproj
+import json
+from tiletanic import tilecover, tileschemes
+from shapely.geometry import shape
+from shapely.ops import transform
+from functools import partial
 from flask import make_response
 from flask_restful import Resource, request, current_app
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
@@ -27,6 +33,12 @@ class StatusCheckAPI(Resource):
 
     def get(self):
         return {'hello': 'world'}, 200
+
+class MapboxAPI(Resource):
+    def get(self):
+        return {
+            "token": CONFIG.EnvironmentConfig.MAPBOX_TOKEN
+        }, 200
 
 class MLModelAPI(Resource):
 
@@ -323,6 +335,195 @@ class ImageryAPI(Resource):
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
+
+class PredictionInfAPI(Resource):
+    """ Add GeoJSON to SQS Inference Queue """
+
+    def post(self, model_id, prediction_id):
+        payload = request.data
+
+        tiler = tileschemes.WebMercator()
+
+        try:
+            prediction = PredictionService.get_prediction_by_id(prediction_id)
+
+            poly = shape(geojson.loads(payload))
+
+            project = partial(
+                pyproj.transform,
+                pyproj.Proj(init='epsg:4326'),
+                pyproj.Proj(init='epsg:3857')
+            )
+
+            poly = transform(project, poly)
+
+            tiles = tilecover.cover_geometry(tiler, poly, prediction.tile_zoom)
+
+            queue_name = "{stack}-models-{model}-prediction-{prediction}-queue".format(
+                stack=CONFIG.EnvironmentConfig.STACK,
+                model=model_id,
+                prediction=prediction_id
+            )
+
+            queue = boto3.resource('sqs').get_queue_by_name(
+                QueueName=queue_name
+            )
+
+            cache = []
+            for tile in tiles:
+                if len(cache) < 10:
+                    cache.append({
+                        "Id": str(tile.z) + "-" + str(tile.x) + "-" + str(tile.y),
+                        "MessageBody": json.dumps({
+                            "x": tile.x,
+                            "y": tile.y,
+                            "z": tile.z
+                        })
+                    })
+                else:
+                    queue.send_messages(
+                        Entries=cache
+                    )
+                    cache = []
+
+            return {}, 200
+        except Exception as e:
+            error_msg = f'Predction Tiler Error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
+
+
+class PredictionStackAPI(Resource):
+    """ Create, Manage & Destroy Prediction Stacks """
+
+    def post(self, model_id, prediction_id):
+        payload = request.get_json()
+
+        if payload.get("imagery") is None:
+            return {"error": "imagery key required in body"}, 400
+
+        if payload.get("inferences") is None:
+            return {"error": "inferences key required in body"}, 400
+
+        image = "models-{model}-prediction-{prediction}".format(
+            model=model_id,
+            prediction=prediction_id
+        )
+
+        stack = "{stack}-{image}".format(
+            stack=CONFIG.EnvironmentConfig.STACK,
+            image=image
+        )
+
+        template = ''
+        with open('cloudformation/prediction.template.json', 'r') as file:
+            template = file.read()
+
+        try:
+            boto3.client('cloudformation').create_stack(
+                StackName=stack,
+                TemplateBody=template,
+                Parameters=[{
+                    'ParameterKey': 'GitSha',
+                    'ParameterValue': CONFIG.EnvironmentConfig.GitSha,
+                },{
+                    'ParameterKey': 'StackName',
+                    'ParameterValue': CONFIG.EnvironmentConfig.STACK,
+                },{
+                    'ParameterKey': 'ImageTag',
+                    'ParameterValue': image,
+                },{
+                    'ParameterKey': 'Inferences',
+                    'ParameterValue': payload["inferences"],
+                },{
+                    'ParameterKey': 'PredictionId',
+                    'ParameterValue': str(prediction_id)
+                },{
+                    'ParameterKey': 'TileEndpoint',
+                    'ParameterValue': payload["imagery"],
+                },{
+                    'ParameterKey': 'MaxSize',
+                    'ParameterValue': '1',
+                }],
+                Capabilities=[
+                    'CAPABILITY_NAMED_IAM'
+                ],
+                OnFailure='ROLLBACK',
+            )
+
+            return self.get(model_id, prediction_id)
+        except Exception as e:
+            error_msg = f'Prediction Stack Creation Error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": "Failed to create stack info"}, 500
+
+    def delete(self, model_id, prediction_id):
+        try:
+            stack = "{stack}-models-{model}-prediction-{prediction}".format(
+                stack=CONFIG.EnvironmentConfig.STACK,
+                model=model_id,
+                prediction=prediction_id
+            )
+
+            boto3.client('cloudformation').delete_stack(
+                StackName=stack
+            )
+
+            return self.get(model_id, prediction_id)
+        except Exception as e:
+            if str(e).find("does not exist") != -1:
+                return {
+                    "name": stack,
+                    "status": "None"
+                }, 200
+            else:
+                error_msg = f'Prediction Stack Info Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {"error": "Failed to get stack info"}, 500
+
+
+    def get(self, model_id, prediction_id):
+        """
+        Return status of a prediction stack
+        ---
+        produces:
+            - application/json
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+        try:
+            stack = "{stack}-models-{model}-prediction-{prediction}".format(
+                stack=CONFIG.EnvironmentConfig.STACK,
+                model=model_id,
+                prediction=prediction_id
+            )
+
+            res = boto3.client('cloudformation').describe_stacks(
+                StackName=stack
+            )
+
+            stack = {
+                "id": res.get("Stacks")[0].get("StackId"),
+                "name": stack,
+                "status": res.get("Stacks")[0].get("StackStatus")
+            }
+
+            return stack, 200
+        except Exception as e:
+            if str(e).find("does not exist") != -1:
+                return {
+                    "name": stack,
+                    "status": "None"
+                }, 200
+            else:
+                error_msg = f'Prediction Stack Info Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {"error": "Failed to get stack info"}, 500
 
 class PredictionUploadAPI(Resource):
     """ Upload raw ML Models to the platform """

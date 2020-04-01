@@ -16,7 +16,12 @@ class EnvironmentConfig:
     POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')
 
     ASSET_BUCKET=os.getenv('ASSET_BUCKET', None)
-    STACK=os.getenv('STACK', 'ml-enabler')
+    STACK=os.getenv('STACK', 'ml-enabler-staging')
+    GitSha=os.getenv('GitSha', None)
+
+    if GitSha is None:
+        print("GitSha Env Var Required")
+        raise
 
     MAPBOX_TOKEN=os.getenv('MAPBOX_TOKEN', None)
 
