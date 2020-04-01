@@ -1,13 +1,20 @@
 <template>
     <div class='col col--12 relative'>
-        <div class='absolute right top'>
-            <button @click='refresh' class='btn fr round btn--stroke btn--gray'>
-                <svg class='icon'><use href='#icon-refresh'/></svg>
-            </button>
+        <div class='col col--12 border-b border--gray-light clearfix mb6'>
+            <PredictionHeader
+                mode='stack'
+                v-on:mode='emitmode($event)'
+            />
 
-            <button v-if='complete.includes(stack.status)' @click='deleteStack' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
-                <svg class='icon'><use href='#icon-trash'/></svg>
-            </button>
+            <div class='fr'>
+                <button @click='refresh' class='btn fr round btn--stroke btn--gray'>
+                    <svg class='icon'><use href='#icon-refresh'/></svg>
+                </button>
+
+                <button v-if='complete.includes(stack.status)' @click='deleteStack' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
+                    <svg class='icon'><use href='#icon-trash'/></svg>
+                </button>
+            </div>
         </div>
 
         <template v-if='loading'>
@@ -79,6 +86,7 @@
 
 <script>
 import TileMap from './TileMap.vue';
+import PredictionHeader from './PredictionHeader.vue';
 
 export default {
     name: 'Stack',
@@ -180,6 +188,9 @@ export default {
                 if (!this.looping) this.loop();
             });
         },
+        emitmode: function(mode) {
+            this.$emit('mode', mode);
+        },
         createStack: function() {
             if (!this.image) return;
             if (!this.inferences) return;
@@ -206,6 +217,7 @@ export default {
         }
     },
     components: {
+        PredictionHeader,
         TileMap
     }
 }

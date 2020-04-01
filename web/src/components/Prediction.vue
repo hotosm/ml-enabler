@@ -10,20 +10,19 @@
             <span class='fr mr6 bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer' v-text='"id: " + prediction.predictionsId'/>
         </div>
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
-            <div class='col col--12 border-b border--gray-light clearfix mb6'>
-                <div class="flex-parent-inline py3">
-                    <button @click='mode = "assets"' class="btn btn--pill btn--s btn--pill-hl round">Assets</button>
-                    <button @click='mode = "stack"' class="btn btn--pill btn--s btn--pill-hc round">Stack</button>
-                    <button @click='mode = "map"' class="btn btn--pill btn--s btn--pill-hr round">Map</button>
-                </div>
-
-                <div v-if='mode === "assets"' class="flex-parent-inline py3 fr">
-                    <button v-if='prediction.logLink' @click='logLink(prediction.logLink)' class='mr6 btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg>Build Log</button>
-                    <button v-if='prediction.dockerLink' @click='ecrLink(prediction.dockerLink)' class='btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
-                </div>
-            </div>
 
             <template v-if='mode === "assets"'>
+                <div class='col col--12 border-b border--gray-light clearfix mb6'>
+                    <PredictionHeader
+                        :mode='mode'
+                        v-on:mode='mode = $event'
+                    />
+
+                    <div class='fr'>
+                        <button v-if='prediction.logLink' @click='logLink(prediction.logLink)' class='mr6 btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg>Build Log</button>
+                        <button v-if='prediction.dockerLink' @click='ecrLink(prediction.dockerLink)' class='btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
+                    </div>
+                </div>
                 <template v-if='prediction.modelLink'>
                     <div class='col col--12 py3'>
                         <div class='align-center'>TF Model</div>
@@ -61,10 +60,21 @@
                         :model='model'
                         :imagery='imagery'
                         :prediction='prediction'
+                        v-on:mode='mode = $event'
                     />
                 </template>
             </template>
             <template v-else-if='mode === "map"'>
+                <div class='col col--12 border-b border--gray-light clearfix mb6'>
+                    <PredictionHeader
+                        :mode='mode'
+                        v-on:mode='mode = $event'
+                    />
+
+                    <div class='fr'>
+                        <!--Map Specific Actions-->
+                    </div>
+                </div>
                 <template v-if='tiles'>
                     <div class='align-center pb6'>Prediction Tiles</div>
 
@@ -88,6 +98,7 @@
 
 <script>
 import UploadPrediction from './UploadPrediction.vue';
+import PredictionHeader from './PredictionHeader.vue';
 import Stack from './Stack.vue';
 import Map from './Map.vue';
 
@@ -106,6 +117,7 @@ export default {
     components: {
         Map,
         Stack,
+        PredictionHeader,
         UploadPrediction
     },
     methods: {
