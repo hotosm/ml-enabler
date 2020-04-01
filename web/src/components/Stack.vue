@@ -6,7 +6,7 @@
                 v-on:mode='emitmode($event)'
             />
 
-            <div class='fr'>
+            <div v-if='prediction.modelLink' class='fr'>
                 <button @click='refresh' class='btn fr round btn--stroke btn--gray'>
                     <svg class='icon'><use href='#icon-refresh'/></svg>
                 </button>
@@ -17,7 +17,18 @@
             </div>
         </div>
 
-        <template v-if='loading'>
+        <template v-if='!prediction.modelLink'>
+            <div class='col col--12 py6'>
+                <div class='flex-parent flex-parent--center-main pt36'>
+                    <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+                </div>
+
+                <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                    <h1 class='flex-child txt-h4 cursor-default'>A Model must be uploaded before a stack is created</h1>
+                </div>
+            </div>
+        </template>
+        <template v-else-if='loading'>
             <div class='flex-parent flex-parent--center-main w-full py24'>
                 <div class='flex-child loading py24'></div>
             </div>
