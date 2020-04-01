@@ -191,7 +191,7 @@ const Resources = {
     },
     MLEnablerTaskRole: {
         Type: 'AWS::IAM::Role',
-        DepondsOn: 'MLEnablerBucket',
+        DependsOn: 'MLEnablerBucket',
         Properties: {
             AssumeRolePolicyDocument: {
                 Version: '2012-10-17',
