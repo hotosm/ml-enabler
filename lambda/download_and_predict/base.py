@@ -30,6 +30,13 @@ class DownloadAndPredict(object):
         self.inferences = inferences
         self.mlenabler_endpoint = mlenabler_endpoint
         self.prediction_endpoint = prediction_endpoint
+        self.meta = {}
+
+    def get_meta(self):
+        r = requests.post(self.prediction_endpoint + "/metadata")
+        r.raise_for_status()
+
+        self.meta = r.json()
 
     @staticmethod
     def get_tiles(event: SQSEvent) -> List[Tile]:
@@ -83,7 +90,7 @@ class DownloadAndPredict(object):
         return (list(tile_indices), payload)
 
     def post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str) -> List[Dict[str, Any]]:
-        r = requests.post(self.prediction_endpoint, data=payload)
+        r = requests.post(self.prediction_endpoint + ":predict", data=payload)
         r.raise_for_status()
 
         preds = r.json()["predictions"]
