@@ -191,6 +191,7 @@ const Resources = {
     },
     MLEnablerTaskRole: {
         Type: 'AWS::IAM::Role',
+        DepondsOn: 'MLEnablerBucket',
         Properties: {
             AssumeRolePolicyDocument: {
                 Version: '2012-10-17',
@@ -320,6 +321,7 @@ const Resources = {
     },
     MLEnablerTaskDefinition: {
         Type: 'AWS::ECS::TaskDefinition',
+        DependsOn: 'MLEnablerBucket',
         Properties: {
             Family: cf.stackName,
             Cpu: cf.ref('ContainerCpu'),
