@@ -5,7 +5,7 @@
                 <svg class='icon'><use href='#icon-refresh'/></svg>
             </button>
 
-            <button v-if='stack.status === "CREATE_COMPLETE"' @click='deleteStack' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
+            <button v-if='complete.includes(stack.status)' @click='deleteStack' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
                 <svg class='icon'><use href='#icon-trash'/></svg>
             </button>
         </div>
@@ -51,7 +51,7 @@
                 <button @click='submit = false' class='flex-child btn btn--stroke color-gray color-blue-on-hover round'>Close</button>
             </div>
         </template>
-        <template v-else-if='["CREATE_COMPLETE", "UPDATE_COMPLETE"].includes(stack.status)'>
+        <template v-else-if='complete.includes(stack.status)'>
             <div class='col col--12 grid'>
                 <div class='col col--12 grid'>
                     <span v-text='stack.name'/>
@@ -85,6 +85,10 @@ export default {
     props: ['model', 'prediction', 'imagery'],
     data: function() {
         return {
+            complete: [
+                'CREATE_COMPLETE',
+                'UPDATE_COMPLETE'
+            ],
             loading: true,
             looping: false,
             image: '',
