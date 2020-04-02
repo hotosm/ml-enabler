@@ -1,16 +1,34 @@
 <template>
     <div class='col col--12 relative'>
-        <div class='absolute right top'>
-            <button @click='refresh' class='btn fr round btn--stroke btn--gray'>
-                <svg class='icon'><use href='#icon-refresh'/></svg>
-            </button>
+        <div class='col col--12 border-b border--gray-light clearfix mb6'>
+            <PredictionHeader
+                mode='stack'
+                v-on:mode='emitmode($event)'
+            />
 
-            <button v-if='complete.includes(stack.status)' @click='deleteStack' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
-                <svg class='icon'><use href='#icon-trash'/></svg>
-            </button>
+            <div v-if='prediction.modelLink' class='fr'>
+                <button @click='refresh' class='btn fr round btn--stroke btn--gray'>
+                    <svg class='icon'><use href='#icon-refresh'/></svg>
+                </button>
+
+                <button v-if='complete.includes(stack.status)' @click='deleteStack' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
+                    <svg class='icon'><use href='#icon-trash'/></svg>
+                </button>
+            </div>
         </div>
 
-        <template v-if='loading'>
+        <template v-if='!prediction.modelLink'>
+            <div class='col col--12 py6'>
+                <div class='flex-parent flex-parent--center-main pt36'>
+                    <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+                </div>
+
+                <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                    <h1 class='flex-child txt-h4 cursor-default'>A Model must be uploaded before a stack is created</h1>
+                </div>
+            </div>
+        </template>
+        <template v-else-if='loading'>
             <div class='flex-parent flex-parent--center-main w-full py24'>
                 <div class='flex-child loading py24'></div>
             </div>
@@ -79,6 +97,7 @@
 
 <script>
 import TileMap from './TileMap.vue';
+import PredictionHeader from './PredictionHeader.vue';
 
 export default {
     name: 'Stack',
@@ -180,6 +199,9 @@ export default {
                 if (!this.looping) this.loop();
             });
         },
+        emitmode: function(mode) {
+            this.$emit('mode', mode);
+        },
         createStack: function() {
             if (!this.image) return;
             if (!this.inferences) return;
@@ -206,6 +228,7 @@ export default {
         }
     },
     components: {
+        PredictionHeader,
         TileMap
     }
 }

@@ -30,6 +30,9 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
         prediction_endpoint=prediction_endpoint
     )
 
+    # Get meta about model to determine model type (Classification vs Object Detection)
+    dap.get_meta()
+
     # get tiles from our SQS event
     tiles = dap.get_tiles(event)
 

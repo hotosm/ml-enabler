@@ -1,6 +1,8 @@
 <template>
     <div class="col col--12">
         <div class='col col--12 clearfix py6'>
+            <h2 @click='close' class='fl cursor-pointer txt-underline-on-hover'>Models</h2>
+            <h2 class='fl px6'>&gt;</h2>
             <h2 @click='mode = "model"' class='fl cursor-pointer txt-underline-on-hover' v-text='model.name + " - " + model.source'></h2>
 
             <button @click='close' class='btn fr round btn--stroke color-gray color-black-on-hover'>
@@ -15,7 +17,7 @@
                 <svg class='icon'><use href='#icon-pencil'/></svg>
             </button>
 
-            <button @click='refresh' class='btn fr round btn--stroke color-gray color-blue-on-hover mr12'>
+            <button v-if='mode === "model"' @click='refresh' class='btn fr round btn--stroke color-gray color-blue-on-hover mr12'>
                 <svg class='icon'><use href='#icon-refresh'/></svg>
             </button>
         </div>
