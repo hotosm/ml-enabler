@@ -55,7 +55,7 @@
                 <div class='col col--4'>
                     <label>Model Type:</label>
                     <div class='select-container'>
-                        <select class='select'>
+                        <select v-model='params.type' class='select'>
                             <option value='classification'>Classification</option>
                             <option value='detection'>Object Detection</option>
                         </select>
@@ -63,10 +63,12 @@
                     </div>
                 </div>
 
-                <div class='col col--8'>
-                    <label>Inferences List:</label>
-                    <input v-model='params.inferences' type='text' class='input' placeholder='buildings,schools,roads,...'/>
-                </div>
+                <template v-if='params.type === "classification"'>
+                    <div class='col col--8'>
+                        <label>Inferences List:</label>
+                        <input v-model='params.inferences' type='text' class='input' placeholder='buildings,schools,roads,...'/>
+                    </div>
+                </template>
             </div>
 
             <div class='col col--12 clearfix py12'>
