@@ -9,7 +9,7 @@
                 <div class='col col--12 clearfix py6'>
                     <h2 class='fl cursor-default'>Models</h2>
 
-                    <button @click='mode = "editmodel"' class='btn fr round btn--stroke color-gray color-green-on-hover'>
+                    <button @click='$router.push({ name: "editmodel' })' class='btn fr round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
                     </button>
                     <button @click='getModels' class='btn fr round btn--stroke color-gray color-blue-on-hover mr12'>
@@ -48,20 +48,21 @@
                     </template>
                 </div>
             </template>
-            <template v-else-if='mode === "editmodel"'>
-                <EditModel :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels'/>
+            <template v-else>
+                <router-view></router-view>
             </template>
-            <template v-else-if='mode === "model"'>
-                <Model :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels' v-on:edit='editModel($event.modelId)'/>
-            </template>
+
         </div>
     </div>
 </template>
 
 <script>
-
-import Model from './components/Model.vue';
-import EditModel from './components/EditModel.vue';
+            /*<template v-else-if='mode === "editmodel"'>
+                <EditModel :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels'/>
+            </template>
+            <template v-else-if='mode === "model"'>
+                <Model :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels' v-on:edit='editModel($event.modelId)'/>
+            </template>*/
 
 export default {
     name: 'MLEnabler',
@@ -76,10 +77,6 @@ export default {
             },
             models: []
         }
-    },
-    components: {
-        Model,
-        EditModel
     },
     watch: {
         mode: function() {
