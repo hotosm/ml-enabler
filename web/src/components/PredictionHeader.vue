@@ -18,7 +18,6 @@ export default {
     props: ['mode'],
     methods: {
         emit: function(mode) {
-            this.mode = mode;
             this.$emit('mode', mode);
         }
     }
