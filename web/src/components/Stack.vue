@@ -1,5 +1,5 @@
 <template>
-    <div class='col col--12 relative'>
+    <div class='col col--12'>
         <div class='col col--12 border-b border--gray-light clearfix mb6'>
             <PredictionHeader
                 mode='stack'
@@ -39,26 +39,40 @@
             </div>
         </template>
         <template v-else-if='stack.status === "None"'>
-            <h2 class='w-full align-center txt-h4 py12'>No Stack Deployed</h2>
+            <h2 class='w-full align-center txt-h4 py12'>Stack Creation</h2>
 
-            <div class='col col--12 py6 border-b border--gray-light'>
-                Imagery Source:
+            <div class='col col--12'>
+                <label>Imagery Source:</label>
+                <div class='border border--gray-light round my12'>
+                    <div @click='params.image = img' :key='img.id' v-for='img in imagery' class='col col--12 grid cursor-pointer bg-darken10-on-hover'>
+                        <h3 v-if='params.image.id === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
+                        <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
+                    </div>
+                </div>
             </div>
 
-            <div @click='image = img' :key='img.id' v-for='img in imagery' class='col col--12 grid cursor-pointer bg-darken10-on-hover'>
-                <h3 v-if='image.id === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
-                <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
+            <div class='col col--12 grid'>
+                <div class='col col--4'>
+                    <label>Model Type:</label>
+                    <div class='select-container'>
+                        <select v-model='params.type' class='select'>
+                            <option value='classification'>Classification</option>
+                            <option value='detection'>Object Detection</option>
+                        </select>
+                        <div class='select-arrow'></div>
+                    </div>
+                </div>
+
+                <template v-if='params.type === "classification"'>
+                    <div class='col col--8'>
+                        <label>Inferences List:</label>
+                        <input v-model='params.inferences' type='text' class='input' placeholder='buildings,schools,roads,...'/>
+                    </div>
+                </template>
             </div>
 
-            <div class='col col--12 py6'>
-                Inferences List:
-            </div>
-            <div class='col col--12 py3'>
-                <input v-model='inferences' type='text' class='input' placeholder='buildings,schools,roads,...'/>
-            </div>
-
-            <div class='flex-parent flex-parent--center-main py12'>
-                <button @click='createStack' class='flex-child btn btn--stroke color-gray color-green-on-hover round'>Create Stack</button>
+            <div class='col col--12 clearfix py12'>
+                <button @click='createStack' class='fr btn btn--stroke color-gray color-green-on-hover round'>Create Stack</button>
             </div>
         </template>
         <template v-else-if='submit'>
@@ -110,8 +124,11 @@ export default {
             ],
             loading: true,
             looping: false,
-            image: '',
-            inferences: '',
+            params: {
+                type: 'classification',
+                image: false,
+                inferences: '',
+            },
             submit: false,
             stack: {
                 id: false,
@@ -121,6 +138,10 @@ export default {
         };
     },
     mounted: function() {
+        if (this.imagery.length === 1) {
+            this.params.image = this.imagery[0];
+        }
+
         this.refresh();
     },
     methods: {
@@ -203,8 +224,8 @@ export default {
             this.$emit('mode', mode);
         },
         createStack: function() {
-            if (!this.image) return;
-            if (!this.inferences) return;
+            if (!this.params.image) return;
+            if (this.params.type === 'classification' && !this.params.inferences) return;
 
             this.loading = true;
 
@@ -214,8 +235,9 @@ export default {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    imagery: this.image.url,
-                    inferences: this.inferences
+                    type: this.params.type,
+                    imagery: this.params.image,
+                    inferences: this.params.inferences
                 })
             }).then((res) => {
                 return res.json();
