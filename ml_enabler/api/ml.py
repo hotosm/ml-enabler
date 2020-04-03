@@ -423,6 +423,7 @@ class PredictionStackAPI(Resource):
             boto3.client('cloudformation').create_stack(
                 StackName=stack,
                 TemplateBody=template,
+                Tags = payload.get("tags", []),
                 Parameters=[{
                     'ParameterKey': 'GitSha',
                     'ParameterValue': CONFIG.EnvironmentConfig.GitSha,
@@ -443,7 +444,10 @@ class PredictionStackAPI(Resource):
                     'ParameterValue': payload["imagery"],
                 },{
                     'ParameterKey': 'MaxSize',
-                    'ParameterValue': '1',
+                    'ParameterValue': payload.get("maxSize", "1"),
+                },{
+                    'ParameterKey': 'MaxConcurrency',
+                    'ParameterValue': payload.get("maxConcurrency", "50"),
                 }],
                 Capabilities=[
                     'CAPABILITY_NAMED_IAM'
@@ -823,7 +827,7 @@ class PredictionTileMVT(Resource):
 
     def get(self, model_id, prediction_id, z, x, y):
         """
-        TileJSON response for the predictions
+        Mapbox Vector Tile Response
         ---
         produces:
             - application/x-protobuf
