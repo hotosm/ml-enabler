@@ -25,8 +25,14 @@
             "Type": "String",
             "Description": "WMS Endpoint from which to pull chips"
         },
+        "MaxConcurrency": {
+            "Type": "Number",
+            "Default": 50,
+            "Description": "Max number of concurrent lambdas"
+        },
         "MaxSize": {
             "Type": "Number",
+            "Default": 10,
             "Description": "Max number of TFServing Images"
         }
     },
@@ -61,7 +67,7 @@
                 "Handler": "download_and_predict.handler.handler",
                 "MemorySize": 512,
                 "Runtime": "python3.8",
-                "ReservedConcurrentExecutions": 100,
+                "ReservedConcurrentExecutions": { "Ref": "MaxConcurrency" },
                 "Timeout": 60,
                 "Environment": {
                     "Variables": {

@@ -443,7 +443,10 @@ class PredictionStackAPI(Resource):
                     'ParameterValue': payload["imagery"],
                 },{
                     'ParameterKey': 'MaxSize',
-                    'ParameterValue': '1',
+                    'ParameterValue': payload.get("maxSize", 10),
+                },{
+                    'ParameterKey': 'MaxConcurrency',
+                    'ParameterValue': payload.get("maxConcurrency", 10),
                 }],
                 Capabilities=[
                     'CAPABILITY_NAMED_IAM'
