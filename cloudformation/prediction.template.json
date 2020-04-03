@@ -286,7 +286,7 @@
     },
     "Outputs" : {
         "API": {
-            "Description": "API URL",
+            "Description": "API",
             "Value": { "Fn::Join": ["", ["http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}]]}
         }
     }

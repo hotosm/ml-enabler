@@ -265,8 +265,10 @@ export default {
                 },
                 body: JSON.stringify({
                     type: this.params.type,
-                    imagery: this.params.image,
-                    inferences: this.params.inferences
+                    imagery: this.params.image.url,
+                    inferences: this.params.inferences,
+                    maxSize: this.params.maxSize,
+                    maxConcurrency: this.params.maxConcurrency
                 })
             }).then((res) => {
                 return res.json();
