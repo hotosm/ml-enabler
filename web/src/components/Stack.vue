@@ -99,10 +99,10 @@
 
                     <div class='col col--12 grid grid--gut12' :key='tag.id' v-for='(tag, tag_idx) in params.tags'>
                         <div class='col col--4 py6'>
-                            <input input='text' class='input w-full' placeholder='Key'/>
+                            <input v-model='tag.Key' input='text' class='input w-full' placeholder='Key'/>
                         </div>
                         <div class='col col--7 py6'>
-                            <input input='text' class='input w-full' placeholder='Value'/>
+                            <input v-model='tag.Value' input='text' class='input w-full' placeholder='Value'/>
                         </div>
                         <div class='col col--1 py6'>
                             <button @click='params.tags.splice(tag_idx, 1)' class='btn btn--stroke round color-gray color-blue-on-hover h36'><svg class='icon'><use href='#icon-close'/></svg></button>
@@ -110,7 +110,7 @@
                     </div>
 
                     <div class='col col--12 py6'>
-                        <button @click='params.tags.push({"id": ++tagit, "key": "", "value": ""})' class='btn btn--stroke round color-gray color-blue-on-hover'><svg class='icon'><use href='#icon-plus'/></svg></button>
+                        <button @click='params.tags.push({"id": ++tagit, "Key": "", "Value": ""})' class='btn btn--stroke round color-gray color-blue-on-hover'><svg class='icon'><use href='#icon-plus'/></svg></button>
                     </div>
                 </template>
 
@@ -284,6 +284,12 @@ export default {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    tags: this.params.tags.map((tag) => {
+                        return {
+                            Key: tag.Key,
+                            Value: tag.Value
+                        };
+                    }),
                     type: this.params.type,
                     imagery: this.params.image.url,
                     inferences: this.params.inferences,

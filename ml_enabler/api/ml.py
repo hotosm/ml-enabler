@@ -423,6 +423,7 @@ class PredictionStackAPI(Resource):
             boto3.client('cloudformation').create_stack(
                 StackName=stack,
                 TemplateBody=template,
+                Tags = payload.get("tags", []),
                 Parameters=[{
                     'ParameterKey': 'GitSha',
                     'ParameterValue': CONFIG.EnvironmentConfig.GitSha,
