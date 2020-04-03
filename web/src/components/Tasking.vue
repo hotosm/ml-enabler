@@ -3,7 +3,7 @@
         <div class='col col--12 border-b border--gray-light clearfix mb6'>
             <PredictionHeader
                 mode='tasking'
-                v-on:mode='emitmode($event)'
+                v-on:mode='$emit("mode", $event)'
             />
         </div>
 
