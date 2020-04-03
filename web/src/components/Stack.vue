@@ -69,6 +69,32 @@
                         <input v-model='params.inferences' type='text' class='input' placeholder='buildings,schools,roads,...'/>
                     </div>
                 </template>
+                <template v-else>
+                    <label class='pt24'>Object Detection is not currently supported</label>
+                </template>
+            </div>
+
+            <div class='col col--12 grid'>
+                <template v-if='!advanced'>
+                    <div class='col col--12'>
+                        <button @click='advanced = !advanced' class='btn btn--white color-gray px0'><svg class='icon fl my6'><use xlink:href='#icon-chevron-right'/></svg><span class='fl pl6'>Advanced Options</span></button>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class='col col--12 border-b border--gray-light mb12'>
+                        <button @click='advanced = !advanced' class='btn btn--white color-gray px0'><svg class='icon fl my6'><use xlink:href='#icon-chevron-down'/></svg><span class='fl pl6'>Advanced Options</span></button>
+                    </div>
+                </template>
+                <div v-if='advanced' class='col col--12 grid grid--gut12'>
+                    <div class='col col--6'>
+                        <label>Max Instance Count</label>
+                        <input v-model='params.maxSize' type='text' class='input'>
+                    </div>
+                    <div class='col col--6'>
+                        <label>Max Inference Concurrency</label>
+                        <input v-model='params.maxConcurrency' type='text' class='input'/>
+                    </div>
+                </div>
             </div>
 
             <div class='col col--12 clearfix py12'>
@@ -118,6 +144,7 @@ export default {
     props: ['model', 'prediction', 'imagery'],
     data: function() {
         return {
+            advanced: false,
             complete: [
                 'CREATE_COMPLETE',
                 'UPDATE_COMPLETE'
@@ -128,6 +155,8 @@ export default {
                 type: 'classification',
                 image: false,
                 inferences: '',
+                maxSize: '1',
+                maxConcurrency: '50'
             },
             submit: false,
             stack: {
