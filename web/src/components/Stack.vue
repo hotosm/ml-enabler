@@ -41,17 +41,17 @@
         <template v-else-if='stack.status === "None"'>
             <h2 class='w-full align-center txt-h4 py12'>Stack Creation</h2>
 
-            <div class='col col--12'>
-                <label>Imagery Source:</label>
-                <div class='border border--gray-light round my12'>
-                    <div @click='params.image = img' :key='img.id' v-for='img in imagery' class='col col--12 grid cursor-pointer bg-darken10-on-hover'>
-                        <h3 v-if='params.image.id === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
-                        <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
+            <div class='col col--12 grid grid--gut12'>
+                <div class='col col--12'>
+                    <label>Imagery Source:</label>
+                    <div class='border border--gray-light round my12'>
+                        <div @click='params.image = img' :key='img.id' v-for='img in imagery' class='col col--12 cursor-pointer bg-darken10-on-hover'>
+                            <h3 v-if='params.image.id === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
+                            <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class='col col--12 grid'>
                 <div class='col col--4'>
                     <label>Model Type:</label>
                     <div class='select-container'>
@@ -72,9 +72,7 @@
                 <template v-else>
                     <label class='pt24'>Object Detection is not currently supported</label>
                 </template>
-            </div>
 
-            <div class='col col--12 grid'>
                 <template v-if='!advanced'>
                     <div class='col col--12'>
                         <button @click='advanced = !advanced' class='btn btn--white color-gray px0'><svg class='icon fl my6'><use xlink:href='#icon-chevron-right'/></svg><span class='fl pl6'>Advanced Options</span></button>
@@ -85,20 +83,40 @@
                         <button @click='advanced = !advanced' class='btn btn--white color-gray px0'><svg class='icon fl my6'><use xlink:href='#icon-chevron-down'/></svg><span class='fl pl6'>Advanced Options</span></button>
                     </div>
                 </template>
-                <div v-if='advanced' class='col col--12 grid grid--gut12'>
-                    <div class='col col--6'>
+                <template v-if='advanced'>
+                    <div class='col col--6 py6'>
                         <label>Max Instance Count</label>
                         <input v-model='params.maxSize' type='text' class='input'>
                     </div>
-                    <div class='col col--6'>
+                    <div class='col col--6 py6'>
                         <label>Max Inference Concurrency</label>
                         <input v-model='params.maxConcurrency' type='text' class='input'/>
                     </div>
-                </div>
-            </div>
 
-            <div class='col col--12 clearfix py12'>
-                <button @click='createStack' class='fr btn btn--stroke color-gray color-green-on-hover round'>Create Stack</button>
+                    <div class='col col--12'>
+                        <label>Stack Tags</label>
+                    </div>
+
+                    <div class='col col--12 grid grid--gut12' :key='tag.id' v-for='(tag, tag_idx) in params.tags'>
+                        <div class='col col--4 py6'>
+                            <input input='text' class='input w-full' placeholder='Key'/>
+                        </div>
+                        <div class='col col--7 py6'>
+                            <input input='text' class='input w-full' placeholder='Value'/>
+                        </div>
+                        <div class='col col--1 py6'>
+                            <button @click='params.tags.splice(tag_idx, 1)' class='btn btn--stroke round color-gray color-blue-on-hover h36'><svg class='icon'><use href='#icon-close'/></svg></button>
+                        </div>
+                    </div>
+
+                    <div class='col col--12 py6'>
+                        <button @click='params.tags.push({"id": ++tagit, "key": "", "value": ""})' class='btn btn--stroke round color-gray color-blue-on-hover'><svg class='icon'><use href='#icon-plus'/></svg></button>
+                    </div>
+                </template>
+
+                <div class='col col--12 clearfix py12'>
+                    <button @click='createStack' class='fr btn btn--stroke color-gray color-green-on-hover round'>Create Stack</button>
+                </div>
             </div>
         </template>
         <template v-else-if='submit'>
@@ -151,12 +169,14 @@ export default {
             ],
             loading: true,
             looping: false,
+            tagit: 0,
             params: {
                 type: 'classification',
                 image: false,
                 inferences: '',
                 maxSize: '1',
-                maxConcurrency: '50'
+                maxConcurrency: '50',
+                tags: []
             },
             submit: false,
             stack: {
