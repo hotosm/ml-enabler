@@ -79,6 +79,13 @@
                     </div>
                 </template>
             </template>
+            <template v-else-if='mode === "tasking"'>
+                <Tasking
+                    :model='model'
+                    :prediction='prediction'
+                    v-on:mode='mode = $event'
+                />
+            </template>
         </div>
     </div>
 </template>
@@ -86,6 +93,7 @@
 <script>
 import UploadPrediction from './UploadPrediction.vue';
 import PredictionHeader from './PredictionHeader.vue';
+import Tasking from './Tasking.vue';
 import Stack from './Stack.vue';
 import Map from './Map.vue';
 
@@ -104,6 +112,7 @@ export default {
     components: {
         Map,
         Stack,
+        Tasking,
         PredictionHeader,
         UploadPrediction
     },
