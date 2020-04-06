@@ -38,7 +38,6 @@ class DownloadAndPredict(object):
 
     def get_meta(self) -> ModelType:
         r = requests.get(self.prediction_endpoint + "/metadata")
-        print(r.text)
         r.raise_for_status()
 
         self.meta = r.json()
