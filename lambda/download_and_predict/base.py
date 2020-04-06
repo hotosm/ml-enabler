@@ -86,11 +86,11 @@ class DownloadAndPredict(object):
 
         inputs = self.meta["metadata"]["signature_def"]["signature_def"]["serving_default"]["inputs"]
 
-        """ Object Detection Model """
+        # Object Detection Model
         if inputs.get("inputs") is not None:
             instances = [dict(inputs=dict(b64=self.b64encode_image(img))) for img in images]
 
-        """ Chip Classification Model """
+        # Chip Classification Model
         else:
             instances = [dict(image_bytes=dict(b64=self.b64encode_image(img))) for img in images]
 
