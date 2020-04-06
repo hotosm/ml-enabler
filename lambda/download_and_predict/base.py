@@ -5,6 +5,7 @@ to a remote ML serving image, and saving them
 """
 
 import json
+from enum import Enum
 from functools import reduce
 from io import BytesIO
 from base64 import b64encode
@@ -17,26 +18,39 @@ import requests
 
 from download_and_predict.custom_types import SQSEvent
 
+class ModelType(Enum):
+    OBJECT_DETECT = 1
+    CLASSIFICATION = 2
+
 class DownloadAndPredict(object):
     """
     base object DownloadAndPredict implementing all necessary methods to
     make machine learning predictions
     """
 
-    def __init__(self, imagery: str, inferences: List[str], mlenabler_endpoint: str, prediction_endpoint: str):
+    def __init__(self, imagery: str, mlenabler_endpoint: str, prediction_endpoint: str):
         super(DownloadAndPredict, self).__init__()
 
         self.imagery = imagery
-        self.inferences = inferences
         self.mlenabler_endpoint = mlenabler_endpoint
         self.prediction_endpoint = prediction_endpoint
         self.meta = {}
 
-    def get_meta(self):
+    def get_meta(self) -> ModelType:
         r = requests.post(self.prediction_endpoint + "/metadata")
         r.raise_for_status()
 
         self.meta = r.json()
+
+        inputs = self.meta["metadata"]["signature_def"]["signature_def"]["serving_default"]["inputs"]
+
+        # Object Detection Model
+        if inputs.get("inputs") is not None:
+            return ModelType.OBJECT_DETECT
+
+        # Chip Classification Model
+        else:
+            return ModelType.CLASSIFICATION
 
     @staticmethod
     def get_tiles(event: SQSEvent) -> List[Tile]:
@@ -67,7 +81,7 @@ class DownloadAndPredict(object):
             yield (tile, r.content)
 
 
-    def get_prediction_payload(self, tiles:List[Tile]) -> Tuple[List[Tile], str]:
+    def get_prediction_payload(self, tiles:List[Tile], model_type: ModelType) -> Tuple[List[Tile], str]:
         """
         tiles: list mercantile Tiles
         imagery: str an imagery API endpoint with three variables {z}/{x}/{y} to replace
@@ -83,16 +97,10 @@ class DownloadAndPredict(object):
         tile_indices, images = zip(*tiles_and_images)
 
         instances = []
-
-        inputs = self.meta["metadata"]["signature_def"]["signature_def"]["serving_default"]["inputs"]
-
-        # Object Detection Model
-        if inputs.get("inputs") is not None:
-            instances = [dict(inputs=dict(b64=self.b64encode_image(img))) for img in images]
-
-        # Chip Classification Model
-        else:
+        if model_type == ModelType.CLASSIFICATION:
             instances = [dict(image_bytes=dict(b64=self.b64encode_image(img))) for img in images]
+        else:
+            instances = [dict(inputs=dict(b64=self.b64encode_image(img))) for img in images]
 
         payload = json.dumps({
             "instances": instances
@@ -100,7 +108,7 @@ class DownloadAndPredict(object):
 
         return (list(tile_indices), payload)
 
-    def post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str) -> List[Dict[str, Any]]:
+    def cl_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str, inferences: List[str]) -> List[Dict[str, Any]]:
         r = requests.post(self.prediction_endpoint + ":predict", data=payload)
         r.raise_for_status()
 
@@ -111,7 +119,7 @@ class DownloadAndPredict(object):
             pred_dict = {}
 
             for j in range(len(preds[i])):
-                pred_dict[self.inferences[j]] = preds[i][j]
+                pred_dict[inferences[j]] = preds[i][j]
 
             pred_list.append({
                 "quadkey": mercantile.quadkey(tiles[i].x, tiles[i].y, tiles[i].z),
@@ -124,7 +132,14 @@ class DownloadAndPredict(object):
             "predictions": pred_list
         }
 
-    def save_prediction(self, prediction_id: str, payload):
+    def od_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str) -> List[Dict[str, Any]]:
+        r = requests.post(self.prediction_endpoint + ":predict", data=payload)
+        r.raise_for_status()
+
+        print(r.json())
+
+
+    def cl_save_prediction(self, prediction_id: str, payload):
         url = self.mlenabler_endpoint + "/v1/model/prediction/" + prediction_id + "/tiles"
         r = requests.post(url, json=payload)
         r.raise_for_status()
