@@ -108,7 +108,7 @@ class DownloadAndPredict(object):
 
         return (list(tile_indices), payload)
 
-    def cl_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str, inferences: List[str]) -> List[Dict[str, Any]]:
+    def cl_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str, inferences: List[str]) -> Dict[str, Any]:
         r = requests.post(self.prediction_endpoint + ":predict", data=payload)
         r.raise_for_status()
 
@@ -132,11 +132,25 @@ class DownloadAndPredict(object):
             "predictions": pred_list
         }
 
-    def od_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str) -> List[Dict[str, Any]]:
+    def od_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str) -> Dict[str, Any]:
         r = requests.post(self.prediction_endpoint + ":predict", data=payload)
+        print(r.text)
         r.raise_for_status()
 
-        print(r.json())
+        preds = r.json()
+
+        print(preds)
+
+        pred_list = [];
+
+        for i in range(len(tiles)):
+            pred_dict = {}
+
+
+        return {
+            "predictionId": prediction_id,
+            "predictions": []
+        }
 
 
     def cl_save_prediction(self, prediction_id: str, payload):
