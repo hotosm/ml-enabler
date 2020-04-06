@@ -91,7 +91,7 @@ class DownloadAndPredict(object):
             instances = [dict(inputs=dict(b64=self.b64encode_image(img))) for img in images]
 
         """ Chip Classification Model """
-        else
+        else:
             instances = [dict(image_bytes=dict(b64=self.b64encode_image(img))) for img in images]
 
         payload = json.dumps({
