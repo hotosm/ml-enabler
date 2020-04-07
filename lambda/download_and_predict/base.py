@@ -144,21 +144,14 @@ class DownloadAndPredict(object):
             if preds[i]["num_detections"] == 0.0:
                 break
 
-            pred_bboxes = []
-            pred_scores = []
-
             boxes = preds[i]['detection_boxes']
             scores = preds[i]['detection_scores']
             bboxes = (np.squeeze(boxes)[np.squeeze(scores) > .5] * 256).astype(int)
             bboxes_ls = bboxes.tolist()
 
-            for i, bbox in enumerate(bboxes_ls):
-                pred_bboxes.append(bbox)
-                pred_scores.append(scores[i])
-
-            for j in range(len(preds[i]["detection_boxes"])):
-                bbox = self.tf_bbox_geo(preds[i]["detection_scores"][j], tiles[i])
-                score = preds[i]["detection_boxes"][j]
+            for j, bbox in enumerate(bboxes_ls):
+                bbox = self.tf_bbox_geo(bbox, tiles[i])
+                score = preds[i]["detection_scores"][j]
 
                 print(bbox)
 
