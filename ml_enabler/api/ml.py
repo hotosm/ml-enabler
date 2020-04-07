@@ -880,6 +880,70 @@ class PredictionTileMVT(Resource):
             current_app.logger.error(error_msg)
             return {"error": error_msg}, 500
 
+class PredictionGeomAPI(Resource):
+    def post(self, prediction_id):
+        """
+        Submit tile level predictions
+        ---
+        produces:
+            - application/json
+        parameters:
+            - in: body
+              name: body
+              required: true
+              type: string
+              description: JSON object of predictions
+              schema:
+                properties:
+                    predictionId:
+                        type: integer
+                        description: Prediction ID
+                        required: true
+                    predictions:
+                        type: array
+                        items:
+                            type: object
+                            schema:
+                                properties:
+                                    quadkey:
+                                        type: string
+                                        description: quadkey of the tile
+                                        required: true
+                                    centroid:
+                                        type: array
+                                        items:
+                                            type: float
+                                        required: true
+                                    predictions:
+                                        type: object
+                                        schema:
+                                            properties:
+                                                ml_prediction:
+                                                    type: float
+        responses:
+            200:
+                description: ID of the prediction
+            400:
+                description: Invalid Request
+            500:
+                description: Internal Server Error
+        """
+        try:
+            data = request.get_json()
+            if (len(data['predictions']) == 0):
+                return {"error": "Error validating request"}, 400
+
+            PredictionTileService.create(data)
+
+            return {"prediction_id": prediction_id}, 200
+        except PredictionsNotFound:
+            return {"error": "Prediction not found"}, 404
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {"error": error_msg}, 500
+
+
 class PredictionTileAPI(Resource):
     """
     Methods to manage tile predictions

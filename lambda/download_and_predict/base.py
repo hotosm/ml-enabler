@@ -15,6 +15,7 @@ from typing import Dict, List, NamedTuple, Callable, Optional, Tuple, Any, Itera
 import mercantile
 from mercantile import Tile
 import requests
+import numpy as np
 
 from download_and_predict.custom_types import SQSEvent
 
@@ -134,24 +135,41 @@ class DownloadAndPredict(object):
 
     def od_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str) -> Dict[str, Any]:
         r = requests.post(self.prediction_endpoint + ":predict", data=payload)
-        print(r.text)
         r.raise_for_status()
 
-        preds = r.json()
-
-        print(preds)
-
+        preds = r.json()["predictions"]
         pred_list = [];
 
         for i in range(len(tiles)):
-            pred_dict = {}
+            if preds[i]["num_detections"] == 0.0:
+                break
 
+            pred_bboxes = []
+            pred_scores = []
+
+            boxes = preds[i]['detection_boxes']
+            scores = preds[i]['detection_scores']
+            bboxes = (np.squeeze(boxes)[np.squeeze(scores) > .5] * 256).astype(int)
+            bboxes_ls = bboxes.tolist()
+
+            for i, bbox in enumerate(bboxes_ls):
+                pred_bboxes.append(bbox)
+                pred_scores.append(scores[i])
+
+            for j in range(len(preds[i]["detection_boxes"])):
+                bbox = self.tf_bbox_geo(preds[i]["detection_scores"][j], tiles[i])
+                score = preds[i]["detection_boxes"][j]
+
+                print(bbox)
+
+                pred_list.append({
+                    "prediction_id": prediction_id
+                })
 
         return {
             "predictionId": prediction_id,
-            "predictions": []
+            "predictions": pred_list
         }
-
 
     def cl_save_prediction(self, prediction_id: str, payload):
         url = self.mlenabler_endpoint + "/v1/model/prediction/" + prediction_id + "/tiles"
@@ -161,3 +179,17 @@ class DownloadAndPredict(object):
         print(r.text)
 
         return True
+
+    def tf_bbox_geo(self, bbox, tile):
+        predicted_bbox = row['predicted_bbox']
+        pred = [predicted_bbox[1], predicted_bbox[0], predicted_bbox[3], predicted_bbox[2]]
+        b = mercantile.bounds(tile.x, tile.y, tile.z)
+        # Affine Transform
+        width = b[2] - b[0]
+        height = b[3] - b[1]
+        a = affine.Affine(width / 256, 0.0, b[0], 0.0, (0 - height / 256), b[3])
+        a_lst = [a.a, a.b, a.d, a.e, a.xoff, a.yoff]
+        geographic_bbox = shapely.affinity.affine_transform(geometry.box(*pred), a_lst)
+
+        return geographic_bbox
+
