@@ -168,39 +168,103 @@
                 ]]}
             }
         },
-        "PredServiceScalingTarget": {
-            "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
-            "Properties": {
-                "MaxCapacity": { "Ref": "MaxSize" },
-                "MinCapacity": 1,
-                "ResourceId": { "Fn::Join": ["", [
-                    "service/",
-                    { "Ref": "StackName" }, "-cluster/",
-                    { "Fn::GetAtt": [ "PredService", "Name" ] }
-                ]]},
-                "RoleARN": { "Fn::ImportValue": { "Fn::Join": [ "-", [
-                    { "Ref": "StackName" },
-                    "scaling-role"
-                ]]}},
-                "ScalableDimension": "ecs:service:DesiredCount",
-                "ServiceNamespace": "ecs"
-            }
-        },
-        "PredServiceScaling": {
-            "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-            "Properties": {
-                "PolicyName": { "Fn::Join": [ "-" , [{ "Ref": "AWS::StackName" }, "autoscale" ]]},
-                "PolicyType": "TargetTrackingScaling",
-                "ScalingTargetId": { "Ref": "PredServiceScalingTarget" },
-                "TargetTrackingScalingPolicyConfiguration": {
-                    "DisableScaleIn": false,
-                    "TargetValue": 80,
-                    "ScaleInCooldown": 60,
-                    "ScaleOutCooldown": 60,
-                    "PredefinedMetricSpecification": {
-                        "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+        "PredContainerInstanceLaunch": {
+            "Type": "AWS::AutoScaling::LaunchConfiguration",
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "config": {
+                        "commands": {
+                            "01_add_instance_to_cluster": {
+                                "command": {
+                                    "Fn::Join": [ "", [
+                                        "#!/bin/bash\\n",
+                                        "echo ECS_CLUSTER=", { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}}, " >> /etc/ecs/ecs.config\\n",
+                                        "echo ECS_ENGINE_TASK_CLEANUP_WAIT_DURATION=1m >> /etc/ecs/ecs.config\\n"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "files": {
+                        "/etc/cfn/cfn-hup.conf": {
+                            "content": {
+                                "Fn::Join": [ "", [
+                                    "[main]\\n",
+                                    "stack=", { "Ref": "AWS::StackId" }, "\\n",
+                                    "region=", { "Ref": "AWS::Region" }, "\\n"
+                                ]]
+                            },
+                            "mode": "000400",
+                            "owner": "root",
+                            "group": "root"
+                        },
+                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                            "content": {
+                                "Fn::Join": [ "", [
+                                    "[cfn-auto-reloader-hook]\\n",
+                                    "triggers=post.update\\n",
+                                    "path=Resources.PredContainerInstanceLaunch.Metadata.AWS::CloudFormation::Init\\n",
+                                    "action=/opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\\n",
+                                    "runas=root\\n"
+                                ]]
+                            }
+                        }
+                    },
+                    "services": {
+                        "sysvinit": {
+                            "cfn-hup": {
+                                "enabled": "true",
+                                "ensureRunning": "true",
+                                "files": [
+                                    "/etc/cfn/cfn-hup.conf",
+                                    "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+                                ]
+                            }
+                        }
                     }
                 }
+            },
+            "Properties": {
+                "SecurityGroups":
+                "ImageId": //TODO
+                "InstanceType":
+                "IamInstanceProfile":
+                "BlockDeviceMappings": [{
+                    "DeviceName": "/dev/xvdcz",
+                    "Ebs": {
+                        "DeleteOnTermination": true,
+                        "VolumeSize": 100,
+                        "VolumeType": "gp2"
+                    }
+                }],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": ["", [
+                            "#cloud-config\\n",
+                            "\\nruncmd:\\n",
+                            " - yum install -y aws-cfn-bootstrap\\n",
+                            " - /opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\\n",
+                            " - /opt/aws/bin/cfn-signal -e $? --stack ", { "Ref": "AWS::StackName" }, " --resource PredECSAutoScalingGroup --region ", { "Ref": "AWS::Region" }, "\\n"
+                        ]]
+                    }
+                }
+            }
+        },
+        "PredECSAutoScalingGroup": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "UpdatePolicy": {
+                "AutoScalingRollingUpdate": {
+                    "MinInstancesInService": 0
+                }
+            },
+            "Properties": {
+                "AvailabilityZones": [
+                    // TODO
+                ],
+                "LaunchConfigurationName": { "Ref": "PredContainerInstanceLaunch" },
+                "MinSize": 1,
+                "MaxSize": { "Ref": "MaxSize" },
+                "DesiredCapacity": { "Ref": "MaxSize" }
             }
         },
         "PredService": {
@@ -213,7 +277,6 @@
                     "cluster"
                 ]]}},
                 "TaskDefinition": { "Ref": "PredTaskDefinition" },
-                "LaunchType": "FARGATE",
                 "DesiredCount": 1,
                 "NetworkConfiguration": {
                     "AwsvpcConfiguration": {
