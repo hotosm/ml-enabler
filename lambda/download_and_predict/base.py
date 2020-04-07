@@ -181,8 +181,7 @@ class DownloadAndPredict(object):
         return True
 
     def tf_bbox_geo(self, bbox, tile):
-        predicted_bbox = row['predicted_bbox']
-        pred = [predicted_bbox[1], predicted_bbox[0], predicted_bbox[3], predicted_bbox[2]]
+        pred = [bbox[1], bbox[0], bbox[3], bbox[2]]
         b = mercantile.bounds(tile.x, tile.y, tile.z)
         # Affine Transform
         width = b[2] - b[0]
