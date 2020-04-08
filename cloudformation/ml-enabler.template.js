@@ -174,12 +174,6 @@ const Resources = {
                         Resource: [ 'arn:aws:logs:*:*:*' ]
                     }]
                 }
-            },{
-                Effect: 'Allow',
-                Action: [
-                    'elasticloadbalancing:*'
-                ],
-                Resource: '*'
             }],
             ManagedPolicyArns: [
                 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
@@ -685,6 +679,12 @@ const Resources = {
                             'logs:DescribeLogStreams'
                         ],
                         Resource: [ 'arn:aws:logs:*:*:*' ]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            'elasticloadbalancing:*'
+                        ],
+                        Resource: '*'
                     }]
                 }
             }],
@@ -751,13 +751,6 @@ const Outputs = {
             Name: cf.join('-', [cf.stackName, 'sg'])
         }
     },
-    InternalExecRole: {
-        Description: 'Exec SG',
-        Value: cf.ref('MLEnablerExecRole'),
-        Export: {
-            Name: cf.join('-', [cf.stackName, 'exec-sg'])
-        }
-    },
     InternalLambdaRole: {
         Description: 'Lambda Function Role',
         Value: cf.getAtt('PredLambdaFunctionRole', 'Arn'),
@@ -772,11 +765,18 @@ const Outputs = {
             Name: cf.join('-', [cf.stackName, 'scaling-role'])
         }
     },
-    InternalExecRole: {
+    InternalExecRoleARN: {
         Description: 'Container Exec Role',
         Value: cf.getAtt('PredExecRole', 'Arn'),
         Export: {
-            Name: cf.join('-', [cf.stackName, 'exec-role'])
+            Name: cf.join('-', [cf.stackName, 'exec-role-arn'])
+        }
+    },
+    InternalExecRoleName: {
+        Description: 'Container Exec Role',
+        Value: cf.ref('PredExecRole'),
+        Export: {
+            Name: cf.join('-', [cf.stackName, 'exec-role-name'])
         }
     },
     InternalTaskRole: {

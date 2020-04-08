@@ -90,20 +90,23 @@
             "Type": "AWS::IAM::InstanceProfile",
             "Properties": {
                 "Path": "/",
-                "Roles": [{ "Ref": "" }]
+                "Roles": [{ "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "exec-role-name"
+                ]]}}]
             }
         },
         "PredTargetGroup": {
             "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "DependsOn": "PredELB",
             "Properties": {
                 "Port": 8501,
                 "Protocol": "HTTP",
-                "HealthCheckPath": "/v1/models/default",
                 "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                     { "Ref": "StackName" },
                     "vpc"
                 ]]}},
-                "TargetType": "ip",
+                "HealthCheckPath": "/v1/models/default",
                 "Matcher": {
                     "HttpCode": "200,202,302,304"
                 }
@@ -176,6 +179,7 @@
         },
         "PredContainerInstanceLaunch": {
             "Type": "AWS::AutoScaling::LaunchConfiguration",
+            "DependsOn": "PredECSHostSecurityGroup",
             "Metadata": {
                 "AWS::CloudFormation::Init": {
                     "config": {
@@ -183,9 +187,9 @@
                             "01_add_instance_to_cluster": {
                                 "command": {
                                     "Fn::Join": [ "", [
-                                        "#!/bin/bash\\n",
-                                        "echo ECS_CLUSTER=", { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}}, " >> /etc/ecs/ecs.config\\n",
-                                        "echo ECS_ENGINE_TASK_CLEANUP_WAIT_DURATION=1m >> /etc/ecs/ecs.config\\n"
+                                        "#!/bin/bash\n",
+                                        "echo ECS_CLUSTER=", { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}}, " >> /etc/ecs/ecs.config\n",
+                                        "echo ECS_ENGINE_TASK_CLEANUP_WAIT_DURATION=1m >> /etc/ecs/ecs.config\n"
                                     ]]
                                 }
                             }
@@ -195,9 +199,9 @@
                         "/etc/cfn/cfn-hup.conf": {
                             "content": {
                                 "Fn::Join": [ "", [
-                                    "[main]\\n",
-                                    "stack=", { "Ref": "AWS::StackId" }, "\\n",
-                                    "region=", { "Ref": "AWS::Region" }, "\\n"
+                                    "[main]\n",
+                                    "stack=", { "Ref": "AWS::StackId" }, "\n",
+                                    "region=", { "Ref": "AWS::Region" }, "\n"
                                 ]]
                             },
                             "mode": "000400",
@@ -207,11 +211,11 @@
                         "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
                             "content": {
                                 "Fn::Join": [ "", [
-                                    "[cfn-auto-reloader-hook]\\n",
-                                    "triggers=post.update\\n",
-                                    "path=Resources.PredContainerInstanceLaunch.Metadata.AWS::CloudFormation::Init\\n",
-                                    "action=/opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\\n",
-                                    "runas=root\\n"
+                                    "[cfn-auto-reloader-hook]\n",
+                                    "triggers=post.update\n",
+                                    "path=Resources.PredContainerInstanceLaunch.Metadata.AWS::CloudFormation::Init\n",
+                                    "action=/opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\n",
+                                    "runas=root\n"
                                 ]]
                             }
                         }
@@ -231,13 +235,10 @@
                 }
             },
             "Properties": {
-                "SecurityGroups": { "Ref": "PredECSHostSecurityGroup" },
+                "SecurityGroups": [{ "Ref": "PredECSHostSecurityGroup" }],
                 "ImageId": { "Fn::FindInMap": [ "AWSRegionToAMI", { "Ref": "AWS::Region" }, "AMIID" ] },
                 "InstanceType": "p3.2xlarge",
-                "IamInstanceProfile": { "Fn::ImportValue": { "Fn::Join": [ "-", [
-                    { "Ref": "StackName" },
-                    "exec-sg"
-                ]]}},
+                "IamInstanceProfile": { "Ref": "PredInstanceProfile" },
                 "BlockDeviceMappings": [{
                     "DeviceName": "/dev/xvdcz",
                     "Ebs": {
@@ -249,11 +250,11 @@
                 "UserData": {
                     "Fn::Base64": {
                         "Fn::Join": ["", [
-                            "#cloud-config\\n",
-                            "\\nruncmd:\\n",
-                            " - yum install -y aws-cfn-bootstrap\\n",
-                            " - /opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\\n",
-                            " - /opt/aws/bin/cfn-signal -e $? --stack ", { "Ref": "AWS::StackName" }, " --resource PredECSAutoScalingGroup --region ", { "Ref": "AWS::Region" }, "\\n"
+                            "#cloud-config\n",
+                            "\nruncmd:\n",
+                            " - yum install -y aws-cfn-bootstrap\n",
+                            " - /opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\n",
+                            " - /opt/aws/bin/cfn-signal -e $? --stack ", { "Ref": "AWS::StackName" }, " --resource PredECSAutoScalingGroup --region ", { "Ref": "AWS::Region" }, "\n"
                         ]]
                     }
                 }
@@ -274,7 +275,11 @@
                 "LaunchConfigurationName": { "Ref": "PredContainerInstanceLaunch" },
                 "MinSize": 1,
                 "MaxSize": { "Ref": "MaxSize" },
-                "DesiredCapacity": { "Ref": "MaxSize" }
+                "DesiredCapacity": { "Ref": "MaxSize" },
+                "VPCZoneIdentifier": [
+                    { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
+                    { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
+                ]
             }
         },
         "PredECSHostSecurityGroup": {
@@ -293,7 +298,7 @@
         },
         "PredService": {
             "Type": "AWS::ECS::Service",
-            "DependsOn": "PredHTTPListener",
+            "DependsOn": "PredECSAutoScalingGroup",
             "Properties": {
                 "ServiceName": { "Ref": "ImageTag" },
                 "Cluster": { "Fn::ImportValue": { "Fn::Join": [ "-", [
@@ -302,15 +307,9 @@
                 ]]}},
                 "TaskDefinition": { "Ref": "PredTaskDefinition" },
                 "DesiredCount": 1,
-                "NetworkConfiguration": {
-                    "AwsvpcConfiguration": {
-                        "AssignPublicIp": "ENABLED",
-                        "SecurityGroups": [{ "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "sg" ]]}}],
-                        "Subnets": [
-                            { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
-                            { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
-                        ]
-                    }
+                "DeploymentConfiguration": {
+                    "MaximumPercent": 100,
+                    "MinimumHealthyPercent": 0
                 },
                 "LoadBalancers": [{
                     "ContainerName": "pred-app",
@@ -325,18 +324,13 @@
                 "Family": { "Ref" : "ImageTag" },
                 "Cpu": 1024,
                 "Memory": 2048,
-                "NetworkMode": "awsvpc",
-                "RequiresCompatibilities": ["FARGATE"],
                 "TaskRoleArn": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                     { "Ref": "StackName" },
                     "task-role"
                 ]]}},
-                "ExecutionRoleArn": { "Fn::ImportValue": { "Fn::Join": [ "-", [
-                    { "Ref": "StackName" },
-                    "exec-role"
-                ]]}},
                 "ContainerDefinitions": [{
                     "Name": "pred-app",
+                    "Essential": true,
                     "Image": { "Fn::Join" : [ "", [
                         { "Ref": "AWS::AccountId" },
                         ".dkr.ecr.",
@@ -365,8 +359,7 @@
                             ]]},
                             "awslogs-create-group": true
                         }
-                    },
-                    "Essential": true
+                    }
                 }]
             }
         }
