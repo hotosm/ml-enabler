@@ -30,7 +30,7 @@ def init_routes(app):
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, \
         PredictionAPI, PredictionUploadAPI, PredictionTileAPI, MLModelTilesAPI, \
         MLModelTilesGeojsonAPI, GetAllPredictions, PredictionTileMVT, ImageryAPI, \
-        PredictionStackAPI, PredictionInfAPI, MapboxAPI, PredictionGeomAPI
+        PredictionStackAPI, PredictionInfAPI, MapboxAPI
     from ml_enabler.api.swagger import SwaggerDocsAPI
 
     api.add_resource(StatusCheckAPI,        '/')
@@ -61,7 +61,6 @@ def init_routes(app):
     api.add_resource(PredictionTileMVT,     '/v1/model/<int:model_id>/prediction/<int:prediction_id>/tiles/<int:z>/<int:x>/<int:y>.mvt', methods=['GET'])
 
     api.add_resource(PredictionTileAPI,     '/v1/model/prediction/<int:prediction_id>/tiles', methods=['POST'])
-    api.add_resource(PredictionGeomAPI,     '/v1/model/prediction/<int:prediction_id>/geom', methods=['POST'])
 
 if __name__ == '__main__':
     app = create_app()

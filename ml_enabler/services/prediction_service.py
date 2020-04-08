@@ -121,7 +121,12 @@ class PredictionTileService():
             bounds = mercantile.bounds(mercantile.quadkey_to_tile(prediction.get('quadkey')))
 
             if prediction.get('quadkey_geom') is not None:
-                
+                prediction["quadkey_geom"] = "SRID=4326;POLYGON(({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
+                    bounds[0],
+                    bounds[1],
+                    bounds[2],
+                    bounds[3]
+                )
             else:
                 prediction["quadkey_geom"] = "SRID=4326;POLYGON(({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
                     bounds[0],
