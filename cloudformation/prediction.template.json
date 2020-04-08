@@ -86,6 +86,13 @@
                 }
             }
         },
+        "PredInstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Path": "/",
+                "Roles": [{ "Ref": "" }]
+            }
+        },
         "PredTargetGroup": {
             "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
             "Properties": {
@@ -144,7 +151,6 @@
                 ]]}}
             }
         },
-
         "PredTileQueue": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
@@ -180,7 +186,7 @@
                                         "#!/bin/bash\\n",
                                         "echo ECS_CLUSTER=", { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}}, " >> /etc/ecs/ecs.config\\n",
                                         "echo ECS_ENGINE_TASK_CLEANUP_WAIT_DURATION=1m >> /etc/ecs/ecs.config\\n"
-                                    ]
+                                    ]]
                                 }
                             }
                         }
@@ -225,10 +231,13 @@
                 }
             },
             "Properties": {
-                "SecurityGroups":
-                "ImageId": //TODO
-                "InstanceType":
-                "IamInstanceProfile":
+                "SecurityGroups": { "Ref": "PredECSHostSecurityGroup" },
+                "ImageId": { "Fn::FindInMap": [ "AWSRegionToAMI", { "Ref": "AWS::Region" }, "AMIID" ] },
+                "InstanceType": "p3.2xlarge",
+                "IamInstanceProfile": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "exec-sg"
+                ]]}},
                 "BlockDeviceMappings": [{
                     "DeviceName": "/dev/xvdcz",
                     "Ebs": {
@@ -259,12 +268,27 @@
             },
             "Properties": {
                 "AvailabilityZones": [
-                    // TODO
+                    { "Fn::FindInMap": ["AWSRegion2AZ", { "Ref": "AWS::Region" }, "1"] },
+                    { "Fn::FindInMap": ["AWSRegion2AZ", { "Ref": "AWS::Region" }, "2"] }
                 ],
                 "LaunchConfigurationName": { "Ref": "PredContainerInstanceLaunch" },
                 "MinSize": 1,
                 "MaxSize": { "Ref": "MaxSize" },
                 "DesiredCapacity": { "Ref": "MaxSize" }
+            }
+        },
+        "PredECSHostSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "vpc"
+                ]]}},
+                "GroupDescription": "Access to the ECS hosts and the tasks/containers that run on them",
+                "SecurityGroupIngress": [{
+                    "SourceSecurityGroupId": { "Ref": "PredELBSecurityGroup" },
+                    "IpProtocol": -1
+                }]
             }
         },
         "PredService": {
@@ -345,6 +369,17 @@
                     "Essential": true
                 }]
             }
+        }
+    },
+    "Mappings": {
+        "AWSRegionToAMI": {
+            "DOCS": { "LIST": "http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html" },
+            "us-east-1": { "AMIID": "ami-07eb64b216d4d3522" }
+        },
+        "AWSRegion2AZ": {
+            "us-east-1": { "1": "us-east-1b", "2": "us-east-1c", "3": "us-east-1d", "4": "us-east-1e" },
+            "us-west-1": { "1": "us-west-1b", "2": "us-west-1c" },
+            "us-west-2": { "1": "us-west-2a", "2": "us-west-2b", "3": "us-west-2c" }
         }
     },
     "Outputs" : {

@@ -174,6 +174,12 @@ const Resources = {
                         Resource: [ 'arn:aws:logs:*:*:*' ]
                     }]
                 }
+            },{
+                Effect: 'Allow',
+                Action: [
+                    'elasticloadbalancing:*'
+                ],
+                Resource: '*'
             }],
             ManagedPolicyArns: [
                 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy',
@@ -743,6 +749,13 @@ const Outputs = {
         Value: cf.ref('PredServiceSecurityGroup'),
         Export: {
             Name: cf.join('-', [cf.stackName, 'sg'])
+        }
+    },
+    InternalExecRole: {
+        Description: 'Exec SG',
+        Value: cf.ref('MLEnablerExecRole'),
+        Export: {
+            Name: cf.join('-', [cf.stackName, 'exec-sg'])
         }
     },
     InternalLambdaRole: {
