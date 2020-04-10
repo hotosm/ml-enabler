@@ -182,53 +182,47 @@
             "DependsOn": "PredECSHostSecurityGroup",
             "Metadata": {
                 "AWS::CloudFormation::Init": {
-                    "config": {
+                    "config" : {
                         "commands": {
                             "01_add_instance_to_cluster": {
-                                "command": {
+                                "command": { "Fn::Join": [ "", ["echo ECS_CLUSTER=", { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}}, " >> /etc/ecs/ecs.config\n" ]] }
+                            }
+                        },
+                        "files": {
+                            "/etc/cfn/cfn-hup.conf": {
+                                "content": {
                                     "Fn::Join": [ "", [
-                                        "#!/bin/bash\n",
-                                        "echo ECS_CLUSTER=", { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}}, " >> /etc/ecs/ecs.config\n",
-                                        "echo ECS_ENGINE_TASK_CLEANUP_WAIT_DURATION=1m >> /etc/ecs/ecs.config\n"
+                                        "[main]\n",
+                                        "stack=", { "Ref": "AWS::StackId" }, "\n",
+                                        "region=", { "Ref": "AWS::Region" }, "\n"
+                                    ]]
+                                },
+                                "mode": "000400",
+                                "owner": "root",
+                                "group": "root"
+                            },
+                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                                "content": {
+                                    "Fn::Join": [ "", [
+                                        "[cfn-auto-reloader-hook]\n",
+                                        "triggers=post.update\n",
+                                        "path=Resources.PredContainerInstanceLaunch.Metadata.AWS::CloudFormation::Init\n",
+                                        "action=/opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\n",
+                                        "runas=root\n"
                                     ]]
                                 }
                             }
-                        }
-                    },
-                    "files": {
-                        "/etc/cfn/cfn-hup.conf": {
-                            "content": {
-                                "Fn::Join": [ "", [
-                                    "[main]\n",
-                                    "stack=", { "Ref": "AWS::StackId" }, "\n",
-                                    "region=", { "Ref": "AWS::Region" }, "\n"
-                                ]]
-                            },
-                            "mode": "000400",
-                            "owner": "root",
-                            "group": "root"
                         },
-                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
-                            "content": {
-                                "Fn::Join": [ "", [
-                                    "[cfn-auto-reloader-hook]\n",
-                                    "triggers=post.update\n",
-                                    "path=Resources.PredContainerInstanceLaunch.Metadata.AWS::CloudFormation::Init\n",
-                                    "action=/opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\n",
-                                    "runas=root\n"
-                                ]]
-                            }
-                        }
-                    },
-                    "services": {
-                        "sysvinit": {
-                            "cfn-hup": {
-                                "enabled": "true",
-                                "ensureRunning": "true",
-                                "files": [
-                                    "/etc/cfn/cfn-hup.conf",
-                                    "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
-                                ]
+                        "services": {
+                            "sysvinit": {
+                                "cfn-hup": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true",
+                                    "files": [
+                                        "/etc/cfn/cfn-hup.conf",
+                                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+                                    ]
+                                }
                             }
                         }
                     }
@@ -250,11 +244,12 @@
                 "UserData": {
                     "Fn::Base64": {
                         "Fn::Join": ["", [
-                            "#cloud-config\n",
-                            "\nruncmd:\n",
-                            " - yum install -y aws-cfn-bootstrap\n",
-                            " - /opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\n",
-                            " - /opt/aws/bin/cfn-signal -e $? --stack ", { "Ref": "AWS::StackName" }, " --resource PredECSAutoScalingGroup --region ", { "Ref": "AWS::Region" }, "\n"
+                            "#!/bin/bash -xe\n",
+                            "yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm\n",
+                            "yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm\n",
+                            "yum install -y aws-cfn-bootstrap hibagent\n",
+                            "/opt/aws/bin/cfn-init -v --region ", { "Ref": "AWS::Region" }, " --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch\n",
+                            "/opt/aws/bin/cfn-signal -e $? --region ", { "Ref": "AWS::Region" }, " --stack ", { "Ref": "AWS::StackName" }, " --resource PredECSAutoScalingGroup\n"
                         ]]
                     }
                 }
@@ -262,6 +257,12 @@
         },
         "PredECSAutoScalingGroup": {
             "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "CreationPolicy" : {
+                "ResourceSignal" : {
+                    "Timeout" : "PT10M",
+                    "Count"   : "1"
+                }
+            },
             "UpdatePolicy": {
                 "AutoScalingRollingUpdate": {
                     "MinInstancesInService": 0
@@ -301,10 +302,7 @@
             "DependsOn": "PredECSAutoScalingGroup",
             "Properties": {
                 "ServiceName": { "Ref": "ImageTag" },
-                "Cluster": { "Fn::ImportValue": { "Fn::Join": [ "-", [
-                    { "Ref": "StackName" },
-                    "cluster"
-                ]]}},
+                "Cluster": { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}},
                 "TaskDefinition": { "Ref": "PredTaskDefinition" },
                 "DesiredCount": 1,
                 "DeploymentConfiguration": {

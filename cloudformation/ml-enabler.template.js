@@ -228,6 +228,11 @@ const Resources = {
                             'iam:PassRole',
                             'ecs:CreateService',
                             'ecs:DescribeServices',
+                            'iam:CreateInstanceProfile',
+                            'iam:AddRoleToInstanceProfile',
+                            'autoscaling:CreateLaunchConfiguration',
+                            'autoscaling:CreateAutoScalingGroup',
+                            'autoscaling:UpdateAutoScalingGroup',
                             'elasticloadbalancing:DescribeListeners',
                             'lambda:CreateEventSourceMapping',
                             'elasticloadbalancingv2:CreateListener',
@@ -265,8 +270,14 @@ const Resources = {
                     },{
                         Effect: 'Allow', // And these are required to delete it
                         Action: [
+                            'ec2:createTags',
                             'ecs:DeleteService',
                             'ec2:DeleteSecurityGroup',
+                            'autoscaling:DescribeAutoScalingGroup',
+                            'autoscaling:DescribeAutoScalingGroups',
+                            'autoscaling:DeleteLaunchConfiguration',
+                            'iam:RemoveRoleFromInstanceProfile',
+                            'iam:DeleteInstanceProfile',
                             'elasticloadbalancingv2:DeleteLoadBalancer',
                             'elasticloadbalancingv2:DeleteListener',
                             'elasticloadbalancingv2:DeleteTargetGroup',
@@ -662,7 +673,11 @@ const Resources = {
                 Statement: [{
                     Effect: 'Allow',
                     Principal: {
-                        Service: 'ecs-tasks.amazonaws.com'
+                        Service: [
+                            'ec2.amazonaws.com',
+                            'ecs.amazonaws.com',
+                            'ecs-tasks.amazonaws.com'
+                        ]
                     },
                     Action: 'sts:AssumeRole'
                 }]
@@ -795,7 +810,7 @@ const Outputs = {
     },
     InternalCluster: {
         Description: 'The ARN of the Cluster',
-        Value: cf.getAtt('MLEnablerECSCluster', 'Arn'),
+        Value: cf.ref('MLEnablerECSCluster'),
         Export: {
             Name: cf.join('-', [cf.stackName, 'cluster'])
         }
