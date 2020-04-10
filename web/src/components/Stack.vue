@@ -69,9 +69,6 @@
                         <input v-model='params.inferences' type='text' class='input' placeholder='buildings,schools,roads,...'/>
                     </div>
                 </template>
-                <template v-else>
-                    <label class='pt24'>Object Detection is not currently supported</label>
-                </template>
 
                 <template v-if='!advanced'>
                     <div class='col col--12'>
