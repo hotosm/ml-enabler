@@ -35,7 +35,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
     tile_indices, payload = dap.get_prediction_payload(tiles, model_type)
 
     if model_type == ModelType.OBJECT_DETECT:
-        print("OBJECT DETECTION Model")
+        print("TYPE: Object Detection")
 
         # send prediction request
         preds = dap.od_post_prediction(payload, tiles, prediction_id)
@@ -43,9 +43,9 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
         print(preds);
 
         # Save the prediction to ML-Enabler
-        #dap.od_save_prediction(prediction_id, preds)
+        dap.od_save_prediction(prediction_id, preds)
     elif model_type == ModelType.CLASSIFICATION:
-        print("CLASSIFICATION Model")
+        print("TYPE: Classification")
 
         inferences = os.getenv('INFERENCES')
         assert(inferences)

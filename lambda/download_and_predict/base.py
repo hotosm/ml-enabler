@@ -82,7 +82,7 @@ class DownloadAndPredict(object):
             yield (tile, r.content)
 
 
-    def get_prediction_payload(self, tiles:List[Tile], model_type: ModelType) -> Tuple[List[Tile], str]:
+    def get_prediction_payload(self, tiles:List[Tile], model_type: ModelType) -> Tuple[List[Tile], Dict[str, Any]]:
         """
         tiles: list mercantile Tiles
         imagery: str an imagery API endpoint with three variables {z}/{x}/{y} to replace
@@ -110,7 +110,9 @@ class DownloadAndPredict(object):
         return (list(tile_indices), payload)
 
     def cl_post_prediction(self, payload: Dict[str, Any], tiles: List[Tile], prediction_id: str, inferences: List[str]) -> Dict[str, Any]:
-        r = requests.post(self.prediction_endpoint + ":predict", data=json.dumps(payload))
+        payload = json.dumps(payload)
+        r = requests.post(self.prediction_endpoint + ":predict", data=payload)
+        print(r.text)
         r.raise_for_status()
 
         preds = r.json()["predictions"]
