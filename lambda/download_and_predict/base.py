@@ -136,33 +136,33 @@ class DownloadAndPredict(object):
     def od_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str) -> Dict[str, Any]:
         pred_list = [];
 
-        for instance in payload["instances"]:
+        for i in range(len(tiles)):
             r = requests.post(self.prediction_endpoint + ":predict", data=json.dumps({
-                "instances": [ instance ]
+                "instances": [ payload["instances"][i] ]
             }))
-
             r.raise_for_status()
 
             preds = r.json()["predictions"]
 
-            for i in range(len(tiles)):
-                if preds[i]["num_detections"] == 0.0:
-                    break
+            if len(preds) == 0.0:
+                break
+            elif preds[0]["num_detections"] == 0.0:
+                break
 
-                boxes = preds[i]['detection_boxes']
-                scores = preds[i]['detection_scores']
-                bboxes = (np.squeeze(boxes)[np.squeeze(scores) > .5] * 256).astype(int)
-                bboxes_ls = bboxes.tolist()
+            boxes = preds[0]['detection_boxes']
+            scores = preds[0]['detection_scores']
+            bboxes = (np.squeeze(boxes)[np.squeeze(scores) > .5] * 256).astype(int)
+            bboxes_ls = bboxes.tolist()
 
-                for j, bbox in enumerate(bboxes_ls):
-                    bbox = self.tf_bbox_geo(bbox, tiles[i])
-                    score = preds[i]["detection_scores"][j]
+            for j, bbox in enumerate(bboxes_ls):
+                bbox = self.tf_bbox_geo(bbox, tiles[i])
+                score = predl[0]["detection_scores"][j]
 
-                    print(bbox)
+                print(bbox)
 
-                    pred_list.append({
-                        "prediction_id": prediction_id
-                    })
+                pred_list.append({
+                    "prediction_id": prediction_id
+                })
 
         return {
             "predictionId": prediction_id,
