@@ -103,14 +103,14 @@ class DownloadAndPredict(object):
         else:
             instances = [dict(inputs=dict(b64=self.b64encode_image(img))) for img in images]
 
-        payload = json.dumps({
+        payload = {
             "instances": instances
-        })
+        }
 
         return (list(tile_indices), payload)
 
-    def cl_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str, inferences: List[str]) -> Dict[str, Any]:
-        r = requests.post(self.prediction_endpoint + ":predict", data=payload)
+    def cl_post_prediction(self, payload: Dict[str, Any], tiles: List[Tile], prediction_id: str, inferences: List[str]) -> Dict[str, Any]:
+        r = requests.post(self.prediction_endpoint + ":predict", data=json.dumps(payload))
         r.raise_for_status()
 
         preds = r.json()["predictions"]
@@ -134,30 +134,35 @@ class DownloadAndPredict(object):
         }
 
     def od_post_prediction(self, payload: str, tiles: List[Tile], prediction_id: str) -> Dict[str, Any]:
-        r = requests.post(self.prediction_endpoint + ":predict", data=payload)
-        r.raise_for_status()
-
-        preds = r.json()["predictions"]
         pred_list = [];
 
-        for i in range(len(tiles)):
-            if preds[i]["num_detections"] == 0.0:
-                break
+        for instance in payload["instances"]:
+            r = requests.post(self.prediction_endpoint + ":predict", data=json.dumps({
+                "instances": [ instance ]
+            }))
 
-            boxes = preds[i]['detection_boxes']
-            scores = preds[i]['detection_scores']
-            bboxes = (np.squeeze(boxes)[np.squeeze(scores) > .5] * 256).astype(int)
-            bboxes_ls = bboxes.tolist()
+            r.raise_for_status()
 
-            for j, bbox in enumerate(bboxes_ls):
-                bbox = self.tf_bbox_geo(bbox, tiles[i])
-                score = preds[i]["detection_scores"][j]
+            preds = r.json()["predictions"]
 
-                print(bbox)
+            for i in range(len(tiles)):
+                if preds[i]["num_detections"] == 0.0:
+                    break
 
-                pred_list.append({
-                    "prediction_id": prediction_id
-                })
+                boxes = preds[i]['detection_boxes']
+                scores = preds[i]['detection_scores']
+                bboxes = (np.squeeze(boxes)[np.squeeze(scores) > .5] * 256).astype(int)
+                bboxes_ls = bboxes.tolist()
+
+                for j, bbox in enumerate(bboxes_ls):
+                    bbox = self.tf_bbox_geo(bbox, tiles[i])
+                    score = preds[i]["detection_scores"][j]
+
+                    print(bbox)
+
+                    pred_list.append({
+                        "prediction_id": prediction_id
+                    })
 
         return {
             "predictionId": prediction_id,

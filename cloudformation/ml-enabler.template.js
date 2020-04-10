@@ -277,6 +277,7 @@ const Resources = {
                             'ec2:createTags',
                             'ecs:DeleteService',
                             'ec2:DeleteSecurityGroup',
+                            'autoscaling:DeleteAutoScalingGroup',
                             'autoscaling:DescribeAutoScalingGroup',
                             'autoscaling:DescribeAutoScalingGroups',
                             'autoscaling:DeleteLaunchConfiguration',
