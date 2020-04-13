@@ -142,9 +142,13 @@ class DownloadAndPredict(object):
             r = requests.post(self.prediction_endpoint + ":predict", data=json.dumps({
                 "instances": [ payload["instances"][i] ]
             }))
+
+            print(r.text)
             r.raise_for_status()
 
             preds = r.json()["predictions"]
+
+            print(pres)
 
             if len(preds) == 0.0:
                 break
