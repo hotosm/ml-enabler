@@ -159,7 +159,7 @@ import PredictionHeader from './PredictionHeader.vue';
 
 export default {
     name: 'Stack',
-    props: ['model', 'prediction', 'imagery'],
+    props: ['meta', 'model', 'prediction', 'imagery'],
     data: function() {
         return {
             advanced: false,

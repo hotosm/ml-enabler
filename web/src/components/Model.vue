@@ -108,7 +108,13 @@
                 <CreatePrediction :modelid='model.modelId' v-on:close='refresh' />
             </template>
             <template v-else-if='mode === "showPrediction"'>
-                <Prediction :imagery='imagery' :model='model' :prediction='prediction' v-on:close='refresh' />
+                <Prediction
+                    :meta='meta'
+                    :imagery='imagery'
+                    :model='model'
+                    :prediction='prediction'
+                    v-on:close='refresh'
+                />
             </template>
         </div>
     </div>
@@ -122,7 +128,7 @@ import Imagery from './Imagery.vue';
 
 export default {
     name: 'Model',
-    props: ['model'],
+    props: ['model', 'meta'],
     data: function() {
         return {
             mode: 'model',

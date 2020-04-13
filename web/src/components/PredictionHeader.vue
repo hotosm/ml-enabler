@@ -17,7 +17,7 @@
 
 <script>
 export default {
-    name: 'PredictionMap',
+    name: 'PredictionHeader',
     props: ['mode'],
     methods: {
         emit: function(mode) {
