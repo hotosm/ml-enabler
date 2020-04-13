@@ -361,6 +361,9 @@ const Resources = {
                     Name:'POSTGRES_DB',
                     Value: 'mlenabler'
                 },{
+                    Name: 'ENVIRONMENT',
+                    Value: 'aws'
+                },{
                     Name:'POSTGRES_USER',
                     Value: cf.ref('DatabaseUser')
                 },{

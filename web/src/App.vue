@@ -52,7 +52,12 @@
                 <EditModel :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels'/>
             </template>
             <template v-else-if='mode === "model"'>
-                <Model :model='JSON.parse(JSON.stringify(model))' v-on:close='getModels' v-on:edit='editModel($event.modelId)'/>
+                <Model
+                    :model='JSON.parse(JSON.stringify(model))'
+                    :meta='meta'
+                    v-on:close='getModels'
+                    v-on:edit='editModel($event.modelId)'
+                />
             </template>
         </div>
     </div>
@@ -73,6 +78,10 @@ export default {
                 name: '',
                 source: '',
                 projectUrl: ''
+            },
+            meta: {
+                version: 1,
+                environemnt: 'docker'
             },
             models: []
         }
@@ -112,6 +121,17 @@ export default {
 
             this.mode = 'editmodel';
             this.getModel(modelId);
+        },
+        getMeta: function() {
+            fetch('/v1', {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.meta = res;
+            }).catch((err) => {
+                console.error(err);
+            });
         },
         getModels: function() {
             this.mode = 'models';

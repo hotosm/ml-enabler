@@ -52,7 +52,7 @@ import PredictionHeader from './PredictionHeader.vue';
 
 export default {
     name: 'Tasking',
-    props: ['model', 'prediction'],
+    props: ['meta', 'model', 'prediction'],
     data: function() {
         return {
             loading: true,
