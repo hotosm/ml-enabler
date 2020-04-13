@@ -205,7 +205,7 @@ function docker(tmp, model) {
             console.error('ok - pulling tensorflow/serving docker image');
 
             CP.execSync(`
-                docker pull tensorflow/serving:latest-gpu
+                docker pull tensorflow/serving:latest
             `);
 
             // Ignore errors, these are to ensure the next commands don't err
@@ -226,7 +226,7 @@ function docker(tmp, model) {
             }
 
             CP.execSync(`
-                docker run -d --name serving_base tensorflow/serving:latest-gpu
+                docker run -d --name serving_base tensorflow/serving:latest
             `);
 
             CP.execSync(`

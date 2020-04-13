@@ -20,6 +20,16 @@ import geojson
 import boto3
 import os
 
+class MetaAPI(Resource):
+    """
+    Return metadata about the API
+    """
+    def get(self):
+        return {
+            'version': 1,
+            'environment': CONFIG.EnvironmentConfig.ENVIRONMENT
+        }, 200
+
 class StatusCheckAPI(Resource):
     """
     Healthcheck method
