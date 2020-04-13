@@ -120,11 +120,17 @@ class MLModelAPI(Resource):
             MLModelService.delete_ml_model(model_id)
             return {"success": "model deleted"}, 200
         except NotFound:
-            return {"error": "model not found"}, 404
+            return {
+                "status": 404,
+                "error": "model not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
     def get(self, model_id):
         """
@@ -150,11 +156,17 @@ class MLModelAPI(Resource):
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
             return ml_model_dto.to_primitive(), 200
         except NotFound:
-            return {"error": "model not found"}, 404
+            return {
+                "status": 404,
+                "error": "model not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
     def put(self, model_id):
         """
@@ -199,11 +211,17 @@ class MLModelAPI(Resource):
             model_id = MLModelService.update_ml_model(updated_model_dto)
             return {"model_id": model_id}, 200
         except NotFound:
-            return {"error": "model not found"}, 404
+            return {
+                "status": 404,
+                "error": "model not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 class GetAllModels(Resource):
     """ Methods to fetch many ML models """
@@ -225,11 +243,17 @@ class GetAllModels(Resource):
             ml_models = MLModelService.get_all()
             return ml_models, 200
         except NotFound:
-            return {"error": "no models found"}, 404
+            return {
+                "status": 404,
+                "error": "no models found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 class ImageryAPI(Resource):
     """ Upload imagery sources for a given model """
@@ -316,7 +340,10 @@ class ImageryAPI(Resource):
         except Exception as e:
             error_msg = f'Imagery Post: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": "Failed to save imagery source to DB"}, 500
+            return {
+                "status": 500,
+                "error": "Failed to save imagery source to DB"
+            }, 500
 
     def get(self, model_id):
         """
@@ -340,16 +367,29 @@ class ImageryAPI(Resource):
             imagery = ImageryService.list(model_id)
             return imagery, 200
         except ImageryNotFound:
-            return {"error": "Imagery not found"}, 404
+            return {
+                "status": 404,
+                "error": "Imagery not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 class PredictionInfAPI(Resource):
     """ Add GeoJSON to SQS Inference Queue """
 
     def post(self, model_id, prediction_id):
+
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
+
         payload = request.data
 
         tiler = tileschemes.WebMercator()
@@ -400,20 +440,35 @@ class PredictionInfAPI(Resource):
         except Exception as e:
             error_msg = f'Predction Tiler Error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 
 class PredictionStackAPI(Resource):
     """ Create, Manage & Destroy Prediction Stacks """
 
     def post(self, model_id, prediction_id):
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
+
         payload = request.get_json()
 
         if payload.get("imagery") is None:
-            return {"error": "imagery key required in body"}, 400
+            return {
+                "status": 400,
+                "error": "imagery key required in body"
+            }, 400
 
         if payload.get("inferences") is None:
-            return {"error": "inferences key required in body"}, 400
+            return {
+                "status": 400,
+                "error": "inferences key required in body"
+            }, 400
 
         image = "models-{model}-prediction-{prediction}".format(
             model=model_id,
@@ -469,9 +524,18 @@ class PredictionStackAPI(Resource):
         except Exception as e:
             error_msg = f'Prediction Stack Creation Error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": "Failed to create stack info"}, 500
+            return {
+                "status": 500,
+                "error": "Failed to create stack info"
+            }, 500
 
     def delete(self, model_id, prediction_id):
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
+
         try:
             stack = "{stack}-models-{model}-prediction-{prediction}".format(
                 stack=CONFIG.EnvironmentConfig.STACK,
@@ -493,7 +557,10 @@ class PredictionStackAPI(Resource):
             else:
                 error_msg = f'Prediction Stack Info Error: {str(e)}'
                 current_app.logger.error(error_msg)
-                return {"error": "Failed to get stack info"}, 500
+                return {
+                    "status": 500,
+                    "error": "Failed to get stack info"
+                }, 500
 
 
     def get(self, model_id, prediction_id):
@@ -510,6 +577,13 @@ class PredictionStackAPI(Resource):
             500:
                 description: Internal Server Error
         """
+
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
+
         try:
             stack = "{stack}-models-{model}-prediction-{prediction}".format(
                 stack=CONFIG.EnvironmentConfig.STACK,
@@ -537,7 +611,10 @@ class PredictionStackAPI(Resource):
             else:
                 error_msg = f'Prediction Stack Info Error: {str(e)}'
                 current_app.logger.error(error_msg)
-                return {"error": "Failed to get stack info"}, 500
+                return {
+                    "status": 500,
+                    "error": "Failed to get stack info"
+                }, 500
 
 class PredictionUploadAPI(Resource):
     """ Upload raw ML Models to the platform """
@@ -557,8 +634,17 @@ class PredictionUploadAPI(Resource):
                 description: Internal Server Error
         """
 
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
+
         if CONFIG.EnvironmentConfig.ASSET_BUCKET is None:
-            return {"error": "Not Configured"}, 501
+            return {
+                "status": 501,
+                "error": "Not Configured"
+            }, 501
 
         key = "models/{0}/prediction/{1}/model.zip".format(
             model_id,
@@ -573,7 +659,10 @@ class PredictionUploadAPI(Resource):
         except:
             files = list(request.files.keys())
             if len(files) == 0:
-                return {"error": "Model not found in request"}, 400
+                return {
+                    "status": 400,
+                    "error": "Model not found in request"
+                }, 400
 
             model = request.files[files[0]]
 
@@ -586,7 +675,10 @@ class PredictionUploadAPI(Resource):
             except Exception as e:
                 error_msg = f'S3 Upload Error: {str(e)}'
                 current_app.logger.error(error_msg)
-                return {"error": "Failed to upload model to S3"}, 500
+                return {
+                    "status": 500,
+                    "error": "Failed to upload model to S3"
+                }, 500
 
             # Save the model link to ensure UI shows upload success
             try:
@@ -596,7 +688,10 @@ class PredictionUploadAPI(Resource):
             except Exception as e:
                 error_msg = f'SaveLink Error: {str(e)}'
                 current_app.logger.error(error_msg)
-                return {"error": "Failed to save model state to DB"}, 500
+                return {
+                    "status": 500,
+                    "error": "Failed to save model state to DB"
+                }, 500
 
             try:
                 batch = boto3.client(
@@ -620,11 +715,17 @@ class PredictionUploadAPI(Resource):
             except Exception as e:
                 error_msg = f'Batch Error: {str(e)}'
                 current_app.logger.error(error_msg)
-                return {"error": "Failed to start ECR build"}, 500
+                return {
+                    "status": 500,
+                    "error": "Failed to start ECR build"
+                }, 500
 
             return { "status": "model uploaded" }, 200
         else:
-            return { "error": "model exists" }, 400
+            return {
+                "status": 400,
+                "error": "model exists"
+            }, 400
 
 class PredictionAPI(Resource):
     """ Methods to manage ML predictions """
@@ -698,16 +799,28 @@ class PredictionAPI(Resource):
             except Exception as e:
                 error_msg = f'Unhandled error: {str(e)}'
                 current_app.logger.error(error_msg)
-                return {"error": error_msg}, 500
+                return {
+                    "status": 500,
+                    "error": error_msg
+                }, 500
         except NotFound:
-            return {"error": "model not found"}, 404
+            return {
+                "status": 404,
+                "error": "model not found"
+            }, 404
         except DataError as e:
             current_app.logger.error(f'Error validating request: {str(e)}')
-            return str(e), 400
+            return {
+                "status": 400,
+                "error": str(e)
+            }, 400
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
     def get(self, model_id):
         """
@@ -737,7 +850,10 @@ class PredictionAPI(Resource):
         try:
             bbox = request.args.get('bbox', '')
             if (bbox is None or bbox == ''):
-                return {"error": 'A bbox is required'}, 400
+                return {
+                    "status": 400,
+                    "error": 'A bbox is required'
+                }, 400
 
             # check if this model exists
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
@@ -746,11 +862,17 @@ class PredictionAPI(Resource):
             predictions = PredictionService.get(ml_model_dto.model_id, boundingBox)
             return predictions, 200
         except PredictionsNotFound:
-            return {"error": "Predictions not found"}, 404
+            return {
+                "status": 404,
+                "error": "Predictions not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
     def patch(self, model_id, prediction_id):
         """
@@ -781,7 +903,10 @@ class PredictionAPI(Resource):
             updated_prediction = request.get_json()
 
             if updated_prediction is None:
-                return {"error": "prediction must be json object"}, 400
+                return {
+                    "status": 400,
+                    "error": "prediction must be json object"
+                }, 400
 
             prediction_id = PredictionService.patch(prediction_id, updated_prediction)
 
@@ -790,11 +915,17 @@ class PredictionAPI(Resource):
                 "prediction_id": prediction_id
             }, 200
         except NotFound:
-            return {"error": "prediction not found"}, 404
+            return {
+                "status": 404,
+                "error": "prediction not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 class GetAllPredictions(Resource):
     def get(self, model_id):
@@ -824,11 +955,17 @@ class GetAllPredictions(Resource):
             predictions = PredictionService.get_all_by_model(ml_model_dto.model_id)
             return predictions, 200
         except PredictionsNotFound:
-            return {"error": "Predictions not found"}, 404
+            return {
+                "status": 404,
+                "error": "Predictions not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 class PredictionTileMVT(Resource):
     """
@@ -884,11 +1021,17 @@ class PredictionTileMVT(Resource):
 
             return response
         except PredictionsNotFound:
-            return {"error": "Prediction tile not found"}, 404
+            return {
+                "status": 404,
+                "error": "Prediction tile not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 class PredictionTileAPI(Resource):
     """
@@ -924,11 +1067,17 @@ class PredictionTileAPI(Resource):
         try:
             return PredictionTileService.tilejson(model_id, prediction_id)
         except PredictionsNotFound:
-            return {"error": "Prediction TileJSON not found"}, 404
+            return {
+                "status": 404,
+                "error": "Prediction TileJSON not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
     def post(self, prediction_id):
         """
@@ -980,17 +1129,26 @@ class PredictionTileAPI(Resource):
         try:
             data = request.get_json()
             if (len(data['predictions']) == 0):
-                return {"error": "Error validating request"}, 400
+                return {
+                    "status": 400,
+                    "error": "Error validating request"
+                }, 400
 
             PredictionTileService.create(data)
 
             return {"prediction_id": prediction_id}, 200
         except PredictionsNotFound:
-            return {"error": "Prediction not found"}, 404
+            return {
+                "status": 404,
+                "error": "Prediction not found"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 
 class MLModelTilesAPI(Resource):
@@ -1032,10 +1190,16 @@ class MLModelTilesAPI(Resource):
             bbox = request.args.get('bbox', '')
             zoom = request.args.get('zoom', '')
             if (bbox is None or bbox == ''):
-                return {"error": 'A bbox is required'}, 400
+                return {
+                    "status": 400,
+                    "error": 'A bbox is required'
+                }, 400
 
             if (zoom is None or zoom == ''):
-                return {"error": 'Zoom level is required for aggregation'}
+                return {
+                    "status": 400,
+                    "error": 'Zoom level is required for aggregation'
+                }, 400
 
             # check if this model exists
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
@@ -1044,15 +1208,27 @@ class MLModelTilesAPI(Resource):
             return tiles, 200
 
         except NotFound:
-            return {"error": "Model not found"}, 404
+            return {
+                "status": 404,
+                "error": "Model not found"
+            }, 404
         except PredictionsNotFound:
-            return {"error": "No predictions for this bbox"}, 404
+            return {
+                "status": 404,
+                "error": "No predictions for this bbox"
+            }, 404
         except ValueError as e:
-            return {"error": str(e)}, 400
+            return {
+                "status": 400,
+                "error": str(e)
+            }, 400
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 
 class MLModelTilesGeojsonAPI(Resource):
@@ -1097,12 +1273,24 @@ class MLModelTilesGeojsonAPI(Resource):
             return prediction_tile_geojson, 200
 
         except InvalidGeojson:
-            return {"error": "Invalid GeoJSON"}, 400
+            return {
+                "status": 400,
+                "error": "Invalid GeoJSON"
+            }, 400
         except NotFound:
-            return {"error": "Model not found"}, 404
+            return {
+                "status": 404,
+                "error": "Model not found"
+            }, 404
         except PredictionsNotFound:
-            return {"error": "No predictions for this bbox"}, 404
+            return {
+                "status": 404,
+                "error": "No predictions for this bbox"
+            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
-            return {"error": error_msg}, 500
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
