@@ -17,7 +17,16 @@
             </div>
         </div>
 
-        <template v-if='!prediction.modelLink'>
+        <template v-if='meta.environment !== "aws"'>
+            <div class='flex-parent flex-parent--center-main pt36'>
+                <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+            </div>
+
+            <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                <h1 class='flex-child txt-h4 cursor-default align-center'>Stacks can only be created when MLEnabler is running in an "aws" environment</h1>
+            </div>
+        </template>
+        <template v-else-if='!prediction.modelLink'>
             <div class='col col--12 py6'>
                 <div class='flex-parent flex-parent--center-main pt36'>
                     <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
@@ -159,7 +168,7 @@ import PredictionHeader from './PredictionHeader.vue';
 
 export default {
     name: 'Stack',
-    props: ['model', 'prediction', 'imagery'],
+    props: ['meta', 'model', 'prediction', 'imagery'],
     data: function() {
         return {
             advanced: false,
