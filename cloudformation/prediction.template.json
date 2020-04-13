@@ -365,7 +365,7 @@
     "Mappings": {
         "AWSRegionToAMI": {
             "DOCS": { "LIST": "http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html" },
-            "us-east-1": { "AMIID": "ami-07eb64b216d4d3522" }
+            "us-east-1": { "AMIID": "ami-04da3441b20d2fe06" }
         },
         "AWSRegion2AZ": {
             "us-east-1": { "1": "us-east-1b", "2": "us-east-1c", "3": "us-east-1d", "4": "us-east-1e" },
