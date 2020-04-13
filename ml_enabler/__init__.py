@@ -30,10 +30,13 @@ def init_routes(app):
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, \
         PredictionAPI, PredictionUploadAPI, PredictionTileAPI, MLModelTilesAPI, \
         MLModelTilesGeojsonAPI, GetAllPredictions, PredictionTileMVT, ImageryAPI, \
-        PredictionStackAPI, PredictionInfAPI, MapboxAPI
+        PredictionStackAPI, PredictionInfAPI, MapboxAPI, MetaAPI
     from ml_enabler.api.swagger import SwaggerDocsAPI
 
     api.add_resource(StatusCheckAPI,        '/')
+
+    api.add_resource(MetaAPI,               '/v1', methods=['GET'])
+
     api.add_resource(SwaggerDocsAPI,        '/v1/docs')
 
     api.add_resource(MapboxAPI,             '/v1/mapbox', methods=['GET'])

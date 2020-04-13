@@ -8,6 +8,9 @@ class EnvironmentConfig:
         os.path.join(os.path.dirname(__file__), '..', 'ml_enabler.env')
     ))
 
+    # One of 'docker' or 'aws'
+    ENVIRONMENT = os.getenv('ENVIRONMENT', 'docker');
+
     # Database connection
     POSTGRES_USER = os.getenv('POSTGRES_USER', None)
     POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', None)
@@ -16,14 +19,24 @@ class EnvironmentConfig:
     POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')
 
     ASSET_BUCKET=os.getenv('ASSET_BUCKET', None)
-    STACK=os.getenv('STACK', 'ml-enabler-staging')
+    STACK=os.getenv('STACK', None)
     GitSha=os.getenv('GitSha', None)
-
-    if GitSha is None:
-        print("GitSha Env Var Required")
-        raise
-
     MAPBOX_TOKEN=os.getenv('MAPBOX_TOKEN', None)
+
+    if ENVIRONMENT == 'aws':
+        if GitSha is None:
+            print("GitSha Env Var Required")
+            raise
+        if STACK is None:
+            print("STACK Env Var Required")
+            raise
+        if ASSET_BUCKET is None:
+            print("ASSET_BUCKET Env Var Required")
+            raise
+
+    if MAPBOX_TOKEN is None:
+        print("MAPBOX_TOKEN Env Var Required")
+        raise
 
     if os.getenv('MLENABLER_DB', False):
         SQLALCHEMY_DATABASE_URI = os.getenv('MLENABLER_DB', None)

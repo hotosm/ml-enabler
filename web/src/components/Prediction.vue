@@ -10,7 +10,6 @@
             <span class='fr mr6 bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer' v-text='"id: " + prediction.predictionsId'/>
         </div>
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
-
             <template v-if='mode === "assets"'>
                 <div class='col col--12 border-b border--gray-light clearfix mb6'>
                     <PredictionHeader
@@ -45,6 +44,7 @@
             </template>
             <template v-else-if='mode === "stack"'>
                 <Stack
+                    :meta='meta'
                     :model='model'
                     :imagery='imagery'
                     :prediction='prediction'
@@ -79,6 +79,14 @@
                     </div>
                 </template>
             </template>
+            <template v-else-if='mode === "tasking"'>
+                <Tasking
+                    :meta='meta'
+                    :model='model'
+                    :prediction='prediction'
+                    v-on:mode='mode = $event'
+                />
+            </template>
         </div>
     </div>
 </template>
@@ -86,12 +94,13 @@
 <script>
 import UploadPrediction from './UploadPrediction.vue';
 import PredictionHeader from './PredictionHeader.vue';
+import Tasking from './Tasking.vue';
 import Stack from './Stack.vue';
 import Map from './Map.vue';
 
 export default {
     name: 'Prediction',
-    props: ['imagery', 'model', 'prediction'],
+    props: ['meta', 'imagery', 'model', 'prediction'],
     data: function() {
         return {
             mode: 'assets',
@@ -104,6 +113,7 @@ export default {
     components: {
         Map,
         Stack,
+        Tasking,
         PredictionHeader,
         UploadPrediction
     },
