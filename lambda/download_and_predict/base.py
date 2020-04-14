@@ -112,7 +112,6 @@ class DownloadAndPredict(object):
     def cl_post_prediction(self, payload: Dict[str, Any], tiles: List[Tile], prediction_id: str, inferences: List[str]) -> Dict[str, Any]:
         payload = json.dumps(payload)
         r = requests.post(self.prediction_endpoint + ":predict", data=payload)
-        print(r.text)
         r.raise_for_status()
 
         preds = r.json()["predictions"]
@@ -148,7 +147,7 @@ class DownloadAndPredict(object):
 
             preds = r.json()["predictions"]
 
-            print(pres)
+            print(preds)
 
             if len(preds) == 0.0:
                 break
