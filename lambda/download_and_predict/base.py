@@ -147,25 +147,26 @@ class DownloadAndPredict(object):
 
             preds = r.json()["predictions"]
 
-            print(preds)
-
-            if len(preds) == 0.0:
-                break
-            elif preds[0]["num_detections"] == 0.0:
+            if preds[0]["num_detections"] == 0.0:
                 break
 
-            boxes = preds[0]['detection_boxes']
             scores = preds[0]['detection_scores']
-            bboxes = (np.squeeze(boxes)[np.squeeze(scores) > .5] * 256).astype(int)
-            bboxes_ls = bboxes.tolist()
+            bboxes = ((np.squeeze(preds[0]['detection_boxes'])[np.squeeze(scores) > .3] * 256).astype(int)).tolist()
+            scores = list(filter(lambda x: x > .3, scores))
 
-            for j, bbox in enumerate(bboxes_ls):
-                bbox = self.tf_bbox_geo(bbox, tiles[i])
+            print("BOUND: " + len(bboxes) + " for " + tile.x + "/" + tile.y + "/" + tile.z)
+
+            for j in range(len(bboxes)):
+                bbox = self.tf_bbox_geo(bboxes[j], tiles[i])
                 score = predl[0]["detection_scores"][j]
 
                 print('BBOX: ' + bbox)
 
                 pred_list.append({
+                    "quadkey": mercantile.quadkey(tiles[i].x, tiles[i].y, tiles[i].z),
+                    "predictions": {
+                        "default": scores[j]
+                    },
                     "prediction_id": prediction_id
                 })
 
