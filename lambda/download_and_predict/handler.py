@@ -45,7 +45,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
         if len(preds["predictions"]) == 0:
             print('RESULT: No Predictions')
         else:
-            print('RESULT: ' + len(preds["predictions"]) + ' Predictions')
+            print('RESULT: ' + str(len(preds["predictions"]) + ' Predictions'))
 
             print(preds)
 

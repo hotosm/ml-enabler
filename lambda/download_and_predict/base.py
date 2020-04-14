@@ -154,7 +154,7 @@ class DownloadAndPredict(object):
             bboxes = ((np.squeeze(preds[0]['detection_boxes'])[np.squeeze(scores) > .3] * 256).astype(int)).tolist()
             scores = list(filter(lambda x: x > .3, scores))
 
-            print("BOUND: " + len(bboxes) + " for " + tile.x + "/" + tile.y + "/" + tile.z)
+            print("BOUND: " + str(len(bboxes)) + " for " + str(tile.x) + "/" + str(tile.y) + "/" + str(tile.z))
 
             for j in range(len(bboxes)):
                 bbox = self.tf_bbox_geo(bboxes[j], tiles[i])
