@@ -6,7 +6,8 @@ inst_reqs = [
     "mercantile",
     "requests",
     "pillow",
-    "shapely",
+    "gdal == 2.4.2",
+    "shapely == 1.6.4",
     "affine",
     "numpy"
 ]
