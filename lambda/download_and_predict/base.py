@@ -5,6 +5,8 @@ to a remote ML serving image, and saving them
 """
 
 import json
+import shapely
+import affine
 from enum import Enum
 from functools import reduce
 from io import BytesIO

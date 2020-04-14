@@ -6,6 +6,8 @@ inst_reqs = [
     "mercantile",
     "requests",
     "pillow",
+    "shapely",
+    "affine",
     "numpy"
 ]
 extra_reqs = {"test": ["pytest", "pytest-cov"]}
