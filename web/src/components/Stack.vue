@@ -192,6 +192,15 @@ export default {
             }
         };
     },
+    watch: {
+        'params.type': function() {
+            if (this.params.type === 'classification') {
+                this.params.maxConcurrency = '50';
+            } else if (this.params.type === 'detection') {
+                this.params.maxConcurrency = '5';
+            }
+        }
+    },
     mounted: function() {
         if (this.imagery.length === 1) {
             this.params.image = this.imagery[0];
