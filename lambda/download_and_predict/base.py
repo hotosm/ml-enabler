@@ -148,7 +148,7 @@ class DownloadAndPredict(object):
             preds = r.json()["predictions"]
 
             if preds[0]["num_detections"] == 0.0:
-                break
+                continue
 
             scores = preds[0]['detection_scores']
             bboxes = ((np.squeeze(preds[0]['detection_boxes'])[np.squeeze(scores) > .3] * 256).astype(int)).tolist()
