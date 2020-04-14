@@ -102,6 +102,7 @@ export default {
     },
     mounted: function() {
         this.getModels();
+        this.getMeta();
     },
     methods: {
         external: function(url) {
