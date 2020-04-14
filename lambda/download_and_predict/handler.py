@@ -42,8 +42,15 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
 
         print(preds);
 
-        # Save the prediction to ML-Enabler
-        dap.save_prediction(prediction_id, preds)
+        if len(preds["predictions"]) == 0:
+            print('RESULT: No Predictions')
+        else:
+            print('RESULT: ' + len(preds["predictions"]) + ' Predictions')
+
+            print(preds)
+
+            # Save the prediction to ML-Enabler
+            dap.save_prediction(prediction_id, preds)
     elif model_type == ModelType.CLASSIFICATION:
         print("TYPE: Classification")
 

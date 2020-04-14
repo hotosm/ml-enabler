@@ -163,7 +163,7 @@ class DownloadAndPredict(object):
                 bbox = self.tf_bbox_geo(bbox, tiles[i])
                 score = predl[0]["detection_scores"][j]
 
-                print(bbox)
+                print('BBOX: ' + bbox)
 
                 pred_list.append({
                     "prediction_id": prediction_id
