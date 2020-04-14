@@ -43,7 +43,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
         print(preds);
 
         # Save the prediction to ML-Enabler
-        dap.od_save_prediction(prediction_id, preds)
+        dap.save_prediction(prediction_id, preds)
     elif model_type == ModelType.CLASSIFICATION:
         print("TYPE: Classification")
 
@@ -57,7 +57,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
         print(preds);
 
         # Save the prediction to ML-Enabler
-        dap.cl_save_prediction(prediction_id, preds)
+        dap.save_prediction(prediction_id, preds)
     else:
         print("Unknown Model")
 
