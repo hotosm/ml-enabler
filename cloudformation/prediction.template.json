@@ -66,7 +66,7 @@
                 ]]}},
                 "Handler": "download_and_predict.handler.handler",
                 "MemorySize": 512,
-                "Runtime": "python3.8",
+                "Runtime": "python3.7",
                 "ReservedConcurrentExecutions": { "Ref": "MaxConcurrency" },
                 "Timeout": 60,
                 "Environment": {
