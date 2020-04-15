@@ -45,9 +45,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
         if len(preds["predictions"]) == 0:
             print('RESULT: No Predictions')
         else:
-            print('RESULT: ' + str(len(preds["predictions"]) + ' Predictions'))
-
-            print(preds)
+            print('RESULT: ' + str(len(preds["predictions"])) + ' Predictions')
 
             # Save the prediction to ML-Enabler
             dap.save_prediction(prediction_id, preds)
