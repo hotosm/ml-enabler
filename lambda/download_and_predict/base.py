@@ -6,7 +6,7 @@ to a remote ML serving image, and saving them
 
 import json
 import affine
-from shapely import affinity
+from shapely import affinity, geometry
 from enum import Enum
 from functools import reduce
 from io import BytesIO
