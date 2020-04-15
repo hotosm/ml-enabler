@@ -160,7 +160,7 @@ class DownloadAndPredict(object):
 
             for j in range(len(bboxes)):
                 bbox = self.tf_bbox_geo(bboxes[j], tiles[i])
-                score = pred[0]["detection_scores"][j]
+                score = preds[0]["detection_scores"][j]
 
                 print('BBOX: ' + bbox)
                 print('SCORE: ' + score)
@@ -169,7 +169,7 @@ class DownloadAndPredict(object):
                     "quadkey": mercantile.quadkey(tiles[i].x, tiles[i].y, tiles[i].z),
                     "quadkey_geom": bbox,
                     "predictions": {
-                        "default": scores[j]
+                        "default": score
                     },
                     "prediction_id": prediction_id
                 })
