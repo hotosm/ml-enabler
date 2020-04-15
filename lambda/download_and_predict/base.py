@@ -5,8 +5,8 @@ to a remote ML serving image, and saving them
 """
 
 import json
-import shapely
 import affine
+from shapely import affinity
 from enum import Enum
 from functools import reduce
 from io import BytesIO
@@ -196,7 +196,7 @@ class DownloadAndPredict(object):
         height = b[3] - b[1]
         a = affine.Affine(width / 256, 0.0, b[0], 0.0, (0 - height / 256), b[3])
         a_lst = [a.a, a.b, a.d, a.e, a.xoff, a.yoff]
-        geographic_bbox = shapely.affinity.affine_transform(geometry.box(*pred), a_lst)
+        geographic_bbox = affinity.affine_transform(geometry.box(*pred), a_lst)
 
         return geographic_bbox
 
