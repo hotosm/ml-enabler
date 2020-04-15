@@ -78,9 +78,6 @@
                         <input v-model='params.inferences' type='text' class='input' placeholder='buildings,schools,roads,...'/>
                     </div>
                 </template>
-                <template v-else>
-                    <label class='pt24'>Object Detection is not currently supported</label>
-                </template>
 
                 <template v-if='!advanced'>
                     <div class='col col--12'>
@@ -194,6 +191,15 @@ export default {
                 status: 'None'
             }
         };
+    },
+    watch: {
+        'params.type': function() {
+            if (this.params.type === 'classification') {
+                this.params.maxConcurrency = '50';
+            } else if (this.params.type === 'detection') {
+                this.params.maxConcurrency = '5';
+            }
+        }
     },
     mounted: function() {
         if (this.imagery.length === 1) {
