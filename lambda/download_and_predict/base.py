@@ -6,6 +6,7 @@ to a remote ML serving image, and saving them
 
 import json
 import affine
+import geojson
 from shapely import affinity, geometry
 from enum import Enum
 from functools import reduce
@@ -159,11 +160,12 @@ class DownloadAndPredict(object):
             print("BOUND: " + str(len(bboxes)) + " for " + str(tiles[i].x) + "/" + str(tiles[i].y) + "/" + str(tiles[i].z))
 
             for j in range(len(bboxes)):
-                bbox = self.tf_bbox_geo(bboxes[j], tiles[i])
-                score = preds[0]["detection_scores"][j]
+                bbox = geojson.Feature(
+                    geometry=self.tf_bbox_geo(bboxes[j], tiles[i]),
+                    properties={}
+                ).geometry
 
-                print('BBOX: ' + bbox)
-                print('SCORE: ' + score)
+                score = preds[0]["detection_scores"][j]
 
                 pred_list.append({
                     "quadkey": mercantile.quadkey(tiles[i].x, tiles[i].y, tiles[i].z),
