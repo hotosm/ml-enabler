@@ -379,6 +379,25 @@ class ImageryAPI(Resource):
                 "error": error_msg
             }, 500
 
+class PredictionExport(Resource):
+    """ Export Prediction Inferences to common formats """
+
+    # ?format=(geojson/geojsonseq/csv)  [default: geojson]
+    # ?inferences=all/<custom>          [default: all]
+    # ?threshold=0->1                   [default 0.3]
+    def get(self, model_id, prediction_id):
+
+        print(request.args)
+        req_format = request.args.get('format', 'geojson')
+        req_inferences = request.args.get('inferences', 'all')
+        req_threshold = request.args.get('threshold', '0.3')
+
+        req_threshold = float(req_threshold)
+
+        print(req_format)
+        print(req_inferences)
+        print(req_threshold)
+
 class PredictionInfAPI(Resource):
     """ Add GeoJSON to SQS Inference Queue """
 

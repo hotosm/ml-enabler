@@ -27,16 +27,20 @@
                     <div class='select-container w-full'>
                         <select v-model='params.inferences' class='select'>
                             <option value='all'>All</option>
-                            <template v-for='inf in tilejson.inferences'>
-                                <option value='inf'><span v-text='inf'/></option>
-                            </template>
+                            <option :key='inf' v-for='inf in tilejson.inferences' :value='inf'><span v-text='inf'/></option>
                         </select>
                         <div class='select-arrow'></div>
                     </div>
                 </div>
+                <div class='col col--12 py12'>
+                    <label>Threshold (<span v-text='params.threshold'/>%)</label>
+                    <div class='range range--s color-gray'>
+                        <input v-on:input='params.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
+                    </div>
+                </div>
 
                 <div class='col col--12 clearfix py6'>
-                    <button class='fr btn btn--stroke color-gray color-green-on-hover round'>Export</button>
+                    <button @click='getExport' class='fr btn btn--stroke color-gray color-green-on-hover round'>Export</button>
                 </div>
             </div>
         </template>
@@ -70,9 +74,27 @@ export default {
             loading: false,
             params: {
                 format: 'geojson',
-                inferences: 'all'
+                inferences: 'all',
+                threshold: 50
             }
         };
+    },
+    methods: {
+        getExport: function() {
+            const url = new URL(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/export`);
+
+            url.searchParams.set('format', this.params.format);
+            url.searchParams.set('inferences', this.params.inferences);
+            url.searchParams.set('threshold', this.params.threshold / 100);
+
+            fetch(url, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                console.error(res);
+            });
+        }
     },
     components: {
         PredictionHeader
