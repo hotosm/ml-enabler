@@ -29,6 +29,23 @@ class PredictionService():
         return new_prediction.id
 
     @staticmethod
+    def export(prediction_id: int, export_format: str, export_inferences: str, export_threshold: float):
+        prediction = Prediction.get(prediction_id)
+
+        if (prediction):
+            stream = prediction.export()
+
+            for res in stream:
+                print(res)
+
+        def generate():
+                for row in iter_all_rows():
+                            yield ','.join(row) + '\n'
+                                return Response(generate(), mimetype='text/csv')
+        else:
+            raise NotFound('Prediction does not exist')
+
+    @staticmethod
     def patch(prediction_id: int, update: dict) -> int:
         """
         Patch a prediction by ID

@@ -35,7 +35,7 @@
                 <div class='col col--12 py12'>
                     <label>Threshold (<span v-text='params.threshold'/>%)</label>
                     <div class='range range--s color-gray'>
-                        <input v-on:input='params.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
+                        <input :disabled='params.inferences === "all"' v-on:input='params.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
                     </div>
                 </div>
 
@@ -85,7 +85,10 @@ export default {
 
             url.searchParams.set('format', this.params.format);
             url.searchParams.set('inferences', this.params.inferences);
-            url.searchParams.set('threshold', this.params.threshold / 100);
+
+            if (this.params.inferences !== 'all') {
+                url.searchParams.set('threshold', this.params.threshold / 100);
+            }
 
             fetch(url, {
                 method: 'GET'
