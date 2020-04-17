@@ -423,7 +423,7 @@ class PredictionExport(Resource):
                         "quadkey": row[1],
                         "type": "Feature",
                         "properties": row[3],
-                        "geometry": row[2]
+                        "geometry": json.loads(row[2])
                     }
 
                     if req_format == "geojsonld":
