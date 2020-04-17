@@ -39,9 +39,20 @@ class PredictionService():
                 print(res)
 
         def generate():
-                for row in iter_all_rows():
-                            yield ','.join(row) + '\n'
-                                return Response(generate(), mimetype='text/csv')
+            for row in iter_all_rows():
+                yield ','.join(row) + '\n'
+
+                if export_format == "geojson":
+
+                elif export_format == "geojsonld":
+
+                elif export_format == "csv":
+
+                else
+                    raise "Unsupported export format"
+
+        return Response(generate(), mimetype='text/csv')
+
         else:
             raise NotFound('Prediction does not exist')
 
