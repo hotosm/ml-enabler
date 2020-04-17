@@ -1,12 +1,12 @@
 import ml_enabler.config as CONFIG
-import pyproj
-import json
+import io, os, pyproj, json, csv, geojson, boto3
 from tiletanic import tilecover, tileschemes
 from shapely.geometry import shape
 from shapely.ops import transform
 from functools import partial
 from flask import make_response
 from flask_restful import Resource, request, current_app
+from flask import Response
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
@@ -16,9 +16,6 @@ from ml_enabler.models.utils import NotFound, VersionNotFound, \
     PredictionsNotFound, ImageryNotFound
 from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson
 from sqlalchemy.exc import IntegrityError
-import geojson
-import boto3
-import os
 
 class MetaAPI(Resource):
     """
@@ -386,21 +383,48 @@ class PredictionExport(Resource):
     # ?inferences=all/<custom>          [default: all]
     # ?threshold=0->1                   [default 0]
     def get(self, model_id, prediction_id):
-
-        print(request.args)
         req_format = request.args.get('format', 'geojson')
         req_inferences = request.args.get('inferences', 'all')
         req_threshold = request.args.get('threshold', '0')
 
         req_threshold = float(req_threshold)
 
-        PredictionService.export(
-            prediction_id,
-            req_format,
-            req_inferences,
-            req_threshold
-        )
+        stream = PredictionService.export(prediction_id)
 
+        inferences = PredictionService.inferences(prediction_id)
+        prefix = False
+        postfix = False
+
+        def generate():
+            nonlocal prefix
+            nonlocal postfix
+            for row in stream:
+                if req_format == "geojson" and prefix == False:
+                    prefix = True
+                    yield '{ "type": "FeatureCollection", "features": ['
+                elif req_format == "csv" and prefix == False:
+                    prefix = True
+                    output = io.StringIO()
+                    rowdata = ["ID", "QuadKey", "QuadKeyGeom"]
+                    rowdata.extend(inferences)
+                    csv.writer(output, quoting=csv.QUOTE_NONNUMERIC).writerow(rowdata)
+                    yield output.getvalue()
+                if req_format == "geojson" or req_format == "geojsonld":
+                    if req_format == "geojsonld":
+                        print("HERE")
+                    elif req_format == "csv":
+                        print("HERE")
+                elif req_format == "csv":
+                    output = io.StringIO()
+                    rowdata = [ row[0], row[1], row[2] ]
+                    for inf in inferences:
+                        rowdata.append(row[3].get(inf, 0.0))
+                    csv.writer(output, quoting=csv.QUOTE_NONNUMERIC).writerow(rowdata)
+                    yield output.getvalue()
+                else:
+                    raise "Unsupported export format"
+
+        return Response(generate(), mimetype='text/csv')
 
 class PredictionInfAPI(Resource):
     """ Add GeoJSON to SQS Inference Queue """

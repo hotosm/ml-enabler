@@ -249,8 +249,9 @@ class Prediction(db.Model):
     def export(self):
         return db.session.query(
             PredictionTile.id,
-            PredictionTile.predictions,
+            PredictionTile.quadkey,
             ST_AsGeoJSON(PredictionTile.quadkey_geom).label('geometry'),
+            PredictionTile.predictions,
         ).filter(Prediction.id == self.id).yield_per(100)
 
     @staticmethod

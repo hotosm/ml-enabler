@@ -29,32 +29,27 @@ class PredictionService():
         return new_prediction.id
 
     @staticmethod
-    def export(prediction_id: int, export_format: str, export_inferences: str, export_threshold: float):
+    def export(prediction_id: int):
         prediction = Prediction.get(prediction_id)
 
         if (prediction):
             stream = prediction.export()
 
-            for res in stream:
-                print(res)
-
-        def generate():
-            for row in iter_all_rows():
-                yield ','.join(row) + '\n'
-
-                if export_format == "geojson":
-
-                elif export_format == "geojsonld":
-
-                elif export_format == "csv":
-
-                else
-                    raise "Unsupported export format"
-
-        return Response(generate(), mimetype='text/csv')
-
+            return stream
         else:
             raise NotFound('Prediction does not exist')
+
+    @staticmethod
+    def inferences(prediction_id):
+        """
+        Get an array of inference names for a given prediction
+
+        :params prediction_id
+        :returns list
+        """
+
+        return PredictionTile.inferences(prediction_id)
+
 
     @staticmethod
     def patch(prediction_id: int, update: dict) -> int:
