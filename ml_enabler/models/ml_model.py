@@ -246,6 +246,14 @@ class Prediction(db.Model):
         """ Save changes to db"""
         db.session.commit()
 
+    def export(self):
+        return db.session.query(
+            PredictionTile.id,
+            PredictionTile.quadkey,
+            ST_AsGeoJSON(PredictionTile.quadkey_geom).label('geometry'),
+            PredictionTile.predictions,
+        ).filter(Prediction.id == self.id).yield_per(100)
+
     @staticmethod
     def get(prediction_id: int):
         """

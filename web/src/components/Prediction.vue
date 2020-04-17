@@ -79,11 +79,12 @@
                     </div>
                 </template>
             </template>
-            <template v-else-if='mode === "tasking"'>
-                <Tasking
+            <template v-else-if='mode === "export"'>
+                <Export
                     :meta='meta'
                     :model='model'
                     :prediction='prediction'
+                    :tilejson='tiles'
                     v-on:mode='mode = $event'
                 />
             </template>
@@ -94,7 +95,7 @@
 <script>
 import UploadPrediction from './UploadPrediction.vue';
 import PredictionHeader from './PredictionHeader.vue';
-import Tasking from './Tasking.vue';
+import Export from './Export.vue';
 import Stack from './Stack.vue';
 import Map from './Map.vue';
 
@@ -113,7 +114,7 @@ export default {
     components: {
         Map,
         Stack,
-        Tasking,
+        Export,
         PredictionHeader,
         UploadPrediction
     },

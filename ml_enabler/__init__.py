@@ -30,7 +30,7 @@ def init_routes(app):
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, \
         PredictionAPI, PredictionUploadAPI, PredictionTileAPI, MLModelTilesAPI, \
         MLModelTilesGeojsonAPI, GetAllPredictions, PredictionTileMVT, ImageryAPI, \
-        PredictionStackAPI, PredictionInfAPI, MapboxAPI, MetaAPI
+        PredictionStackAPI, PredictionInfAPI, MapboxAPI, MetaAPI, PredictionExport
     from ml_enabler.api.swagger import SwaggerDocsAPI
 
     api.add_resource(StatusCheckAPI,        '/')
@@ -59,6 +59,8 @@ def init_routes(app):
     api.add_resource(PredictionUploadAPI,   '/v1/model/<int:model_id>/prediction/<int:prediction_id>/upload', methods=['POST'])
     api.add_resource(PredictionStackAPI,    '/v1/model/<int:model_id>/prediction/<int:prediction_id>/stack', methods=['GET', 'POST', 'DELETE'])
     api.add_resource(PredictionInfAPI,      '/v1/model/<int:model_id>/prediction/<int:prediction_id>/stack/tiles', methods=['POST'])
+
+    api.add_resource(PredictionExport,      '/v1/model/<int:model_id>/prediction/<int:prediction_id>/export', methods=['GET'])
 
     api.add_resource(PredictionTileAPI,     '/v1/model/<int:model_id>/prediction/<int:prediction_id>/tiles', endpoint="get", methods=['GET'])
     api.add_resource(PredictionTileMVT,     '/v1/model/<int:model_id>/prediction/<int:prediction_id>/tiles/<int:z>/<int:x>/<int:y>.mvt', methods=['GET'])

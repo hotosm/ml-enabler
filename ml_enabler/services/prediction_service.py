@@ -29,6 +29,29 @@ class PredictionService():
         return new_prediction.id
 
     @staticmethod
+    def export(prediction_id: int):
+        prediction = Prediction.get(prediction_id)
+
+        if (prediction):
+            stream = prediction.export()
+
+            return stream
+        else:
+            raise NotFound('Prediction does not exist')
+
+    @staticmethod
+    def inferences(prediction_id):
+        """
+        Get an array of inference names for a given prediction
+
+        :params prediction_id
+        :returns list
+        """
+
+        return PredictionTile.inferences(prediction_id)
+
+
+    @staticmethod
     def patch(prediction_id: int, update: dict) -> int:
         """
         Patch a prediction by ID
