@@ -90,14 +90,13 @@ export default {
                 url.searchParams.set('threshold', this.params.threshold / 100);
             }
 
-            fetch(url, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                console.error(res);
-            });
-        }
+            this.external(url);
+        },
+        external: function(url) {
+            if (!url) return;
+
+            window.open(url, "_blank")
+        },
     },
     components: {
         PredictionHeader
