@@ -392,6 +392,7 @@ class PredictionExport(Resource):
         stream = PredictionService.export(prediction_id)
 
         inferences = PredictionService.inferences(prediction_id)
+        first = False
         prefix = False
         postfix = False
 
@@ -409,11 +410,25 @@ class PredictionExport(Resource):
                     rowdata.extend(inferences)
                     csv.writer(output, quoting=csv.QUOTE_NONNUMERIC).writerow(rowdata)
                     yield output.getvalue()
+
+
                 if req_format == "geojson" or req_format == "geojsonld":
+                    feat = {
+                        "id": row[0],
+                        "quadkey": row[1],
+                        "type": "Feature",
+                        "properties": row[3],
+                        "geometry": row[2]
+                    }
+
                     if req_format == "geojsonld":
-                        print("HERE")
-                    elif req_format == "csv":
-                        print("HERE")
+                        yield json.dumps(feat) + '\n'
+                    elif req_format == "geojson":
+                        if first == False:
+                            first = True
+                            yield '\n' + json.dumps(feat)
+                        else:
+                            yield ',\n' + json.dumps(feat)
                 elif req_format == "csv":
                     output = io.StringIO()
                     rowdata = [ row[0], row[1], row[2] ]
