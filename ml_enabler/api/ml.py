@@ -410,6 +410,13 @@ class PredictionExport(Resource):
                 yield output.getvalue()
 
             for row in stream:
+
+                if req_inferences != 'all' and row[3].get(req_inferences) is None:
+                    continue
+
+                if req_inferences != 'all' and row[3].get(req_inferences) <= req_threshold:
+                    continue
+
                 if req_format == "geojson" or req_format == "geojsonld":
                     feat = {
                         "id": row[0],
