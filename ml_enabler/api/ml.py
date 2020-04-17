@@ -393,25 +393,23 @@ class PredictionExport(Resource):
 
         inferences = PredictionService.inferences(prediction_id)
         first = False
-        prefix = False
-        postfix = False
+
+        if req_inferences != 'all':
+            inferences = [ req_inferences ]
 
         def generate():
-            nonlocal prefix
-            nonlocal postfix
+            nonlocal first
+
+            if req_format == "geojson":
+                yield '{ "type": "FeatureCollection", "features": ['
+            elif req_format == "csv":
+                output = io.StringIO()
+                rowdata = ["ID", "QuadKey", "QuadKeyGeom"]
+                rowdata.extend(inferences)
+                csv.writer(output, quoting=csv.QUOTE_NONNUMERIC).writerow(rowdata)
+                yield output.getvalue()
+
             for row in stream:
-                if req_format == "geojson" and prefix == False:
-                    prefix = True
-                    yield '{ "type": "FeatureCollection", "features": ['
-                elif req_format == "csv" and prefix == False:
-                    prefix = True
-                    output = io.StringIO()
-                    rowdata = ["ID", "QuadKey", "QuadKeyGeom"]
-                    rowdata.extend(inferences)
-                    csv.writer(output, quoting=csv.QUOTE_NONNUMERIC).writerow(rowdata)
-                    yield output.getvalue()
-
-
                 if req_format == "geojson" or req_format == "geojsonld":
                     feat = {
                         "id": row[0],
@@ -439,7 +437,26 @@ class PredictionExport(Resource):
                 else:
                     raise "Unsupported export format"
 
-        return Response(generate(), mimetype='text/csv')
+            if req_format == "geojson":
+                yield ']}'
+
+
+
+        if req_format == "csv":
+            mime = "text/csv"
+        elif req_format == "geojson":
+            mime = "application/geo+json"
+        elif req_format == "geojsonld":
+            mime = "application/geo+json-seq"
+
+        return Response(
+            generate(),
+            mimetype = mime,
+            status = 200,
+            headers = {
+                "Content-Disposition": 'attachment; filename="export."' + req_format
+            }
+        )
 
 class PredictionInfAPI(Resource):
     """ Add GeoJSON to SQS Inference Queue """
