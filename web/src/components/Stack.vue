@@ -215,7 +215,7 @@ export default {
         queue: function(geojson) {
             this.loading = true;
 
-            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack/tiles`, {
+            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack/tiles`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -259,7 +259,7 @@ export default {
         getStatus: function() {
             this.loading = true;
 
-            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
+            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -273,7 +273,7 @@ export default {
         deleteStack: function() {
             this.loading = true;
 
-            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
+            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
                 method: 'DELETE'
             }).then((res) => {
                 return res.json();
@@ -293,7 +293,7 @@ export default {
 
             this.loading = true;
 
-            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
+            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -136,7 +136,7 @@ export default {
             window.open(url, "_blank")
         },
         getTilejson: function() {
-            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/tiles`, {
+            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/tiles`, {
                 method: 'GET',
                 credentials: 'same-origin'
             }).then((res) => {

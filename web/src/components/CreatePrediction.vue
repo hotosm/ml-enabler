@@ -62,7 +62,7 @@ export default {
             this.$emit('close');
         },
         postPrediction: function() {
-            fetch(`/v1/model/${this.modelid}/prediction`, {
+            fetch(window.api + `/v1/model/${this.modelid}/prediction`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

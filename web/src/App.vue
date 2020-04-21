@@ -124,7 +124,7 @@ export default {
             this.getModel(modelId);
         },
         getMeta: function() {
-            fetch('/v1', {
+            fetch(window.api + '/v1', {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -137,7 +137,7 @@ export default {
         getModels: function() {
             this.mode = 'models';
 
-            fetch('/v1/model/all', {
+            fetch(window.api + '/v1/model/all', {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -150,7 +150,7 @@ export default {
             });
         },
         getModel: function(modelId) {
-            fetch(`/v1/model/${modelId}`, {
+            fetch(window.api + `/v1/model/${modelId}`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();

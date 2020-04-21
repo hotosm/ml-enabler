@@ -193,7 +193,7 @@ export default {
             this.mode = 'editImagery';
         },
         getPredictions: function() {
-            fetch(`/v1/model/${this.model.modelId}/prediction/all`, {
+            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/all`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -214,7 +214,7 @@ export default {
             });
         },
         getImagery: function() {
-            fetch(`/v1/model/${this.model.modelId}/imagery`, {
+            fetch(window.api + `/v1/model/${this.model.modelId}/imagery`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();

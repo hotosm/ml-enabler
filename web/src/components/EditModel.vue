@@ -47,7 +47,7 @@ export default {
             this.$emit('close');
         },
         postModel: function() {
-            fetch(`/v1/model${this.model.modelId ? '/' + this.model.modelId : ''}`, {
+            fetch(window.api + `/v1/model${this.model.modelId ? '/' + this.model.modelId : ''}`, {
                 method: this.model.modelId ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -63,7 +63,7 @@ export default {
             });
         },
         deleteModel: function() {
-            fetch(`/v1/model/${this.model.modelId}`, {
+            fetch(window.api + `/v1/model/${this.model.modelId}`, {
                 method: 'DELETE'
             }).then((res) => {
                 return res.json();
