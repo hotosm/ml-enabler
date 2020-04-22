@@ -229,6 +229,7 @@ const Resources = {
                             'ecs:CreateService',
                             'ecs:DescribeServices',
                             'iam:CreateInstanceProfile',
+                            'lambda:GetLayerVersion',
                             'iam:AddRoleToInstanceProfile',
                             'ec2:DescribeInstances',
                             'elasticloadbalancing:AddTags',

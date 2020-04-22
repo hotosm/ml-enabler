@@ -154,8 +154,7 @@ class DownloadAndPredict(object):
                 continue
 
             scores = preds[0]['detection_scores']
-            bboxes = ((np.squeeze(preds[0]['detection_boxes'])[np.squeeze(scores) > .3] * 256).astype(int)).tolist()
-            scores = list(filter(lambda x: x > .3, scores))
+            bboxes = ((np.squeeze(preds[0]['detection_boxes']) * 256).astype(int)).tolist()
 
             print("BOUND: " + str(len(bboxes)) + " for " + str(tiles[i].x) + "/" + str(tiles[i].y) + "/" + str(tiles[i].z))
 
