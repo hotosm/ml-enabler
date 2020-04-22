@@ -24,9 +24,6 @@
                         <button @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
                     </div>
                 </template>
-                <template v-else>
-                    <UploadPrediction :prediction='prediction' v-on:close='close'/>
-                </template>
             </div>
         </div>
     </div>
@@ -34,14 +31,9 @@
 </template>
 
 <script>
-import UploadPrediction from './UploadPrediction.vue';
-
 export default {
     name: 'CreatePrediction',
     props: ['modelid'],
-    components: {
-        UploadPrediction
-    },
     mounted: function() {
         this.prediction.modelId = this.modelid;
     },
@@ -78,6 +70,7 @@ export default {
             }).then((res) => {
                 this.predictionId = res.prediction_id;
                 this.prediction.predictionsId = res.prediction_id;
+                this.close();
             }).catch((err) => {
                 alert(err);
             });

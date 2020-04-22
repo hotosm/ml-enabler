@@ -36,10 +36,19 @@
                         <pre class='pre' v-text='prediction.dockerLink'></pre>
                     </div>
                 </template>
-                <template v-else>
-                        <div class='align-center pb6'>Upload a model to get started</div>
+                <template v-else-if='meta.environment !== "aws"'>
+                    <div class='flex-parent flex-parent--center-main pt36'>
+                        <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+                    </div>
 
-                        <UploadPrediction :prediction='prediction' v-on:close='close'/>
+                    <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                        <h1 class='flex-child txt-h4 cursor-default align-center'>Assets can only be created when MLEnabler is running in an "aws" environment</h1>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class='align-center pb6'>Upload a model to get started</div>
+
+                    <UploadPrediction :prediction='prediction' v-on:close='close'/>
                 </template>
             </template>
             <template v-else-if='mode === "stack"'>
