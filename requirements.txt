@@ -5,10 +5,10 @@ aniso8601==6.0.0
 Click==7.0
 factory-boy==2.12.0
 Faker==1.0.7
-Flask==1.0.2
-Flask-Migrate==2.4.0
-Flask-RESTful==0.3.7
-Flask-SQLAlchemy==2.4.0
+Flask==1.1.2
+Flask-Migrate==2.5.3
+Flask-RESTful==0.3.8
+Flask-SQLAlchemy==2.4.1
 flask-swagger==0.2.14
 geojson==1.3.4
 GeoAlchemy2==0.6.2
