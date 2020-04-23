@@ -132,6 +132,10 @@
             "Properties": {
                 "Type": "application",
                 "SecurityGroups": [{ "Ref": "PredELBSecurityGroup" }],
+                "LoadBalancerAttributes": [{
+                    "Key": "idle_timeout.timeout_seconds",
+                    "Value": 240
+                }],
                 "Subnets": [
                     { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
                     { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
