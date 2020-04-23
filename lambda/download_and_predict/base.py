@@ -154,8 +154,8 @@ class DownloadAndPredict(object):
                 continue
 
             # Create lists of num_detections length
-            scores = preds['detection_scores'][:preds["num_detections"]]
-            bboxes = preds['detection_boxes'][:preds["num_detections"]]
+            scores = preds['detection_scores'][:int(preds["num_detections"])]
+            bboxes = preds['detection_boxes'][:int(preds["num_detections"])]
 
             bboxes_256 = []
             for bbox in bboxes:
