@@ -101,6 +101,10 @@ export default {
         };
     },
     watch: {
+        tilejson: function() {
+            this.map.remove();
+            this.init();
+        },
         opacity: function() {
             for (const inf of this.tilejson.inferences) {
                 this.map.setPaintProperty(
@@ -127,12 +131,6 @@ export default {
         this.$nextTick(() => {
             this.init();
         });
-    },
-    watch: {
-        tilejson: function() {
-            this.map.remove();
-            this.init();
-        }
     },
     methods: {
         init: function() {
