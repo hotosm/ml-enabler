@@ -18,8 +18,8 @@
                     />
 
                     <div class='fr'>
-                        <button v-if='prediction.logLink' @click='logLink(prediction.logLink)' class='mr6 btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg>Build Log</button>
-                        <button v-if='prediction.dockerLink' @click='ecrLink(prediction.dockerLink)' class='btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
+                        <button v-if='prediction.logLink' @click='logLink(prediction.logLink)' class='mx3 btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg>Build Log</button>
+                        <button v-if='prediction.dockerLink' @click='ecrLink(prediction.dockerLink)' class='mx3 btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
                     </div>
                 </div>
                 <template v-if='prediction.modelLink'>
@@ -68,7 +68,7 @@
                     />
 
                     <div class='fr'>
-                        <!--Map Specific Actions-->
+                        <button @click='refresh' class='mx3 btn btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl'><use href='#icon-refresh'/></svg></button>
                     </div>
                 </div>
                 <template v-if='tiles'>
@@ -118,7 +118,7 @@ export default {
         }
     },
     mounted: function() {
-        this.getTilejson();
+        this.refresh();
     },
     components: {
         Map,
@@ -143,6 +143,9 @@ export default {
             if (!url) return;
 
             window.open(url, "_blank")
+        },
+        refresh: function() {
+            this.getTilejson();
         },
         getTilejson: function() {
             fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/tiles`, {

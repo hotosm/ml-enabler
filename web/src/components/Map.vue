@@ -128,6 +128,12 @@ export default {
             this.init();
         });
     },
+    watch: {
+        tilejson: function() {
+            this.map.remove();
+            this.init();
+        }
+    },
     methods: {
         init: function() {
             mapboxgl.accessToken = this.tilejson.token;
