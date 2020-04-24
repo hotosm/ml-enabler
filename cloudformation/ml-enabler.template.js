@@ -238,6 +238,7 @@ const Resources = {
                             'autoscaling:DescribeAutoScalingInstances',
                             'autoscaling:UpdateAutoScalingGroup',
                             'elasticloadbalancing:DescribeListeners',
+                            'elasticloadbalancing:ModifyLoadBalancerAttributes',
                             'autoscaling:DescribeLaunchConfigurations',
                             'lambda:CreateEventSourceMapping',
                             'elasticloadbalancingv2:CreateListener',
