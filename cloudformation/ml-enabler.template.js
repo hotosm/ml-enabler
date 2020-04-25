@@ -44,6 +44,13 @@ const Parameters = {
 };
 
 const Resources = {
+    MLEnablerLogs: {
+        Type: 'AWS::Logs::LogGroup',
+        Properties: {
+            LogGroupName: cf.stackName,
+            RetentionInDays: 7
+        }
+    },
     MLEnablerVPC: {
         Type: 'AWS::EC2::VPC',
         Properties: {
@@ -399,10 +406,9 @@ const Resources = {
                 LogConfiguration: {
                     LogDriver: 'awslogs',
                     Options: {
-                        'awslogs-group': cf.join('-', ['awslogs', cf.stackName]),
+                        'awslogs-group': cf.stackName,
                         'awslogs-region': cf.region,
-                        'awslogs-stream-prefix': cf.join('-', ['awslogs', cf.stackName]),
-                        'awslogs-create-group': true
+                        'awslogs-stream-prefix': cf.join('-', ['awslogs', cf.stackName])
                     }
                 },
                 Essential: true

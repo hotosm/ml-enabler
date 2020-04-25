@@ -37,6 +37,16 @@
         }
     },
     "Resources" : {
+        "PredLogs": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+                "LogGroupName": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    { "Ref": "PredictionId" }
+                ]]}},
+                "RetentionInDays": 7
+            }
+        },
         "PredLambdaSource": {
             "Type": "AWS::Lambda::EventSourceMapping",
             "Properties": {
@@ -352,17 +362,11 @@
                     "LogConfiguration": {
                         "LogDriver": "awslogs",
                         "Options": {
-                            "awslogs-group": { "Fn::Join": [ "-", [
-                                "awslogs",
-                                { "Ref": "StackName" }
-                            ]]},
-                            "awslogs-region": { "Ref": "AWS::Region" },
-                            "awslogs-stream-prefix": { "Fn::Join": [ "-", [
-                                "awslogs",
+                            "awslogs-group": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                                 { "Ref": "StackName" },
-                                "pred"
-                            ]]},
-                            "awslogs-create-group": true
+                                { "Ref": "PredictionId" }
+                            ]]}},
+                            "awslogs-region": { "Ref": "AWS::Region" }
                         }
                     }
                 }]
