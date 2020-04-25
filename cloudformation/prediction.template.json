@@ -40,10 +40,10 @@
         "PredLogs": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-                "LogGroupName": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                "LogGroupName": { "Fn::Join": [ "-", [
                     { "Ref": "StackName" },
                     { "Ref": "PredictionId" }
-                ]]}},
+                ]]},
                 "RetentionInDays": 7
             }
         },
@@ -362,10 +362,10 @@
                     "LogConfiguration": {
                         "LogDriver": "awslogs",
                         "Options": {
-                            "awslogs-group": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                            "awslogs-group": { "Fn::Join": [ "-", [
                                 { "Ref": "StackName" },
                                 { "Ref": "PredictionId" }
-                            ]]}},
+                            ]]},
                             "awslogs-region": { "Ref": "AWS::Region" }
                         }
                     }
