@@ -44,6 +44,13 @@ const Parameters = {
 };
 
 const Resources = {
+    MLEnablerLogs: {
+        Type: 'AWS::Logs::LogGroup',
+        Properties: {
+            LogGroupName: cf.stackName,
+            RetentionInDays: 7
+        }
+    },
     MLEnablerVPC: {
         Type: 'AWS::EC2::VPC',
         Properties: {
@@ -229,6 +236,7 @@ const Resources = {
                             'ecs:CreateService',
                             'ecs:DescribeServices',
                             'iam:CreateInstanceProfile',
+                            'lambda:GetLayerVersion',
                             'iam:AddRoleToInstanceProfile',
                             'ec2:DescribeInstances',
                             'elasticloadbalancing:AddTags',
@@ -237,6 +245,7 @@ const Resources = {
                             'autoscaling:DescribeAutoScalingInstances',
                             'autoscaling:UpdateAutoScalingGroup',
                             'elasticloadbalancing:DescribeListeners',
+                            'elasticloadbalancing:ModifyLoadBalancerAttributes',
                             'autoscaling:DescribeLaunchConfigurations',
                             'lambda:CreateEventSourceMapping',
                             'elasticloadbalancingv2:CreateListener',
@@ -397,10 +406,9 @@ const Resources = {
                 LogConfiguration: {
                     LogDriver: 'awslogs',
                     Options: {
-                        'awslogs-group': cf.join('-', ['awslogs', cf.stackName]),
+                        'awslogs-group': cf.stackName,
                         'awslogs-region': cf.region,
-                        'awslogs-stream-prefix': cf.join('-', ['awslogs', cf.stackName]),
-                        'awslogs-create-group': true
+                        'awslogs-stream-prefix': cf.join('-', ['awslogs', cf.stackName])
                     }
                 },
                 Essential: true

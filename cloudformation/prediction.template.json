@@ -37,6 +37,16 @@
         }
     },
     "Resources" : {
+        "PredLogs": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+                "LogGroupName": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    { "Ref": "PredictionId" }
+                ]]},
+                "RetentionInDays": 7
+            }
+        },
         "PredLambdaSource": {
             "Type": "AWS::Lambda::EventSourceMapping",
             "Properties": {
@@ -132,6 +142,10 @@
             "Properties": {
                 "Type": "application",
                 "SecurityGroups": [{ "Ref": "PredELBSecurityGroup" }],
+                "LoadBalancerAttributes": [{
+                    "Key": "idle_timeout.timeout_seconds",
+                    "Value": 240
+                }],
                 "Subnets": [
                     { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
                     { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
@@ -349,16 +363,10 @@
                         "LogDriver": "awslogs",
                         "Options": {
                             "awslogs-group": { "Fn::Join": [ "-", [
-                                "awslogs",
-                                { "Ref": "StackName" }
-                            ]]},
-                            "awslogs-region": { "Ref": "AWS::Region" },
-                            "awslogs-stream-prefix": { "Fn::Join": [ "-", [
-                                "awslogs",
                                 { "Ref": "StackName" },
-                                "pred"
+                                { "Ref": "PredictionId" }
                             ]]},
-                            "awslogs-create-group": true
+                            "awslogs-region": { "Ref": "AWS::Region" }
                         }
                     }
                 }]

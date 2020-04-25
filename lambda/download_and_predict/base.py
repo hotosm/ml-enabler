@@ -145,27 +145,31 @@ class DownloadAndPredict(object):
                 "instances": [ payload["instances"][i] ]
             }))
 
-            print(r.text)
             r.raise_for_status()
 
-            preds = r.json()["predictions"]
+            # We only post a single chip for od detection
+            preds = r.json()["predictions"][0]
 
-            if preds[0]["num_detections"] == 0.0:
+            if preds["num_detections"] == 0.0:
                 continue
 
-            scores = preds[0]['detection_scores']
-            bboxes = ((np.squeeze(preds[0]['detection_boxes'])[np.squeeze(scores) > .3] * 256).astype(int)).tolist()
-            scores = list(filter(lambda x: x > .3, scores))
+            # Create lists of num_detections length
+            scores = preds['detection_scores'][:int(preds["num_detections"])]
+            bboxes = preds['detection_boxes'][:int(preds["num_detections"])]
 
-            print("BOUND: " + str(len(bboxes)) + " for " + str(tiles[i].x) + "/" + str(tiles[i].y) + "/" + str(tiles[i].z))
+            bboxes_256 = []
+            for bbox in bboxes:
+                bboxes_256.append([c * 256 for c in bbox])
 
-            for j in range(len(bboxes)):
+            print("BOUND: " + str(len(bboxes_256)) + " for " + str(tiles[i].x) + "/" + str(tiles[i].y) + "/" + str(tiles[i].z))
+
+            for j in range(len(bboxes_256)):
                 bbox = geojson.Feature(
-                    geometry=self.tf_bbox_geo(bboxes[j], tiles[i]),
+                    geometry=self.tf_bbox_geo(bboxes_256[j], tiles[i]),
                     properties={}
                 ).geometry
 
-                score = preds[0]["detection_scores"][j]
+                score = preds["detection_scores"][j]
 
                 pred_list.append({
                     "quadkey": mercantile.quadkey(tiles[i].x, tiles[i].y, tiles[i].z),

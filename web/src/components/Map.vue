@@ -101,6 +101,10 @@ export default {
         };
     },
     watch: {
+        tilejson: function() {
+            this.map.remove();
+            this.init();
+        },
         opacity: function() {
             for (const inf of this.tilejson.inferences) {
                 this.map.setPaintProperty(

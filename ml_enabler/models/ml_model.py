@@ -252,7 +252,7 @@ class Prediction(db.Model):
             PredictionTile.quadkey,
             ST_AsGeoJSON(PredictionTile.quadkey_geom).label('geometry'),
             PredictionTile.predictions,
-        ).filter(Prediction.id == self.id).yield_per(100)
+        ).filter(PredictionTile.prediction_id == self.id).yield_per(100)
 
     @staticmethod
     def get(prediction_id: int):
