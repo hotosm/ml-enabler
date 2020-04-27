@@ -172,6 +172,12 @@
                             <div class='align-center'>Failed</div>
 
                             <div class='align-center' v-text='queue.dead'></div>
+
+                            <div class='flex-parent flex-parent--center-main col col--12 pb6'>
+                                <div class='flex-child'>
+                                    <button :disabled='queue.dead === 0' class='btn btn--gray round btn--stroke btn--s'>Resubmit</button>
+                                </div>
+                            </div>
                         </div>
                     </template>
                 </div>
