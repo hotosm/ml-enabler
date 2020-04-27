@@ -6,7 +6,7 @@ from typing import Dict, Any
 from download_and_predict.base import DownloadAndPredict, ModelType
 from download_and_predict.custom_types import SQSEvent
 
-def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
+def handler(event: SQSEvent, context: Dict[str, Any]) -> Bool:
     # read all our environment variables to throw errors early
     imagery = os.getenv('TILE_ENDPOINT')
     prediction_id = os.getenv('PREDICTION_ID')
@@ -66,4 +66,4 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> None:
     else:
         print("Unknown Model")
 
-
+    return True
