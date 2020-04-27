@@ -319,6 +319,7 @@ const Resources = {
                         Action: [
                             'sqs:SendMessage',
                             'sqs:ChangeMessageVisibility',
+                            'sqs:ListQueues',
                             'sqs:GetQueueUrl',
                             'sqs:GetQueueAttributes'
                         ],
