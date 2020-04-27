@@ -141,9 +141,15 @@
 
                 <div class='col col--12 pt12 pb6'>
                     Queue Status
-                    <button @click='getQueue' class='btn fr round btn--stroke btn--gray'>
-                        <svg class='icon'><use href='#icon-refresh'/></svg>
-                    </button>
+
+                    <div class='fr'>
+                        <button @click='purgeQueue' class='btn mx3 round btn--stroke btn--gray btn--red-on-hover'>
+                            <svg class='icon'><use href='#icon-trash'/></svg>
+                        </button>
+                        <button @click='getQueue' class='btn mx3 round btn--stroke btn--gray'>
+                            <svg class='icon'><use href='#icon-refresh'/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class='col col--12 border border--gray-light grid round'>
                     <template v-if='loading.queue'>
@@ -255,6 +261,15 @@ export default {
         refresh: function() {
             this.getStatus();
             this.getQueue();
+        },
+        purgeQueue: function() {
+            this.loading.queue = true;
+
+            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack/tiles`, {
+                method: 'DELETE'
+            }).then(() => {
+                this.getQueue();
+            });
         },
         getQueue: function() {
             this.loading.queue = true;
