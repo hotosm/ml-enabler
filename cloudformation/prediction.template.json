@@ -81,7 +81,7 @@
                 "MemorySize": 512,
                 "Runtime": "python3.7",
                 "ReservedConcurrentExecutions": { "Ref": "MaxConcurrency" },
-                "Timeout": 60,
+                "Timeout": 240,
                 "Environment": {
                     "Variables": {
                         "StackName": { "Ref": "AWS::StackName" },
