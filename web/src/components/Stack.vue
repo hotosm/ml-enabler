@@ -37,7 +37,7 @@
                 </div>
             </div>
         </template>
-        <template v-else-if='loading'>
+        <template v-else-if='loading.stack'>
             <div class='flex-parent flex-parent--center-main w-full py24'>
                 <div class='flex-child loading py24'></div>
             </div>
@@ -138,12 +138,44 @@
                 <div class='col col--12 grid'>
                     <span v-text='stack.name'/>
                 </div>
+
+                <div class='col col--12 pt12 pb6'>
+                    Queue Status
+                    <button @click='getQueue' class='btn fr round btn--stroke btn--gray'>
+                        <svg class='icon'><use href='#icon-refresh'/></svg>
+                    </button>
+                </div>
+                <div class='col col--12 border border--gray-light grid round'>
+                    <template v-if='loading.queue'>
+                        <div class='flex-parent flex-parent--center-main w-full py24'>
+                            <div class='flex-child loading py24'></div>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class='col col--4'>
+                            <div class='align-center'>Queued</div>
+
+                            <div class='align-center' v-text='queue.queued'></div>
+                        </div>
+                        <div class='col col--4'>
+                            <div class='align-center'>Inflight</div>
+
+                            <div class='align-center' v-text='queue.inflight'></div>
+                        </div>
+                        <div class='col col--4'>
+                            <div class='align-center'>Failed</div>
+
+                            <div class='align-center' v-text='queue.dead'></div>
+                        </div>
+                    </template>
+                </div>
+
                 <div class='col col--12 pt12 flex-parent flex-parent--center-main'>
                     Imagery Chip Submission
                 </div>
                 <div class='col col--12'>
                     <TileMap
-                        v-on:queue='queue($event)'
+                        v-on:queue='postQueue($event)'
                     />
                 </div>
             </div>
@@ -173,7 +205,15 @@ export default {
                 'CREATE_COMPLETE',
                 'UPDATE_COMPLETE'
             ],
-            loading: true,
+            loading: {
+                stack: true,
+                queue: true
+            },
+            queue: {
+                queued: 0,
+                inflight: 0,
+                dead: 0
+            },
             looping: false,
             tagit: 0,
             params: {
@@ -193,11 +233,14 @@ export default {
         };
     },
     watch: {
+        submit: function() {
+            this.refresh();
+        },
         'params.type': function() {
             if (this.params.type === 'classification') {
                 this.params.maxConcurrency = '50';
             } else if (this.params.type === 'detection') {
-                this.params.maxConcurrency = '5';
+                this.params.maxConcurrency = '1';
             }
         }
     },
@@ -211,9 +254,22 @@ export default {
     methods: {
         refresh: function() {
             this.getStatus();
+            this.getQueue();
         },
-        queue: function(geojson) {
-            this.loading = true;
+        getQueue: function() {
+            this.loading.queue = true;
+
+            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack/tiles`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.queue = res;
+                this.loading.queue = false;
+            });
+        },
+        postQueue: function(geojson) {
+            this.loading.stack = true;
 
             fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack/tiles`, {
                 method: 'POST',
@@ -225,7 +281,7 @@ export default {
                 return res.json();
             }).then(() => {
                 this.submit = true;
-                this.loading = false;
+                this.loading.stack = false;
             });
         },
         loop: function() {
@@ -257,7 +313,7 @@ export default {
             }, 5000);
         },
         getStatus: function() {
-            this.loading = true;
+            this.loading.stack = true;
 
             fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
                 method: 'GET'
@@ -265,13 +321,13 @@ export default {
                 return res.json();
             }).then((stack) => {
                 this.stack = stack;
-                this.loading = false;
+                this.loading.stack = false;
 
                 if (!this.looping) this.loop();
             });
         },
         deleteStack: function() {
-            this.loading = true;
+            this.loading.stack = true;
 
             fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
                 method: 'DELETE'
@@ -279,7 +335,7 @@ export default {
                 return res.json();
             }).then((stack) => {
                 this.stack = stack;
-                this.loading = false;
+                this.loading.stack = false;
 
                 if (!this.looping) this.loop();
             });
@@ -291,7 +347,7 @@ export default {
             if (!this.params.image) return;
             if (this.params.type === 'classification' && !this.params.inferences) return;
 
-            this.loading = true;
+            this.loading.stack = true;
 
             fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
                 method: 'POST',
@@ -315,7 +371,7 @@ export default {
                 return res.json();
             }).then((stack) => {
                 this.stack = stack;
-                this.loading = false;
+                this.loading.stack = false;
 
                 if (!this.looping) this.loop();
             });

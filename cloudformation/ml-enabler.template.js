@@ -233,6 +233,7 @@ const Resources = {
                         Effect: 'Allow', // These are all required to spin up a prediction stack
                         Action: [
                             'iam:PassRole',
+                            'logs:DescribeLogGroups',
                             'ecs:CreateService',
                             'ecs:DescribeServices',
                             'iam:CreateInstanceProfile',
@@ -243,6 +244,8 @@ const Resources = {
                             'autoscaling:CreateLaunchConfiguration',
                             'autoscaling:CreateAutoScalingGroup',
                             'autoscaling:DescribeAutoScalingInstances',
+                            'logs:CreateLogGroup',
+                            'logs:PutRetentionPolicy',
                             'autoscaling:UpdateAutoScalingGroup',
                             'elasticloadbalancing:DescribeListeners',
                             'elasticloadbalancing:ModifyLoadBalancerAttributes',
@@ -286,6 +289,7 @@ const Resources = {
                             'ec2:createTags',
                             'ecs:DeleteService',
                             'ec2:DeleteSecurityGroup',
+                            'logs:DeleteLogGroup',
                             'autoscaling:DeleteAutoScalingGroup',
                             'autoscaling:DescribeAutoScalingGroup',
                             'autoscaling:DescribeAutoScalingGroups',
