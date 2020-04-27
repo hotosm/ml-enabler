@@ -178,7 +178,7 @@
                     { "Ref": "AWS::StackName" },
                     "queue"
                 ]]},
-                "VisibilityTimeout": 60,
+                "VisibilityTimeout": 2880,
                 "RedrivePolicy": {
                     "deadLetterTargetArn": { "Fn::GetAtt": [ "PredDeadQueue", "Arn" ] },
                     "maxReceiveCount": 3

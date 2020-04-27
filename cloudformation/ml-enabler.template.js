@@ -317,6 +317,7 @@ const Resources = {
                     },{
                         Effect: 'Allow',
                         Action: [
+                            'sqs:PurgeQueue',
                             'sqs:SendMessage',
                             'sqs:ChangeMessageVisibility',
                             'sqs:ListQueues',
