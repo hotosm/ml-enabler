@@ -476,22 +476,43 @@ class PredictionInfAPI(Resource):
             }, 501
 
         try:
+            queues = response = boto3.client('sqs').list_queues(
+                QueueNamePrefix="{stack}-models-{model}-prediction-{pred}-".format(
+                    stack = CONFIG.EnvironmentConfig.STACK,
+                    model = model_id,
+                    pred = prediction_id
+                )
+            )
+
+
+            active = ""
+            dead = ""
+            for queue in queues['QueueUrls']:
+                if "-dead-queue" in queue:
+                    dead = queue
+                elif "-queue" in queue:
+                    active = queue
+
             active = boto3.client('sqs').get_queue_attributes(
-                QueueUrl=
+                QueueUrl=active,
                 AttributeNames = [
                     'ApproximateNumberOfMessages',
                     'ApproximateNumberOfMessagesNotVisible'
                 ]
             )
 
-            active = boto3.client('sqs').get_queue_attributes(
-                QueueUrl=
+            dead = boto3.client('sqs').get_queue_attributes(
+                QueueUrl=dead,
                 AttributeNames = [
                     'ApproximateNumberOfMessages'
                 ]
             )
 
-            return self.get(model_id, prediction_id)
+            return {
+                "queued": int(active['Attributes']['ApproximateNumberOfMessages']),
+                "inflight": int(active['Attributes']['ApproximateNumberOfMessagesNotVisible']),
+                "dead": int(dead['Attributes']['ApproximateNumberOfMessages'])
+            }, 200
         except Exception as e:
             if str(e).find("does not exist") != -1:
                 return {

@@ -197,7 +197,7 @@ export default {
             if (this.params.type === 'classification') {
                 this.params.maxConcurrency = '50';
             } else if (this.params.type === 'detection') {
-                this.params.maxConcurrency = '5';
+                this.params.maxConcurrency = '1';
             }
         }
     },
