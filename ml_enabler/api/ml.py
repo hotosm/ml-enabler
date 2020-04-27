@@ -468,8 +468,45 @@ class PredictionExport(Resource):
 class PredictionInfAPI(Resource):
     """ Add GeoJSON to SQS Inference Queue """
 
-    def post(self, model_id, prediction_id):
+    def get(self, model_id, prediction_id):
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
 
+        try:
+            active = boto3.client('sqs').get_queue_attributes(
+                QueueUrl=
+                AttributeNames = [
+                    'ApproximateNumberOfMessages',
+                    'ApproximateNumberOfMessagesNotVisible'
+                ]
+            )
+
+            active = boto3.client('sqs').get_queue_attributes(
+                QueueUrl=
+                AttributeNames = [
+                    'ApproximateNumberOfMessages'
+                ]
+            )
+
+            return self.get(model_id, prediction_id)
+        except Exception as e:
+            if str(e).find("does not exist") != -1:
+                return {
+                    "name": stack,
+                    "status": "None"
+                }, 200
+            else:
+                error_msg = f'Prediction Stack Info Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {
+                    "status": 500,
+                    "error": "Failed to get stack info"
+                }, 500
+
+    def post(self, model_id, prediction_id):
         if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
             return {
                 "status": 501,
