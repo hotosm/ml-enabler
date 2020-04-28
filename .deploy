@@ -1,0 +1,12 @@
+{
+    "profile": "devseed",
+    "artifacts": {
+        "docker": [
+            "{{project}}:{{gitsha}}",
+            "{{project}}:task-{{gitsha}}"
+        ],
+        "lambda": [
+            "devseed-artifacts/ml-enabler/lambda-{{gitsha}}.zip"
+        ]
+    }
+}

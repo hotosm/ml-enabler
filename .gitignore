@@ -1,6 +1,5 @@
 venv/
 v-env/
-.deploy
 node_modules/
 web/dist/
 
