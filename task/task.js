@@ -135,7 +135,7 @@ function set_link(model, prediction, patch) {
 
 function std_model(tmp) {
     return new Promise((resolve, reject) => {
-        find.file('saved_model.pb', tmp, (files) => {
+        find.file('saved_model.pb', path.resolve(tmp, '/src'), (files) => {
 
             if (files.length !== 1) return reject(new Error('zip must contain exactly 1 model'));
 
@@ -166,7 +166,9 @@ function get_zip(tmp, model) {
                 Bucket: model.split('/')[0],
                 Key: model.split('/').splice(1).join('/')
             }).createReadStream(),
-            unzipper.Extract({ path: tmp }),
+            unzipper.Extract({
+                path: path.resolve(tmp, '/src')
+            }),
         (err, res) => {
             if (err) return reject(err);
 
