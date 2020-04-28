@@ -316,7 +316,11 @@
         },
         "PredService": {
             "Type": "AWS::ECS::Service",
-            "DependsOn": "PredECSAutoScalingGroup",
+            "DependsOn": [
+                "PredECSAutoScalingGroup",
+                "PredHTTPListener",
+                "PredTargetGroup"
+            ],
             "Properties": {
                 "ServiceName": { "Ref": "ImageTag" },
                 "Cluster": { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}},
