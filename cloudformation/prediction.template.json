@@ -262,9 +262,7 @@
                     "Fn::Base64": {
                         "Fn::Join": ["", [
                             "#!/bin/bash -xe\n",
-                            "yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm\n",
-                            "yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm\n",
-                            "yum install -y aws-cfn-bootstrap hibagent\n",
+                            "yum install -y aws-cfn-bootstrap\n",
                             "/opt/aws/bin/cfn-init -v --region ", { "Ref": "AWS::Region" }, " --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch\n",
                             "/opt/aws/bin/cfn-signal -e $? --region ", { "Ref": "AWS::Region" }, " --stack ", { "Ref": "AWS::StackName" }, " --resource PredECSAutoScalingGroup\n"
                         ]]
@@ -380,7 +378,7 @@
     "Mappings": {
         "AWSRegionToAMI": {
             "DOCS": { "LIST": "http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html" },
-            "us-east-1": { "AMIID": "ami-04da3441b20d2fe06" }
+            "us-east-1": { "AMIID": "ami-07eb64b216d4d3522" }
         },
         "AWSRegion2AZ": {
             "us-east-1": { "1": "us-east-1b", "2": "us-east-1c", "3": "us-east-1d", "4": "us-east-1e" },
