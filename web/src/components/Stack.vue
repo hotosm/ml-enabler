@@ -250,10 +250,10 @@ export default {
         },
         'params.type': function() {
             if (this.params.type === 'classification') {
-                this.params.maxSize: '1',
+                this.params.maxSize = '1';
                 this.params.maxConcurrency = '50';
             } else if (this.params.type === 'detection') {
-                this.params.maxSize: '5',
+                this.params.maxSize = '5';
                 this.params.maxConcurrency = '5';
             }
         }

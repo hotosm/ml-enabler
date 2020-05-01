@@ -261,12 +261,24 @@
                 "UserData": {
                     "Fn::Base64": {
                         "Fn::Join": ["", [
+                            "Content-Type: multipart/mixed; boundary=\"==BOUNDARY==\"\n",
+                            "MIME-Version: 1.0\n",
+                            "\n",
+                            "--==BOUNDARY==\n",
+                            "Content-Type: text/cloud-boothook; charset=\"us-ascii\"",
+                            "\n",
+                            "cloud-init-per once docker_options echo 'OPTIONS=\"${OPTIONS} --default-runtime=nvidia \"' >> /etc/sysconfig/docker",
+                            "\n",
+                            "--==BOUNDARY==\n",
+                            "Content-Type: text/x-shellscript; charset=\"us-ascii\"\n",
+                            "\n",
                             "#!/bin/bash -xe\n",
                             "yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm\n",
                             "yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm\n",
                             "yum install -y aws-cfn-bootstrap hibagent\n",
                             "/opt/aws/bin/cfn-init -v --region ", { "Ref": "AWS::Region" }, " --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch\n",
-                            "/opt/aws/bin/cfn-signal -e $? --region ", { "Ref": "AWS::Region" }, " --stack ", { "Ref": "AWS::StackName" }, " --resource PredECSAutoScalingGroup\n"
+                            "/opt/aws/bin/cfn-signal -e $? --region ", { "Ref": "AWS::Region" }, " --stack ", { "Ref": "AWS::StackName" }, " --resource PredECSAutoScalingGroup\n",
+                            "--==BOUNDARY==--\n"
                         ]]
                     }
                 }
