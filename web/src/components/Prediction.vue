@@ -156,7 +156,7 @@ export default {
                     this.tiles = false;
                 } else {
                     res.json().then((tilejson) => {
-                        tilejson.tiles[0] = window.location.origin + tilejson.tiles[0];
+                        tilejson.tiles[0] = window.location.origin + window.api + tilejson.tiles[0];
 
                         this.tiles = tilejson;
                     })
