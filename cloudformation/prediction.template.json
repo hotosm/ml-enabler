@@ -339,8 +339,8 @@
             "Type": "AWS::ECS::TaskDefinition",
             "Properties": {
                 "Family": { "Ref" : "ImageTag" },
-                "Cpu": 1024,
-                "Memory": 2048,
+                "Cpu": 8192,
+                "Memory": 61401,
                 "TaskRoleArn": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                     { "Ref": "StackName" },
                     "task-role"
