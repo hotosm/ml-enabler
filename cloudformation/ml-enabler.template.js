@@ -227,6 +227,12 @@ const Resources = {
                     },{
                         Effect: 'Allow',
                         Action: [
+                            'cloudformation:ListStacks'
+                        ],
+                        Resource: [ '*' ]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
                             's3:GetObject'
                         ],
                         Resource: [ 'arn:aws:s3:::devseed-artifacts/ml-enabler/*' ]
