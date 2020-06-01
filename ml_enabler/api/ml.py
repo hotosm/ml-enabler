@@ -628,6 +628,99 @@ class PredictionInfAPI(Resource):
                 "error": error_msg
             }, 500
 
+class PredictionStacksAPI(Resource):
+    def get(self):
+        """
+        Return a list of all running substacks
+        ---
+        produces:
+            - application/json
+        responses:
+            200:
+                description: ID of the prediction
+        """
+
+        stacks = []
+
+        def getList():
+            token = False;
+
+            stack_res = boto3.client('cloudformation').list_stacks(
+                StackStatusFilter = [
+                    'CREATE_IN_PROGRESS',
+                    'CREATE_COMPLETE',
+                    'ROLLBACK_IN_PROGRESS',
+                    'ROLLBACK_FAILED',
+                    'ROLLBACK_COMPLETE',
+                    'DELETE_IN_PROGRESS',
+                    'DELETE_FAILED',
+                    'UPDATE_IN_PROGRESS',
+                    'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
+                    'UPDATE_COMPLETE',
+                    'UPDATE_ROLLBACK_IN_PROGRESS',
+                    'UPDATE_ROLLBACK_FAILED',
+                    'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
+                    'UPDATE_ROLLBACK_COMPLETE',
+                    'REVIEW_IN_PROGRESS',
+                    'IMPORT_IN_PROGRESS',
+                    'IMPORT_COMPLETE',
+                    'IMPORT_ROLLBACK_IN_PROGRESS',
+                    'IMPORT_ROLLBACK_FAILED',
+                    'IMPORT_ROLLBACK_COMPLETE'
+                ]
+            )
+
+            stacks.extend(stack_res.get("StackSummaries"))
+
+            while stack_res.get("NextToken") is not None:
+                print(stack_res.get("NextToken"))
+                stack_res = boto3.client('cloudformation').list_stacks(
+                    NextToken = stack_res.get("NextToken")
+                )
+
+                stacks.extend(stack_res.get("StackSummaries"))
+
+
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
+
+        try:
+            getList()
+
+            res = {
+                "models": [],
+                "predictions": [],
+                "stacks": []
+            }
+
+            for stack in stacks:
+                name = stack.get("StackName")
+                if name.startswith(CONFIG.EnvironmentConfig.STACK + "-models-") and name not in res["stacks"]:
+                    res["stacks"].append(stack.get("StackName"))
+
+                    split = name.split('-')
+                    model = int(split[len(split) - 3])
+                    prediction = int(split[len(split) - 1])
+
+                    if model not in res["models"]:
+                        res["models"].append(model)
+                    if prediction not in res["predictions"]:
+                        res["predictions"].append(prediction)
+
+            return res, 200
+
+        except Exception as e:
+            error_msg = f'Prediction Stack List Error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {
+                "status": 500,
+                "error": "Failed to get stack list"
+            }, 500
+
+
 class PredictionStackAPI(Resource):
     """ Create, Manage & Destroy Prediction Stacks """
 
@@ -743,7 +836,6 @@ class PredictionStackAPI(Resource):
                     "status": 500,
                     "error": "Failed to get stack info"
                 }, 500
-
 
     def get(self, model_id, prediction_id):
         """
