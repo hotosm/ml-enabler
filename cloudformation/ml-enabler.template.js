@@ -218,6 +218,7 @@ const Resources = {
                         Action: [
                             'cloudformation:CreateStack',
                             'cloudformation:DeleteStack',
+                            'cloudformation:ListStacks',
                             'cloudformation:DescribeStacks',
                             'cloudformation:DescribeStackEvents',
                             'cloudformation:DescribeStackResources'

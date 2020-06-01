@@ -65,6 +65,9 @@
                                     <div v-if='pred.saveLink' class='fr mx3 bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
                                         Container
                                     </div>
+                                    <div v-if='stacks.predictions.includes(pred.predictionsId)' class='fr bg-green-faint bg-green-on-hover color-white-on-hover color-green inline-block px6 py3 round txt-xs txt-bold mr3'>
+                                        Active Stack
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -140,6 +143,11 @@ export default {
                 version: '',
                 tileZoom: 18,
                 bbox: [-180.0, -90.0, 180.0, 90.0]
+            },
+            stacks: {
+                models: [],
+                predictions: [],
+                names: []
             }
         }
     },
@@ -167,6 +175,7 @@ export default {
 
             this.getPredictions();
             this.getImagery();
+            this.getStacks();
         },
         close: function() {
             this.$emit('close');
@@ -210,6 +219,17 @@ export default {
                     this.predictions = vSort.desc(res.map(r => r.versionString)).map(r => {
                         return vMap[r];
                     });
+                }
+            });
+        },
+        getStacks: function() {
+            fetch(window.api + '/v1/stacks', {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                if (!res.error) {
+                    this.stacks = res;
                 }
             });
         },

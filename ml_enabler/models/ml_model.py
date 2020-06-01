@@ -1,10 +1,10 @@
 import mercantile
 from ml_enabler import db
-from ml_enabler.models.utils import timestamp, \
-     ST_GeomFromText, ST_Intersects, ST_MakeEnvelope
+from ml_enabler.models.utils import timestamp
 from ml_enabler.utils import bbox_to_polygon_wkt, geojson_to_bbox
 from geoalchemy2 import Geometry
-from geoalchemy2.functions import ST_Envelope, ST_AsGeoJSON, ST_Within
+from geoalchemy2.functions import ST_Envelope, ST_AsGeoJSON, ST_Within, \
+     ST_GeomFromText, ST_Intersects, ST_MakeEnvelope
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import func, text
 from sqlalchemy.sql.expression import cast
