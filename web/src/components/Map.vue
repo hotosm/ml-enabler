@@ -42,6 +42,17 @@
                             <input v-on:input='threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
                         </div>
                     </div>
+
+                    <div class='col col--12'>
+                        <label>Imagery</label>
+                        <div class='select-container w-full'>
+                            <select v-model='bg' class='select select--s'>
+                                <option value='default'>Default</option>
+                                <option v-for='img in imagery' v-bind:key='img.id' :value='img.id' v-text='img.name'></option>
+                            </select>
+                            <div class='select-arrow'></div>
+                        </div>
+                    </div>
                 </template>
             </div>
 
@@ -89,18 +100,23 @@ import bboxPolygon from '../../node_modules/@turf/bbox-polygon/index.js';
 
 export default {
     name: 'Map',
-    props: ['prediction', 'tilejson'],
+    props: ['model', 'prediction', 'tilejson'],
     data: function() {
         return {
+            bg: 'default',
             inf: false,
             inspect: false,
             advanced: false,
             threshold: 50,
             opacity: 50,
-            map: false
+            map: false,
+            imagery: []
         };
     },
     watch: {
+        bg: function() {
+            this.layers();
+        },
         tilejson: function() {
             this.map.remove();
             this.init();
@@ -128,6 +144,8 @@ export default {
         }
     },
     mounted: function() {
+        this.getImagery();
+
         this.$nextTick(() => {
             this.init();
         });
@@ -138,48 +156,54 @@ export default {
 
             this.map = new mapboxgl.Map({
                 container: 'map',
-                bounds: this.tilejson.bounds,
-                style: 'mapbox://styles/mapbox/satellite-streets-v11'
+                bounds: this.tilejson.bounds
             });
+            this.layers();
             this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
-            const polyouter = buffer(bboxPolygon(this.tilejson.bounds), 0.3);
-            const polyinner = buffer(bboxPolygon(this.tilejson.bounds), 0.1);
+            this.map.on('styledata', () => {
+                const polyouter = buffer(bboxPolygon(this.tilejson.bounds), 0.3);
+                const polyinner = buffer(bboxPolygon(this.tilejson.bounds), 0.1);
 
-            const poly = {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                    type: 'Polygon',
-                    coordinates: [
-                        polyouter.geometry.coordinates[0],
-                        polyinner.geometry.coordinates[0]
-                    ]
-                }
-            };
-
-            this.map.on('load', () => {
-                this.map.addSource('tiles', {
-                    type: 'vector',
-                    tiles: this.tilejson.tiles,
-                    minzoom: this.tilejson.minzoom,
-                    maxzoom: this.tilejson.maxzoom
-                });
-
-                this.map.addSource('bbox', {
-                    type: 'geojson',
-                    data: poly
-                });
-
-                this.map.addLayer({
-                    'id': `bbox-layer`,
-                    'type': 'fill',
-                    'source': 'bbox',
-                    'paint': {
-                        'fill-color': '#ffffff',
-                        'fill-opacity': 1
+                const poly = {
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: [
+                            polyouter.geometry.coordinates[0],
+                            polyinner.geometry.coordinates[0]
+                        ]
                     }
-                });
+                };
+
+                if (!this.map.getSource('tiles')) {
+                    this.map.addSource('tiles', {
+                        type: 'vector',
+                        tiles: this.tilejson.tiles,
+                        minzoom: this.tilejson.minzoom,
+                        maxzoom: this.tilejson.maxzoom
+                    });
+                }
+
+                if (!this.map.getSource('bbox')) {
+                    this.map.addSource('bbox', {
+                        type: 'geojson',
+                        data: poly
+                    });
+                }
+
+                if (!this.map.getLayer('bbox-layer')) {
+                    this.map.addLayer({
+                        'id': `bbox-layer`,
+                        'type': 'fill',
+                        'source': 'bbox',
+                        'paint': {
+                            'fill-color': '#ffffff',
+                            'fill-opacity': 1
+                        }
+                    });
+                }
 
                 for (const inf of this.tilejson.inferences) {
                     this.map.addLayer({
@@ -218,6 +242,37 @@ export default {
                 this.inf = this.tilejson.inferences[0];
             });
         },
+        layers: function() {
+            if (this.bg === 'default') {
+                this.map.setStyle('mapbox://styles/mapbox/satellite-streets-v11', {
+                    diff: false
+                });
+            } else {
+                for (const img of this.imagery) {
+                    if (img.id === this.bg) {
+                        this.map.setStyle({
+                            version: 8,
+                            sources: {
+                                'raster-tiles': {
+                                    type: 'raster',
+                                    tiles: [ img.url ]
+                                }
+                            },
+                            layers:  [{
+                                id: 'simple-tiles',
+                                type: 'raster',
+                                source: 'raster-tiles',
+                                minzoom: 0,
+                                maxzoom: 22
+                            }]
+                        }, {
+                            diff: false
+                        });
+                        break;
+                    }
+                }
+            }
+        },
         bboxzoom: function() {
             this.map.fitBounds([
                 [this.tilejson.bounds[0], this.tilejson.bounds[1]],
@@ -235,7 +290,18 @@ export default {
             } else {
                 document.exitFullscreen();
             }
-        }
+        },
+        getImagery: function() {
+            fetch(window.api + `/v1/model/${this.model.modelId}/imagery`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.imagery = res;
+            }).catch((err) => {
+                alert(err);
+            });
+        },
     }
 }
 </script>
