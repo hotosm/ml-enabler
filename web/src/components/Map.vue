@@ -42,6 +42,17 @@
                             <input v-on:input='threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
                         </div>
                     </div>
+
+                    <div class='col col--12'>
+                        <label>Imagery</label>
+                        <div class='select-container w-full'>
+                            <select v-model='bg' class='select select--s'>
+                                <option value='default'>Default</option>
+                                <option v-for='img in imagery' v-bind:key='img.id' :value='img.id' v-text='img.name'></option>
+                            </select>
+                            <div class='select-arrow'></div>
+                        </div>
+                    </div>
                 </template>
             </div>
 
@@ -89,18 +100,23 @@ import bboxPolygon from '../../node_modules/@turf/bbox-polygon/index.js';
 
 export default {
     name: 'Map',
-    props: ['prediction', 'tilejson'],
+    props: ['model', 'prediction', 'tilejson'],
     data: function() {
         return {
+            bg: 'default',
             inf: false,
             inspect: false,
             advanced: false,
             threshold: 50,
             opacity: 50,
-            map: false
+            map: false,
+            imagery: []
         };
     },
     watch: {
+        bg: function() {
+            this.layers();
+        },
         tilejson: function() {
             this.map.remove();
             this.init();
@@ -120,19 +136,24 @@ export default {
             }
         },
         inf: function() {
-            for (const inf of this.tilejson.inferences) {
-                this.map.setLayoutProperty(`inf-${inf}`, 'visibility', 'none');
-            }
-
-            this.map.setLayoutProperty(`inf-${this.inf}`, 'visibility', 'visible');
+            this.hide();
         }
     },
     mounted: function() {
+        this.getImagery();
+
         this.$nextTick(() => {
             this.init();
         });
     },
     methods: {
+        hide: function() {
+            for (const inf of this.tilejson.inferences) {
+                this.map.setLayoutProperty(`inf-${inf}`, 'visibility', 'none');
+            }
+
+            this.map.setLayoutProperty(`inf-${this.inf}`, 'visibility', 'visible');
+        },
         init: function() {
             mapboxgl.accessToken = this.tilejson.token;
 
@@ -141,8 +162,58 @@ export default {
                 bounds: this.tilejson.bounds,
                 style: 'mapbox://styles/mapbox/satellite-streets-v11'
             });
+
             this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
+            this.map.on('load', () => {
+                this.styles();
+            });
+        },
+        layers: function() {
+            this.map.once('styledata', () => {
+                this.styles();
+            });
+
+            if (this.bg === 'default') {
+                this.map.setStyle('mapbox://styles/mapbox/satellite-streets-v11', {
+                    diff: false
+                });
+            } else {
+                for (const img of this.imagery) {
+                    if (img.id === this.bg) {
+                        this.map.setStyle({
+                            version: 8,
+                            sources: {
+                                'raster-tiles': {
+                                    type: 'raster',
+                                    tiles: [ img.url ]
+                                }
+                            },
+                            layers:  [{
+                                id: 'simple-tiles',
+                                type: 'raster',
+                                source: 'raster-tiles',
+                                minzoom: 0,
+                                maxzoom: 22
+                            }]
+                        }, {
+                            diff: false
+                        });
+                        break;
+                    }
+                }
+            }
+        },
+        bboxzoom: function() {
+            this.map.fitBounds([
+                [this.tilejson.bounds[0], this.tilejson.bounds[1]],
+                [this.tilejson.bounds[2], this.tilejson.bounds[3]]
+            ]);
+        },
+        filter: function(inf) {
+            this.map.setFilter(`inf-${inf}`, ['>=', inf, this.threshold / 100]);
+        },
+        styles: function() {
             const polyouter = buffer(bboxPolygon(this.tilejson.bounds), 0.3);
             const polyinner = buffer(bboxPolygon(this.tilejson.bounds), 0.1);
 
@@ -158,19 +229,23 @@ export default {
                 }
             };
 
-            this.map.on('load', () => {
+            if (!this.map.getSource('tiles')) {
                 this.map.addSource('tiles', {
                     type: 'vector',
                     tiles: this.tilejson.tiles,
                     minzoom: this.tilejson.minzoom,
                     maxzoom: this.tilejson.maxzoom
                 });
+            }
 
+            if (!this.map.getSource('bbox')) {
                 this.map.addSource('bbox', {
                     type: 'geojson',
                     data: poly
                 });
+            }
 
+            if (!this.map.getLayer('bbox-layer')) {
                 this.map.addLayer({
                     'id': `bbox-layer`,
                     'type': 'fill',
@@ -180,52 +255,44 @@ export default {
                         'fill-opacity': 1
                     }
                 });
+            }
 
-                for (const inf of this.tilejson.inferences) {
-                    this.map.addLayer({
-                        id: `inf-${inf}`,
-                        type: 'fill',
-                        source: 'tiles',
-                        'source-layer': 'data',
-                        paint: {
-                            'fill-color': '#ff0000',
-                            'fill-opacity': [
-                                'number',
-                                [ '*', ['get', inf], (this.opacity / 100) ]
-                            ]
-                        }
-                    });
+            for (const inf of this.tilejson.inferences) {
+                this.map.addLayer({
+                    id: `inf-${inf}`,
+                    type: 'fill',
+                    source: 'tiles',
+                    'source-layer': 'data',
+                    paint: {
+                        'fill-color': '#ff0000',
+                        'fill-opacity': [
+                            'number',
+                            [ '*', ['get', inf], (this.opacity / 100) ]
+                        ]
+                    }
+                });
 
-                    this.filter(inf);
+                this.filter(inf);
 
-                    this.map.on('mousemove', `inf-${inf}`, (e) => {
-                        if (
-                            e.features.length === 0
-                            || !e.features[0].properties[this.inf]
-                            || e.features[0].properties[this.inf] === 0
-                        ) {
-                            this.map.getCanvas().style.cursor = '';
-                            this.inspect = false;
-                            return;
-                        }
+                this.map.on('mousemove', `inf-${inf}`, (e) => {
+                    if (
+                        e.features.length === 0
+                        || !e.features[0].properties[this.inf]
+                        || e.features[0].properties[this.inf] === 0
+                    ) {
+                        this.map.getCanvas().style.cursor = '';
+                        this.inspect = false;
+                        return;
+                    }
 
-                        this.map.getCanvas().style.cursor = 'pointer';
+                    this.map.getCanvas().style.cursor = 'pointer';
 
-                        this.inspect = e.features[0].properties[this.inf];
-                    });
-                }
+                    this.inspect = e.features[0].properties[this.inf];
+                });
+            }
 
-                this.inf = this.tilejson.inferences[0];
-            });
-        },
-        bboxzoom: function() {
-            this.map.fitBounds([
-                [this.tilejson.bounds[0], this.tilejson.bounds[1]],
-                [this.tilejson.bounds[2], this.tilejson.bounds[3]]
-            ]);
-        },
-        filter: function(inf) {
-            this.map.setFilter(`inf-${inf}`, ['>=', inf, this.threshold / 100]);
+            this.inf = this.tilejson.inferences[0];
+            this.hide();
         },
         fullscreen: function() {
             const container = document.querySelector('#map-container');
@@ -235,7 +302,18 @@ export default {
             } else {
                 document.exitFullscreen();
             }
-        }
+        },
+        getImagery: function() {
+            fetch(window.api + `/v1/model/${this.model.modelId}/imagery`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.imagery = res;
+            }).catch((err) => {
+                alert(err);
+            });
+        },
     }
 }
 </script>

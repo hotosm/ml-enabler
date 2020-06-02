@@ -74,7 +74,7 @@
                 <template v-if='tiles'>
                     <div class='align-center pb6'>Prediction Tiles</div>
 
-                    <Map :prediction='prediction' :tilejson='tiles'/>
+                    <Map :model='model' :prediction='prediction' :tilejson='tiles'/>
                 </template>
                 <template v-else>
                     <div class='col col--12 py6'>
