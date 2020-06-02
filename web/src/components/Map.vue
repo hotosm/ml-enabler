@@ -136,11 +136,7 @@ export default {
             }
         },
         inf: function() {
-            for (const inf of this.tilejson.inferences) {
-                this.map.setLayoutProperty(`inf-${inf}`, 'visibility', 'none');
-            }
-
-            this.map.setLayoutProperty(`inf-${this.inf}`, 'visibility', 'visible');
+            this.hide();
         }
     },
     mounted: function() {
@@ -151,98 +147,33 @@ export default {
         });
     },
     methods: {
+        hide: function() {
+            for (const inf of this.tilejson.inferences) {
+                this.map.setLayoutProperty(`inf-${inf}`, 'visibility', 'none');
+            }
+
+            this.map.setLayoutProperty(`inf-${this.inf}`, 'visibility', 'visible');
+        },
         init: function() {
             mapboxgl.accessToken = this.tilejson.token;
 
             this.map = new mapboxgl.Map({
                 container: 'map',
-                bounds: this.tilejson.bounds
+                bounds: this.tilejson.bounds,
+                style: 'mapbox://styles/mapbox/satellite-streets-v11'
             });
-            this.layers();
+
             this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
-            this.map.on('styledata', () => {
-                const polyouter = buffer(bboxPolygon(this.tilejson.bounds), 0.3);
-                const polyinner = buffer(bboxPolygon(this.tilejson.bounds), 0.1);
-
-                const poly = {
-                    type: 'Feature',
-                    properties: {},
-                    geometry: {
-                        type: 'Polygon',
-                        coordinates: [
-                            polyouter.geometry.coordinates[0],
-                            polyinner.geometry.coordinates[0]
-                        ]
-                    }
-                };
-
-                if (!this.map.getSource('tiles')) {
-                    this.map.addSource('tiles', {
-                        type: 'vector',
-                        tiles: this.tilejson.tiles,
-                        minzoom: this.tilejson.minzoom,
-                        maxzoom: this.tilejson.maxzoom
-                    });
-                }
-
-                if (!this.map.getSource('bbox')) {
-                    this.map.addSource('bbox', {
-                        type: 'geojson',
-                        data: poly
-                    });
-                }
-
-                if (!this.map.getLayer('bbox-layer')) {
-                    this.map.addLayer({
-                        'id': `bbox-layer`,
-                        'type': 'fill',
-                        'source': 'bbox',
-                        'paint': {
-                            'fill-color': '#ffffff',
-                            'fill-opacity': 1
-                        }
-                    });
-                }
-
-                for (const inf of this.tilejson.inferences) {
-                    this.map.addLayer({
-                        id: `inf-${inf}`,
-                        type: 'fill',
-                        source: 'tiles',
-                        'source-layer': 'data',
-                        paint: {
-                            'fill-color': '#ff0000',
-                            'fill-opacity': [
-                                'number',
-                                [ '*', ['get', inf], (this.opacity / 100) ]
-                            ]
-                        }
-                    });
-
-                    this.filter(inf);
-
-                    this.map.on('mousemove', `inf-${inf}`, (e) => {
-                        if (
-                            e.features.length === 0
-                            || !e.features[0].properties[this.inf]
-                            || e.features[0].properties[this.inf] === 0
-                        ) {
-                            this.map.getCanvas().style.cursor = '';
-                            this.inspect = false;
-                            return;
-                        }
-
-                        this.map.getCanvas().style.cursor = 'pointer';
-
-                        this.inspect = e.features[0].properties[this.inf];
-                    });
-                }
-
-                this.inf = this.tilejson.inferences[0];
+            this.map.on('load', () => {
+                this.styles();
             });
         },
         layers: function() {
+            this.map.once('styledata', () => {
+                this.styles();
+            });
+
             if (this.bg === 'default') {
                 this.map.setStyle('mapbox://styles/mapbox/satellite-streets-v11', {
                     diff: false
@@ -281,6 +212,87 @@ export default {
         },
         filter: function(inf) {
             this.map.setFilter(`inf-${inf}`, ['>=', inf, this.threshold / 100]);
+        },
+        styles: function() {
+            const polyouter = buffer(bboxPolygon(this.tilejson.bounds), 0.3);
+            const polyinner = buffer(bboxPolygon(this.tilejson.bounds), 0.1);
+
+            const poly = {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [
+                        polyouter.geometry.coordinates[0],
+                        polyinner.geometry.coordinates[0]
+                    ]
+                }
+            };
+
+            if (!this.map.getSource('tiles')) {
+                this.map.addSource('tiles', {
+                    type: 'vector',
+                    tiles: this.tilejson.tiles,
+                    minzoom: this.tilejson.minzoom,
+                    maxzoom: this.tilejson.maxzoom
+                });
+            }
+
+            if (!this.map.getSource('bbox')) {
+                this.map.addSource('bbox', {
+                    type: 'geojson',
+                    data: poly
+                });
+            }
+
+            if (!this.map.getLayer('bbox-layer')) {
+                this.map.addLayer({
+                    'id': `bbox-layer`,
+                    'type': 'fill',
+                    'source': 'bbox',
+                    'paint': {
+                        'fill-color': '#ffffff',
+                        'fill-opacity': 1
+                    }
+                });
+            }
+
+            for (const inf of this.tilejson.inferences) {
+                this.map.addLayer({
+                    id: `inf-${inf}`,
+                    type: 'fill',
+                    source: 'tiles',
+                    'source-layer': 'data',
+                    paint: {
+                        'fill-color': '#ff0000',
+                        'fill-opacity': [
+                            'number',
+                            [ '*', ['get', inf], (this.opacity / 100) ]
+                        ]
+                    }
+                });
+
+                this.filter(inf);
+
+                this.map.on('mousemove', `inf-${inf}`, (e) => {
+                    if (
+                        e.features.length === 0
+                        || !e.features[0].properties[this.inf]
+                        || e.features[0].properties[this.inf] === 0
+                    ) {
+                        this.map.getCanvas().style.cursor = '';
+                        this.inspect = false;
+                        return;
+                    }
+
+                    this.map.getCanvas().style.cursor = 'pointer';
+
+                    this.inspect = e.features[0].properties[this.inf];
+                });
+            }
+
+            this.inf = this.tilejson.inferences[0];
+            this.hide();
         },
         fullscreen: function() {
             const container = document.querySelector('#map-container');
