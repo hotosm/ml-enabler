@@ -1,4 +1,4 @@
-FROM lambci/lambda:build-python3.8
+FROM developmentseed/geolambda:1.2.0-python
 
 WORKDIR /tmp
 

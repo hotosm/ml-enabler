@@ -37,6 +37,16 @@
         }
     },
     "Resources" : {
+        "PredLogs": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+                "LogGroupName": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    { "Ref": "PredictionId" }
+                ]]},
+                "RetentionInDays": 7
+            }
+        },
         "PredLambdaSource": {
             "Type": "AWS::Lambda::EventSourceMapping",
             "Properties": {
@@ -48,6 +58,9 @@
         "PredLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
+                "Layers": [
+                    "arn:aws:lambda:us-east-1:552188055668:layer:geolambda:2"
+                ],
                 "Code": {
                     "S3Bucket": "devseed-artifacts",
                     "S3Key": { "Fn::Join": [ "", [
@@ -66,9 +79,9 @@
                 ]]}},
                 "Handler": "download_and_predict.handler.handler",
                 "MemorySize": 512,
-                "Runtime": "python3.8",
+                "Runtime": "python3.7",
                 "ReservedConcurrentExecutions": { "Ref": "MaxConcurrency" },
-                "Timeout": 60,
+                "Timeout": 240,
                 "Environment": {
                     "Variables": {
                         "StackName": { "Ref": "AWS::StackName" },
@@ -86,17 +99,27 @@
                 }
             }
         },
+        "PredInstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Path": "/",
+                "Roles": [{ "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "exec-role-name"
+                ]]}}]
+            }
+        },
         "PredTargetGroup": {
             "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "DependsOn": "PredELB",
             "Properties": {
                 "Port": 8501,
                 "Protocol": "HTTP",
-                "HealthCheckPath": "/v1/models/default",
                 "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                     { "Ref": "StackName" },
                     "vpc"
                 ]]}},
-                "TargetType": "ip",
+                "HealthCheckPath": "/v1/models/default",
                 "Matcher": {
                     "HttpCode": "200,202,302,304"
                 }
@@ -119,6 +142,10 @@
             "Properties": {
                 "Type": "application",
                 "SecurityGroups": [{ "Ref": "PredELBSecurityGroup" }],
+                "LoadBalancerAttributes": [{
+                    "Key": "idle_timeout.timeout_seconds",
+                    "Value": 240
+                }],
                 "Subnets": [
                     { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
                     { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
@@ -144,7 +171,6 @@
                 ]]}}
             }
         },
-
         "PredTileQueue": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
@@ -152,7 +178,7 @@
                     { "Ref": "AWS::StackName" },
                     "queue"
                 ]]},
-                "VisibilityTimeout": 60,
+                "VisibilityTimeout": 2880,
                 "RedrivePolicy": {
                     "deadLetterTargetArn": { "Fn::GetAtt": [ "PredDeadQueue", "Arn" ] },
                     "maxReceiveCount": 3
@@ -168,62 +194,139 @@
                 ]]}
             }
         },
-        "PredServiceScalingTarget": {
-            "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+        "PredContainerInstanceLaunch": {
+            "Type": "AWS::AutoScaling::LaunchConfiguration",
+            "DependsOn": "PredECSHostSecurityGroup",
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "config" : {
+                        "commands": {
+                            "01_add_instance_to_cluster": {
+                                "command": { "Fn::Join": [ "", ["echo ECS_CLUSTER=", { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}}, " >> /etc/ecs/ecs.config\n" ]] }
+                            }
+                        },
+                        "files": {
+                            "/etc/cfn/cfn-hup.conf": {
+                                "content": {
+                                    "Fn::Join": [ "", [
+                                        "[main]\n",
+                                        "stack=", { "Ref": "AWS::StackId" }, "\n",
+                                        "region=", { "Ref": "AWS::Region" }, "\n"
+                                    ]]
+                                },
+                                "mode": "000400",
+                                "owner": "root",
+                                "group": "root"
+                            },
+                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                                "content": {
+                                    "Fn::Join": [ "", [
+                                        "[cfn-auto-reloader-hook]\n",
+                                        "triggers=post.update\n",
+                                        "path=Resources.PredContainerInstanceLaunch.Metadata.AWS::CloudFormation::Init\n",
+                                        "action=/opt/aws/bin/cfn-init -v --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch --region ", { "Ref": "AWS::Region" }, "\n",
+                                        "runas=root\n"
+                                    ]]
+                                }
+                            }
+                        },
+                        "services": {
+                            "sysvinit": {
+                                "cfn-hup": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true",
+                                    "files": [
+                                        "/etc/cfn/cfn-hup.conf",
+                                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "Properties": {
-                "MaxCapacity": { "Ref": "MaxSize" },
-                "MinCapacity": 1,
-                "ResourceId": { "Fn::Join": ["", [
-                    "service/",
-                    { "Ref": "StackName" }, "-cluster/",
-                    { "Fn::GetAtt": [ "PredService", "Name" ] }
-                ]]},
-                "RoleARN": { "Fn::ImportValue": { "Fn::Join": [ "-", [
-                    { "Ref": "StackName" },
-                    "scaling-role"
-                ]]}},
-                "ScalableDimension": "ecs:service:DesiredCount",
-                "ServiceNamespace": "ecs"
-            }
-        },
-        "PredServiceScaling": {
-            "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
-            "Properties": {
-                "PolicyName": { "Fn::Join": [ "-" , [{ "Ref": "AWS::StackName" }, "autoscale" ]]},
-                "PolicyType": "TargetTrackingScaling",
-                "ScalingTargetId": { "Ref": "PredServiceScalingTarget" },
-                "TargetTrackingScalingPolicyConfiguration": {
-                    "DisableScaleIn": false,
-                    "TargetValue": 80,
-                    "ScaleInCooldown": 60,
-                    "ScaleOutCooldown": 60,
-                    "PredefinedMetricSpecification": {
-                        "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+                "SecurityGroups": [{ "Ref": "PredECSHostSecurityGroup" }],
+                "ImageId": { "Fn::FindInMap": [ "AWSRegionToAMI", { "Ref": "AWS::Region" }, "AMIID" ] },
+                "InstanceType": "p3.2xlarge",
+                "IamInstanceProfile": { "Ref": "PredInstanceProfile" },
+                "BlockDeviceMappings": [{
+                    "DeviceName": "/dev/xvdcz",
+                    "Ebs": {
+                        "DeleteOnTermination": true,
+                        "VolumeSize": 100,
+                        "VolumeType": "gp2"
+                    }
+                }],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": ["", [
+                            "#!/bin/bash -xe\n",
+                            "yum install -y aws-cfn-bootstrap\n",
+                            "/opt/aws/bin/cfn-init -v --region ", { "Ref": "AWS::Region" }, " --stack ", { "Ref": "AWS::StackName" }, " --resource PredContainerInstanceLaunch\n",
+                            "/opt/aws/bin/cfn-signal -e $? --region ", { "Ref": "AWS::Region" }, " --stack ", { "Ref": "AWS::StackName" }, " --resource PredECSAutoScalingGroup\n"
+                        ]]
                     }
                 }
             }
         },
+        "PredECSAutoScalingGroup": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "CreationPolicy" : {
+                "ResourceSignal" : {
+                    "Timeout" : "PT10M",
+                    "Count"   : "1"
+                }
+            },
+            "UpdatePolicy": {
+                "AutoScalingRollingUpdate": {
+                    "MinInstancesInService": 0
+                }
+            },
+            "Properties": {
+                "AvailabilityZones": [
+                    { "Fn::FindInMap": ["AWSRegion2AZ", { "Ref": "AWS::Region" }, "1"] },
+                    { "Fn::FindInMap": ["AWSRegion2AZ", { "Ref": "AWS::Region" }, "2"] }
+                ],
+                "LaunchConfigurationName": { "Ref": "PredContainerInstanceLaunch" },
+                "MinSize": 1,
+                "MaxSize": { "Ref": "MaxSize" },
+                "DesiredCapacity": { "Ref": "MaxSize" },
+                "VPCZoneIdentifier": [
+                    { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
+                    { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
+                ]
+            }
+        },
+        "PredECSHostSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": { "Fn::ImportValue": { "Fn::Join": [ "-", [
+                    { "Ref": "StackName" },
+                    "vpc"
+                ]]}},
+                "GroupDescription": "Access to the ECS hosts and the tasks/containers that run on them",
+                "SecurityGroupIngress": [{
+                    "SourceSecurityGroupId": { "Ref": "PredELBSecurityGroup" },
+                    "IpProtocol": -1
+                }]
+            }
+        },
         "PredService": {
             "Type": "AWS::ECS::Service",
-            "DependsOn": "PredHTTPListener",
+            "DependsOn": [
+                "PredECSAutoScalingGroup",
+                "PredHTTPListener",
+                "PredTargetGroup"
+            ],
             "Properties": {
                 "ServiceName": { "Ref": "ImageTag" },
-                "Cluster": { "Fn::ImportValue": { "Fn::Join": [ "-", [
-                    { "Ref": "StackName" },
-                    "cluster"
-                ]]}},
+                "Cluster": { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "cluster" ]]}},
                 "TaskDefinition": { "Ref": "PredTaskDefinition" },
-                "LaunchType": "FARGATE",
                 "DesiredCount": 1,
-                "NetworkConfiguration": {
-                    "AwsvpcConfiguration": {
-                        "AssignPublicIp": "ENABLED",
-                        "SecurityGroups": [{ "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "sg" ]]}}],
-                        "Subnets": [
-                            { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "suba" ]]}},
-                            { "Fn::ImportValue": { "Fn::Join": [ "-", [ { "Ref": "StackName" }, "subb" ]]}}
-                        ]
-                    }
+                "DeploymentConfiguration": {
+                    "MaximumPercent": 100,
+                    "MinimumHealthyPercent": 0
                 },
                 "LoadBalancers": [{
                     "ContainerName": "pred-app",
@@ -236,20 +339,15 @@
             "Type": "AWS::ECS::TaskDefinition",
             "Properties": {
                 "Family": { "Ref" : "ImageTag" },
-                "Cpu": 1024,
-                "Memory": 2048,
-                "NetworkMode": "awsvpc",
-                "RequiresCompatibilities": ["FARGATE"],
+                "Cpu": 8192,
+                "Memory": 61401,
                 "TaskRoleArn": { "Fn::ImportValue": { "Fn::Join": [ "-", [
                     { "Ref": "StackName" },
                     "task-role"
                 ]]}},
-                "ExecutionRoleArn": { "Fn::ImportValue": { "Fn::Join": [ "-", [
-                    { "Ref": "StackName" },
-                    "exec-role"
-                ]]}},
                 "ContainerDefinitions": [{
                     "Name": "pred-app",
+                    "Essential": true,
                     "Image": { "Fn::Join" : [ "", [
                         { "Ref": "AWS::AccountId" },
                         ".dkr.ecr.",
@@ -267,21 +365,25 @@
                         "LogDriver": "awslogs",
                         "Options": {
                             "awslogs-group": { "Fn::Join": [ "-", [
-                                "awslogs",
-                                { "Ref": "StackName" }
-                            ]]},
-                            "awslogs-region": { "Ref": "AWS::Region" },
-                            "awslogs-stream-prefix": { "Fn::Join": [ "-", [
-                                "awslogs",
                                 { "Ref": "StackName" },
-                                "pred"
+                                { "Ref": "PredictionId" }
                             ]]},
-                            "awslogs-create-group": true
+                            "awslogs-region": { "Ref": "AWS::Region" }
                         }
-                    },
-                    "Essential": true
+                    }
                 }]
             }
+        }
+    },
+    "Mappings": {
+        "AWSRegionToAMI": {
+            "DOCS": { "LIST": "http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html" },
+            "us-east-1": { "AMIID": "ami-07eb64b216d4d3522" }
+        },
+        "AWSRegion2AZ": {
+            "us-east-1": { "1": "us-east-1b", "2": "us-east-1c", "3": "us-east-1d", "4": "us-east-1e" },
+            "us-west-1": { "1": "us-west-1b", "2": "us-west-1c" },
+            "us-west-2": { "1": "us-west-2a", "2": "us-west-2b", "3": "us-west-2c" }
         }
     },
     "Outputs" : {

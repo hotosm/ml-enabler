@@ -4,6 +4,8 @@ import router from './router'
 
 Vue.config.productionTip = false
 
+window.api = window.location.pathname.replace(/\/admin\/.*/, '');
+
 new Vue({
     router,
     render: h => h(App)

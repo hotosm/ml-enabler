@@ -12,7 +12,7 @@
                     <button @click='$router.push({ name: "editmodel' })' class='btn fr round btn--stroke color-gray color-green-on-hover'>
                         <svg class='icon'><use href='#icon-plus'/></svg>
                     </button>
-                    <button @click='getModels' class='btn fr round btn--stroke color-gray color-blue-on-hover mr12'>
+                    <button @click='refresh' class='btn fr round btn--stroke color-gray color-blue-on-hover mr12'>
                         <svg class='icon'><use href='#icon-refresh'/></svg>
                     </button>
                 </div>
@@ -41,6 +41,10 @@
                                 <div class='col col--6'>
                                     <div @click.prevent.stop='external(model.projectUrl)' class='fr bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
                                         Project Page
+                                    </div>
+
+                                    <div v-if='stacks.models.includes(model.modelId)' class='fr bg-green-faint bg-green-on-hover color-white-on-hover color-green inline-block px6 py3 round txt-xs txt-bold mr3'>
+                                        Active Stack
                                     </div>
                                 </div>
                             </div>
@@ -79,6 +83,11 @@ export default {
     data: function() {
         return {
             mode: 'models',
+            stacks: {
+                models: [],
+                predictions: [],
+                stacks: []
+            },
             model: {
                 modelId: false,
                 name: '',
@@ -103,9 +112,14 @@ export default {
         }
     },
     mounted: function() {
-        this.getModels();
+        this.refresh();
     },
     methods: {
+        refresh: function() {
+            this.getModels();
+            this.getMeta();
+            this.getStacks();
+        },
         external: function(url) {
             if (!url) return;
 
@@ -125,7 +139,7 @@ export default {
             this.getModel(modelId);
         },
         getMeta: function() {
-            fetch('/v1', {
+            fetch(window.api + '/v1', {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -135,10 +149,21 @@ export default {
                 console.error(err);
             });
         },
+        getStacks: function() {
+            fetch(window.api + '/v1/stacks', {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                if (!res.error) {
+                    this.stacks = res;
+                }
+            });
+        },
         getModels: function() {
             this.mode = 'models';
 
-            fetch('/v1/model/all', {
+            fetch(window.api + '/v1/model/all', {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -151,7 +176,7 @@ export default {
             });
         },
         getModel: function(modelId) {
-            fetch(`/v1/model/${modelId}`, {
+            fetch(window.api + `/v1/model/${modelId}`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();

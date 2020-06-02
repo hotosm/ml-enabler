@@ -66,7 +66,7 @@ export default {
             this.$emit('close');
         },
         getImagery: function() {
-            fetch(`/v1/model/${this.modelid}/imagery`, {
+            fetch(window.api + `/v1/model/${this.modelid}/imagery`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -79,7 +79,7 @@ export default {
             });
         },
         deleteImagery: function() {
-            fetch(`/v1/model/${this.modelid}/imagery/${this.imageryid}`, {
+            fetch(window.api + `/v1/model/${this.modelid}/imagery/${this.imageryid}`, {
                 method: 'DELETE'
             }).then(() => {
                 this.close();
@@ -88,7 +88,7 @@ export default {
             });
         },
         postImagery: function() {
-            fetch(`/v1/model/${this.modelid}/imagery${this.imageryid ? '/' + this.imageryid : ''}`, {
+            fetch(window.api + `/v1/model/${this.modelid}/imagery${this.imageryid ? '/' + this.imageryid : ''}`, {
                 method: this.imageryid ? 'PATCH' : 'POST',
                 headers: {
                     'Content-Type': 'application/json'

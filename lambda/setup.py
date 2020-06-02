@@ -5,7 +5,11 @@ from setuptools import setup, find_packages
 inst_reqs = [
     "mercantile",
     "requests",
+    "geojson",
     "pillow",
+    "gdal == 2.4.2",
+    "shapely == 1.6.4",
+    "affine",
     "numpy"
 ]
 extra_reqs = {"test": ["pytest", "pytest-cov"]}

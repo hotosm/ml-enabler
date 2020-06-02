@@ -18,8 +18,8 @@
                     />
 
                     <div class='fr'>
-                        <button v-if='prediction.logLink' @click='logLink(prediction.logLink)' class='mr6 btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg>Build Log</button>
-                        <button v-if='prediction.dockerLink' @click='ecrLink(prediction.dockerLink)' class='btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
+                        <button v-if='prediction.logLink' @click='logLink(prediction.logLink)' class='mx3 btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg>Build Log</button>
+                        <button v-if='prediction.dockerLink' @click='ecrLink(prediction.dockerLink)' class='mx3 btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
                     </div>
                 </div>
                 <template v-if='prediction.modelLink'>
@@ -36,10 +36,19 @@
                         <pre class='pre' v-text='prediction.dockerLink'></pre>
                     </div>
                 </template>
-                <template v-else>
-                        <div class='align-center pb6'>Upload a model to get started</div>
+                <template v-else-if='meta.environment !== "aws"'>
+                    <div class='flex-parent flex-parent--center-main pt36'>
+                        <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+                    </div>
 
-                        <UploadPrediction :prediction='prediction' v-on:close='close'/>
+                    <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                        <h1 class='flex-child txt-h4 cursor-default align-center'>Assets can only be created when MLEnabler is running in an "aws" environment</h1>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class='align-center pb6'>Upload a model to get started</div>
+
+                    <UploadPrediction :prediction='prediction' v-on:close='close'/>
                 </template>
             </template>
             <template v-else-if='mode === "stack"'>
@@ -59,13 +68,13 @@
                     />
 
                     <div class='fr'>
-                        <!--Map Specific Actions-->
+                        <button @click='refresh' class='mx3 btn btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl'><use href='#icon-refresh'/></svg></button>
                     </div>
                 </div>
                 <template v-if='tiles'>
                     <div class='align-center pb6'>Prediction Tiles</div>
 
-                    <Map :prediction='prediction' :tilejson='tiles'/>
+                    <Map :model='model' :prediction='prediction' :tilejson='tiles'/>
                 </template>
                 <template v-else>
                     <div class='col col--12 py6'>
@@ -79,11 +88,12 @@
                     </div>
                 </template>
             </template>
-            <template v-else-if='mode === "tasking"'>
-                <Tasking
+            <template v-else-if='mode === "export"'>
+                <Export
                     :meta='meta'
                     :model='model'
                     :prediction='prediction'
+                    :tilejson='tiles'
                     v-on:mode='mode = $event'
                 />
             </template>
@@ -94,7 +104,7 @@
 <script>
 import UploadPrediction from './UploadPrediction.vue';
 import PredictionHeader from './PredictionHeader.vue';
-import Tasking from './Tasking.vue';
+import Export from './Export.vue';
 import Stack from './Stack.vue';
 import Map from './Map.vue';
 
@@ -108,12 +118,12 @@ export default {
         }
     },
     mounted: function() {
-        this.getTilejson();
+        this.refresh();
     },
     components: {
         Map,
         Stack,
-        Tasking,
+        Export,
         PredictionHeader,
         UploadPrediction
     },
@@ -134,8 +144,11 @@ export default {
 
             window.open(url, "_blank")
         },
+        refresh: function() {
+            this.getTilejson();
+        },
         getTilejson: function() {
-            fetch(`${window.location.origin}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/tiles`, {
+            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/tiles`, {
                 method: 'GET',
                 credentials: 'same-origin'
             }).then((res) => {
@@ -143,7 +156,7 @@ export default {
                     this.tiles = false;
                 } else {
                     res.json().then((tilejson) => {
-                        tilejson.tiles[0] = window.location.origin + tilejson.tiles[0];
+                        tilejson.tiles[0] = window.location.origin + window.api + tilejson.tiles[0];
 
                         this.tiles = tilejson;
                     })

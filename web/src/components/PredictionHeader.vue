@@ -9,9 +9,9 @@
         <button @click='emit("map")' :class='{
             "btn--stroke": mode !== "map"
         }' class="btn btn--pill btn--s btn--pill-hc btn--pill-stroke round">Map</button>
-        <button @click='emit("tasking")' :class='{
-            "btn--stroke": mode !== "tasking"
-        }' class="btn btn--pill btn--s btn--pill-hr btn--pill-stroke round">Tasking</button>
+        <button @click='emit("export")' :class='{
+            "btn--stroke": mode !== "export"
+        }' class="btn btn--pill btn--s btn--pill-hr btn--pill-stroke round">Export</button>
     </div>
 </template>
 

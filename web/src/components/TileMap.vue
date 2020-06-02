@@ -37,7 +37,7 @@ export default {
         };
     },
     mounted: function() {
-        fetch(`${window.location.origin}/v1/mapbox`, {
+        fetch(window.api + `/v1/mapbox`, {
             method: 'GET'
         }).then((res) => {
             return res.json();

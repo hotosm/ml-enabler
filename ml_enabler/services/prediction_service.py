@@ -29,6 +29,29 @@ class PredictionService():
         return new_prediction.id
 
     @staticmethod
+    def export(prediction_id: int):
+        prediction = Prediction.get(prediction_id)
+
+        if (prediction):
+            stream = prediction.export()
+
+            return stream
+        else:
+            raise NotFound('Prediction does not exist')
+
+    @staticmethod
+    def inferences(prediction_id):
+        """
+        Get an array of inference names for a given prediction
+
+        :params prediction_id
+        :returns list
+        """
+
+        return PredictionTile.inferences(prediction_id)
+
+
+    @staticmethod
     def patch(prediction_id: int, update: dict) -> int:
         """
         Patch a prediction by ID
@@ -118,14 +141,24 @@ class PredictionTileService():
         """
 
         for prediction in data['predictions']:
-            bounds = mercantile.bounds(mercantile.quadkey_to_tile(prediction.get('quadkey')))
+            if prediction.get('quadkey_geom') is not None:
+                polygon = prediction.get('quadkey_geom')
+                bounds = [polygon['coordinates'][0][0][0], polygon['coordinates'][0][0][1], polygon['coordinates'][0][2][0], polygon['coordinates'][0][2][1]]
 
-            prediction["quadkey_geom"] = "SRID=4326;POLYGON(({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
-                bounds[0],
-                bounds[1],
-                bounds[2],
-                bounds[3]
-            )
+                prediction["quadkey_geom"] = "SRID=4326;POLYGON(({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
+                    bounds[0],
+                    bounds[1],
+                    bounds[2],
+                    bounds[3]
+                )
+            else:
+                bounds = mercantile.bounds(mercantile.quadkey_to_tile(prediction.get('quadkey')))
+                prediction["quadkey_geom"] = "SRID=4326;POLYGON(({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
+                    bounds[0],
+                    bounds[1],
+                    bounds[2],
+                    bounds[3]
+                )
 
         connection = db.engine.connect()
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])

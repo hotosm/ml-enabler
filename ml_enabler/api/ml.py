@@ -1,12 +1,12 @@
 import ml_enabler.config as CONFIG
-import pyproj
-import json
+import io, os, pyproj, json, csv, geojson, boto3
 from tiletanic import tilecover, tileschemes
 from shapely.geometry import shape
 from shapely.ops import transform
 from functools import partial
 from flask import make_response
 from flask_restful import Resource, request, current_app
+from flask import Response
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
@@ -16,9 +16,6 @@ from ml_enabler.models.utils import NotFound, VersionNotFound, \
     PredictionsNotFound, ImageryNotFound
 from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson
 from sqlalchemy.exc import IntegrityError
-import geojson
-import boto3
-import os
 
 class MetaAPI(Resource):
     """
@@ -379,11 +376,197 @@ class ImageryAPI(Resource):
                 "error": error_msg
             }, 500
 
+class PredictionExport(Resource):
+    """ Export Prediction Inferences to common formats """
+
+    # ?format=(geojson/geojsonseq/csv)  [default: geojson]
+    # ?inferences=all/<custom>          [default: all]
+    # ?threshold=0->1                   [default 0]
+    def get(self, model_id, prediction_id):
+        req_format = request.args.get('format', 'geojson')
+        req_inferences = request.args.get('inferences', 'all')
+        req_threshold = request.args.get('threshold', '0')
+
+        req_threshold = float(req_threshold)
+
+        stream = PredictionService.export(prediction_id)
+
+        inferences = PredictionService.inferences(prediction_id)
+        first = False
+
+        if req_inferences != 'all':
+            inferences = [ req_inferences ]
+
+        def generate():
+            nonlocal first
+
+            if req_format == "geojson":
+                yield '{ "type": "FeatureCollection", "features": ['
+            elif req_format == "csv":
+                output = io.StringIO()
+                rowdata = ["ID", "QuadKey", "QuadKeyGeom"]
+                rowdata.extend(inferences)
+                csv.writer(output, quoting=csv.QUOTE_NONNUMERIC).writerow(rowdata)
+                yield output.getvalue()
+
+            for row in stream:
+
+                if req_inferences != 'all' and row[3].get(req_inferences) is None:
+                    continue
+
+                if req_inferences != 'all' and row[3].get(req_inferences) <= req_threshold:
+                    continue
+
+                if req_format == "geojson" or req_format == "geojsonld":
+                    feat = {
+                        "id": row[0],
+                        "quadkey": row[1],
+                        "type": "Feature",
+                        "properties": row[3],
+                        "geometry": json.loads(row[2])
+                    }
+
+                    if req_format == "geojsonld":
+                        yield json.dumps(feat) + '\n'
+                    elif req_format == "geojson":
+                        if first == False:
+                            first = True
+                            yield '\n' + json.dumps(feat)
+                        else:
+                            yield ',\n' + json.dumps(feat)
+                elif req_format == "csv":
+                    output = io.StringIO()
+                    rowdata = [ row[0], row[1], row[2] ]
+                    for inf in inferences:
+                        rowdata.append(row[3].get(inf, 0.0))
+                    csv.writer(output, quoting=csv.QUOTE_NONNUMERIC).writerow(rowdata)
+                    yield output.getvalue()
+                else:
+                    raise "Unsupported export format"
+
+            if req_format == "geojson":
+                yield ']}'
+
+
+
+        if req_format == "csv":
+            mime = "text/csv"
+        elif req_format == "geojson":
+            mime = "application/geo+json"
+        elif req_format == "geojsonld":
+            mime = "application/geo+json-seq"
+
+        return Response(
+            generate(),
+            mimetype = mime,
+            status = 200,
+            headers = {
+                "Content-Disposition": 'attachment; filename="export."' + req_format
+            }
+        )
+
 class PredictionInfAPI(Resource):
     """ Add GeoJSON to SQS Inference Queue """
 
-    def post(self, model_id, prediction_id):
+    def delete(self, model_id, prediction_id):
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
 
+        try:
+            queues = response = boto3.client('sqs').list_queues(
+                QueueNamePrefix="{stack}-models-{model}-prediction-{pred}-".format(
+                    stack = CONFIG.EnvironmentConfig.STACK,
+                    model = model_id,
+                    pred = prediction_id
+                )
+            )
+
+            for queue in queues['QueueUrls']:
+                boto3.client('sqs').purge_queue(
+                    QueueUrl=queue
+                )
+
+            return {
+                "status": 200,
+                "message": "queue purged"
+            }, 200
+        except Exception as e:
+            if str(e).find("does not exist") != -1:
+                return {
+                    "name": stack,
+                    "status": "None"
+                }, 200
+            else:
+                error_msg = f'Prediction Stack Info Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {
+                    "status": 500,
+                    "error": "Failed to get stack info"
+                }, 500
+
+    def get(self, model_id, prediction_id):
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
+
+        try:
+            queues = response = boto3.client('sqs').list_queues(
+                QueueNamePrefix="{stack}-models-{model}-prediction-{pred}-".format(
+                    stack = CONFIG.EnvironmentConfig.STACK,
+                    model = model_id,
+                    pred = prediction_id
+                )
+            )
+
+
+            active = ""
+            dead = ""
+            for queue in queues['QueueUrls']:
+                if "-dead-queue" in queue:
+                    dead = queue
+                elif "-queue" in queue:
+                    active = queue
+
+            active = boto3.client('sqs').get_queue_attributes(
+                QueueUrl=active,
+                AttributeNames = [
+                    'ApproximateNumberOfMessages',
+                    'ApproximateNumberOfMessagesNotVisible'
+                ]
+            )
+
+            dead = boto3.client('sqs').get_queue_attributes(
+                QueueUrl=dead,
+                AttributeNames = [
+                    'ApproximateNumberOfMessages'
+                ]
+            )
+
+            return {
+                "queued": int(active['Attributes']['ApproximateNumberOfMessages']),
+                "inflight": int(active['Attributes']['ApproximateNumberOfMessagesNotVisible']),
+                "dead": int(dead['Attributes']['ApproximateNumberOfMessages'])
+            }, 200
+        except Exception as e:
+            if str(e).find("does not exist") != -1:
+                return {
+                    "name": stack,
+                    "status": "None"
+                }, 200
+            else:
+                error_msg = f'Prediction Stack Info Error: {str(e)}'
+                current_app.logger.error(error_msg)
+                return {
+                    "status": 500,
+                    "error": "Failed to get stack info"
+                }, 500
+
+    def post(self, model_id, prediction_id):
         if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
             return {
                 "status": 501,
@@ -443,6 +626,98 @@ class PredictionInfAPI(Resource):
             return {
                 "status": 500,
                 "error": error_msg
+            }, 500
+
+class PredictionStacksAPI(Resource):
+    def get(self):
+        """
+        Return a list of all running substacks
+        ---
+        produces:
+            - application/json
+        responses:
+            200:
+                description: ID of the prediction
+        """
+
+        stacks = []
+
+        def getList():
+            token = False;
+
+            stack_res = boto3.client('cloudformation').list_stacks(
+                StackStatusFilter = [
+                    'CREATE_IN_PROGRESS',
+                    'CREATE_COMPLETE',
+                    'ROLLBACK_IN_PROGRESS',
+                    'ROLLBACK_FAILED',
+                    'ROLLBACK_COMPLETE',
+                    'DELETE_IN_PROGRESS',
+                    'DELETE_FAILED',
+                    'UPDATE_IN_PROGRESS',
+                    'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS',
+                    'UPDATE_COMPLETE',
+                    'UPDATE_ROLLBACK_IN_PROGRESS',
+                    'UPDATE_ROLLBACK_FAILED',
+                    'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
+                    'UPDATE_ROLLBACK_COMPLETE',
+                    'REVIEW_IN_PROGRESS',
+                    'IMPORT_IN_PROGRESS',
+                    'IMPORT_COMPLETE',
+                    'IMPORT_ROLLBACK_IN_PROGRESS',
+                    'IMPORT_ROLLBACK_FAILED',
+                    'IMPORT_ROLLBACK_COMPLETE'
+                ]
+            )
+
+            stacks.extend(stack_res.get("StackSummaries"))
+
+            while stack_res.get("NextToken") is not None:
+                print(stack_res.get("NextToken"))
+                stack_res = boto3.client('cloudformation').list_stacks(
+                    NextToken = stack_res.get("NextToken")
+                )
+
+                stacks.extend(stack_res.get("StackSummaries"))
+
+
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return {
+                "status": 501,
+                "error": "stack must be in 'aws' mode to use this endpoint"
+            }, 501
+
+        try:
+            getList()
+
+            res = {
+                "models": [],
+                "predictions": [],
+                "stacks": []
+            }
+
+            for stack in stacks:
+                name = stack.get("StackName")
+                if name.startswith(CONFIG.EnvironmentConfig.STACK + "-models-") and name not in res["stacks"]:
+                    res["stacks"].append(stack.get("StackName"))
+
+                    split = name.split('-')
+                    model = int(split[len(split) - 3])
+                    prediction = int(split[len(split) - 1])
+
+                    if model not in res["models"]:
+                        res["models"].append(model)
+                    if prediction not in res["predictions"]:
+                        res["predictions"].append(prediction)
+
+            return res, 200
+
+        except Exception as e:
+            error_msg = f'Prediction Stack List Error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {
+                "status": 500,
+                "error": "Failed to get stack list"
             }, 500
 
 
@@ -561,7 +836,6 @@ class PredictionStackAPI(Resource):
                     "status": 500,
                     "error": "Failed to get stack info"
                 }, 500
-
 
     def get(self, model_id, prediction_id):
         """

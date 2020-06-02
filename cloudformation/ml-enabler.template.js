@@ -44,6 +44,13 @@ const Parameters = {
 };
 
 const Resources = {
+    MLEnablerLogs: {
+        Type: 'AWS::Logs::LogGroup',
+        Properties: {
+            LogGroupName: cf.stackName,
+            RetentionInDays: 7
+        }
+    },
     MLEnablerVPC: {
         Type: 'AWS::EC2::VPC',
         Properties: {
@@ -211,11 +218,18 @@ const Resources = {
                         Action: [
                             'cloudformation:CreateStack',
                             'cloudformation:DeleteStack',
+                            'cloudformation:ListStacks',
                             'cloudformation:DescribeStacks',
                             'cloudformation:DescribeStackEvents',
                             'cloudformation:DescribeStackResources'
                         ],
                         Resource: [ cf.join(['arn:aws:cloudformation:', cf.region, ':', cf.accountId,':stack/', cf.stackName, '-*' ])]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            'cloudformation:ListStacks'
+                        ],
+                        Resource: [ '*' ]
                     },{
                         Effect: 'Allow',
                         Action: [
@@ -226,9 +240,23 @@ const Resources = {
                         Effect: 'Allow', // These are all required to spin up a prediction stack
                         Action: [
                             'iam:PassRole',
+                            'logs:DescribeLogGroups',
                             'ecs:CreateService',
                             'ecs:DescribeServices',
+                            'iam:CreateInstanceProfile',
+                            'lambda:GetLayerVersion',
+                            'iam:AddRoleToInstanceProfile',
+                            'ec2:DescribeInstances',
+                            'elasticloadbalancing:AddTags',
+                            'autoscaling:CreateLaunchConfiguration',
+                            'autoscaling:CreateAutoScalingGroup',
+                            'autoscaling:DescribeAutoScalingInstances',
+                            'logs:CreateLogGroup',
+                            'logs:PutRetentionPolicy',
+                            'autoscaling:UpdateAutoScalingGroup',
                             'elasticloadbalancing:DescribeListeners',
+                            'elasticloadbalancing:ModifyLoadBalancerAttributes',
+                            'autoscaling:DescribeLaunchConfigurations',
                             'lambda:CreateEventSourceMapping',
                             'elasticloadbalancingv2:CreateListener',
                             'elasticloadbalancing:CreateListener',
@@ -265,8 +293,17 @@ const Resources = {
                     },{
                         Effect: 'Allow', // And these are required to delete it
                         Action: [
+                            'ec2:createTags',
                             'ecs:DeleteService',
                             'ec2:DeleteSecurityGroup',
+                            'logs:DeleteLogGroup',
+                            'autoscaling:DeleteAutoScalingGroup',
+                            'autoscaling:DescribeAutoScalingGroup',
+                            'autoscaling:DescribeAutoScalingGroups',
+                            'autoscaling:DeleteLaunchConfiguration',
+                            'autoscaling:DescribeScalingActivities',
+                            'iam:RemoveRoleFromInstanceProfile',
+                            'iam:DeleteInstanceProfile',
                             'elasticloadbalancingv2:DeleteLoadBalancer',
                             'elasticloadbalancingv2:DeleteListener',
                             'elasticloadbalancingv2:DeleteTargetGroup',
@@ -287,8 +324,10 @@ const Resources = {
                     },{
                         Effect: 'Allow',
                         Action: [
+                            'sqs:PurgeQueue',
                             'sqs:SendMessage',
                             'sqs:ChangeMessageVisibility',
+                            'sqs:ListQueues',
                             'sqs:GetQueueUrl',
                             'sqs:GetQueueAttributes'
                         ],
@@ -380,10 +419,9 @@ const Resources = {
                 LogConfiguration: {
                     LogDriver: 'awslogs',
                     Options: {
-                        'awslogs-group': cf.join('-', ['awslogs', cf.stackName]),
+                        'awslogs-group': cf.stackName,
                         'awslogs-region': cf.region,
-                        'awslogs-stream-prefix': cf.join('-', ['awslogs', cf.stackName]),
-                        'awslogs-create-group': true
+                        'awslogs-stream-prefix': cf.join('-', ['awslogs', cf.stackName])
                     }
                 },
                 Essential: true
@@ -665,7 +703,11 @@ const Resources = {
                 Statement: [{
                     Effect: 'Allow',
                     Principal: {
-                        Service: 'ecs-tasks.amazonaws.com'
+                        Service: [
+                            'ec2.amazonaws.com',
+                            'ecs.amazonaws.com',
+                            'ecs-tasks.amazonaws.com'
+                        ]
                     },
                     Action: 'sts:AssumeRole'
                 }]
@@ -682,6 +724,12 @@ const Resources = {
                             'logs:DescribeLogStreams'
                         ],
                         Resource: [ 'arn:aws:logs:*:*:*' ]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            'elasticloadbalancing:*'
+                        ],
+                        Resource: '*'
                     }]
                 }
             }],
@@ -762,11 +810,18 @@ const Outputs = {
             Name: cf.join('-', [cf.stackName, 'scaling-role'])
         }
     },
-    InternalExecRole: {
+    InternalExecRoleARN: {
         Description: 'Container Exec Role',
         Value: cf.getAtt('PredExecRole', 'Arn'),
         Export: {
-            Name: cf.join('-', [cf.stackName, 'exec-role'])
+            Name: cf.join('-', [cf.stackName, 'exec-role-arn'])
+        }
+    },
+    InternalExecRoleName: {
+        Description: 'Container Exec Role',
+        Value: cf.ref('PredExecRole'),
+        Export: {
+            Name: cf.join('-', [cf.stackName, 'exec-role-name'])
         }
     },
     InternalTaskRole: {
@@ -785,7 +840,7 @@ const Outputs = {
     },
     InternalCluster: {
         Description: 'The ARN of the Cluster',
-        Value: cf.getAtt('MLEnablerECSCluster', 'Arn'),
+        Value: cf.ref('MLEnablerECSCluster'),
         Export: {
             Name: cf.join('-', [cf.stackName, 'cluster'])
         }
