@@ -1,11 +1,11 @@
 <template>
     <div class="col col--12">
         <div class='col col--12 clearfix py6'>
-            <h2 @click='close' class='fl cursor-pointer txt-underline-on-hover'>Models</h2>
+            <h2 @click='$router.push({ name: "home" })' class='fl cursor-pointer txt-underline-on-hover'>Models</h2>
             <h2 class='fl px6'>&gt;</h2>
             <h2 @click='mode = "model"' class='fl cursor-pointer txt-underline-on-hover' v-text='model.name + " - " + model.source'></h2>
 
-            <button @click='close' class='btn fr round btn--stroke color-gray color-black-on-hover'>
+            <button @click='$router.push({ name: "home" })' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-close'/></svg>
             </button>
 
@@ -130,30 +130,26 @@ import Imagery from './Imagery.vue';
 
 export default {
     name: 'Model',
-    props: ['model', 'meta'],
+    props: ['meta', 'stacks'],
     data: function() {
         return {
             mode: 'model',
             predictions: [],
+            model: {},
             imagery: [],
             imageryid: false,
             prediction: {
-                modelId: this.model.modelId,
+                modelId: this.$route.params.modelid,
                 version: '',
                 tileZoom: 18,
                 bbox: [-180.0, -90.0, 180.0, 90.0]
-            },
-            stacks: {
-                models: [],
-                predictions: [],
-                names: []
             }
         }
     },
     watch: {
         mode: function() {
             if (this.mode === 'editPrediction') {
-                this.prediction.modelId = this.model.modelId;
+                this.prediction.modelId = this.$route.params.modelid;
                 this.prediction.version = '';
                 this.prediction.tileZoom = 18;
                 this.prediction.bbox = [-180.0, -90.0, 180.0, 90.0];
@@ -173,8 +169,8 @@ export default {
             this.mode = 'model';
 
             this.getPredictions();
+            this.getModel();
             this.getImagery();
-            this.getStacks();
         },
         close: function() {
             this.$emit('close');
@@ -201,7 +197,7 @@ export default {
             this.mode = 'editImagery';
         },
         getPredictions: function() {
-            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/all`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/all`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -221,19 +217,17 @@ export default {
                 }
             });
         },
-        getStacks: function() {
-            fetch(window.api + '/v1/stacks', {
+        getModel: function() {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
             }).then((res) => {
-                if (!res.error) {
-                    this.stacks = res;
-                }
+                this.model = res;
             });
         },
         getImagery: function() {
-            fetch(window.api + `/v1/model/${this.model.modelId}/imagery`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();

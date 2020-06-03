@@ -11,12 +11,12 @@ Vue.use(VueRouter);
 Vue.config.productionTip = false
 
 const router = new VueRouter({
-    mode: 'history',
+    mode: 'hash',
     routes: [
-        { path: '/admin/', name: 'home', component: Home },
-        { path: '/admin/model/new', name: 'newmodel', component: Model },
-        { path: '/admin/model/:model', name: 'model', component: Model },
-        { path: '/admin/model/:model/edit', name: 'editmodel', component: EditModel }
+        { path: '/', name: 'home', component: Home },
+        { path: '/model/new', name: 'newmodel', component: Model },
+        { path: '/model/:modelid', name: 'model', component: Model },
+        { path: '/model/:modelid/edit', name: 'editmodel', component: EditModel }
     ]
 });
 

@@ -21,12 +21,12 @@
                 </div>
             </template>
             <template v-else>
-                <div @click='showModel(model)' :key='model.modelId' v-for='model in models' class='cursor-pointer bg-darken10-on-hover col col--12 py12'>
+                <div @click='$router.push({ name: "model", params: { modelid: model.modelId } })' :key='model.modelId' v-for='model in models' class='cursor-pointer bg-darken10-on-hover col col--12 py12'>
                     <div class='col col--12 grid py6 px12'>
                         <div class='col col--6'>
                             <div class='col col--12 clearfix'>
                                 <h3 class='txt-h4 fl' v-text='model.name'></h3>
-                                <svg @click.prevent.stop='editModel(model.modelId)' class='fl my6 mx6 icon cursor-pointer color-gray-light color-gray-on-hover'><use href='#icon-pencil'/></svg>
+                                <svg @click.prevent.stop='$router.push({ name: "editmodel", params: { modelid: model.modelId } })' class='fl my6 mx6 icon cursor-pointer color-gray-light color-gray-on-hover'><use href='#icon-pencil'/></svg>
                             </div>
                             <div class='col col--12'>
                                 <h3 class='txt-xs' v-text='model.source'></h3>
@@ -51,23 +51,9 @@
 <script>
 export default {
     name: 'Home',
+    props: ['meta', 'stacks'],
     data: function() {
         return {
-            stacks: {
-                models: [],
-                predictions: [],
-                stacks: []
-            },
-            model: {
-                modelId: false,
-                name: '',
-                source: '',
-                projectUrl: ''
-            },
-            meta: {
-                version: 1,
-                environemnt: 'docker'
-            },
             models: []
         }
     },
@@ -77,48 +63,10 @@ export default {
     methods: {
         refresh: function() {
             this.getModels();
-            this.getMeta();
-            this.getStacks();
         },
         external: function(url) {
             if (!url) return;
-
             window.open(url, "_blank")
-        },
-        showModel: function(model) {
-            this.model.modelId = model.modelId;
-            this.model.name = model.name;
-            this.model.source = model.source;
-            this.model.projectUrl = model.projectUrl;
-            this.mode = 'model'
-        },
-        editModel: function(modelId) {
-            if (!modelId) return;
-
-            this.mode = 'editmodel';
-            this.getModel(modelId);
-        },
-        getMeta: function() {
-            fetch(window.api + '/v1', {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.meta = res;
-            }).catch((err) => {
-                console.error(err);
-            });
-        },
-        getStacks: function() {
-            fetch(window.api + '/v1/stacks', {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                if (!res.error) {
-                    this.stacks = res;
-                }
-            });
         },
         getModels: function() {
             this.mode = 'models';
@@ -133,15 +81,6 @@ export default {
                 } else {
                     this.models = res;
                 }
-            });
-        },
-        getModel: function(modelId) {
-            fetch(window.api + `/v1/model/${modelId}`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.model = res;
             });
         }
     }
