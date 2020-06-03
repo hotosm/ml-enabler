@@ -15,14 +15,15 @@
         "filepond-plugin-file-validate-type": "^1.2.4",
         "semver-sort": "^0.0.4",
         "vue": "^2.6.11",
-        "vue-filepond": "^6.0.2"
+        "vue-filepond": "^6.0.2",
+        "vue-router": "^3.1.6"
     },
     "devDependencies": {
         "@vue/cli-plugin-babel": "^4.2.0",
         "@vue/cli-plugin-eslint": "^4.2.0",
         "@vue/cli-service": "^4.2.0",
         "babel-eslint": "^10.0.3",
-        "eslint": "^6.7.2",
+        "eslint": "^7.1.0",
         "eslint-plugin-vue": "^6.1.2",
         "vue-template-compiler": "^2.6.11"
     },
