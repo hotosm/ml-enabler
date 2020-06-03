@@ -13,7 +13,7 @@
                 <svg class='icon'><use href='#icon-link'/></svg>
             </button>
 
-            <button v-if='mode === "model"' @click='edit' class='mr12 btn fr round btn--stroke color-gray color-black-on-hover'>
+            <button v-if='mode === "model"' @click='$router.push({ name: "editmodel", params: { modelid: $route.params.modelid } })' class='mr12 btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-pencil'/></svg>
             </button>
 
@@ -174,9 +174,6 @@ export default {
         },
         close: function() {
             this.$emit('close');
-        },
-        edit: function() {
-            this.$emit('edit', this.model);
         },
         showPrediction: function(pred) {
             this.prediction = pred;

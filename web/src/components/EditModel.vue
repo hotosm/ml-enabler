@@ -1,14 +1,14 @@
 <template>
     <div class="col col--12">
         <div class='col col--12 clearfix py6'>
-            <h2 v-if='model.modelId' class='fl'>Modify Model</h2>
+            <h2 v-if='$route.params.modelid !== "new"' class='fl'>Modify Model</h2>
             <h2 v-else class='fl cursor-default'>Add Model</h2>
 
-            <button @click='close' class='btn fr round btn--stroke color-gray color-black-on-hover'>
+            <button @click='$router.push({ path: "/" });' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-close'/></svg>
             </button>
 
-            <button v-if='model.modelId' @click='deleteModel(model.modelId)' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
+            <button v-if='$route.params.modelid !== "new"' @click='deleteModel($route.params.modelid)' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
                 <svg class='icon'><use href='#icon-trash'/></svg>
             </button>
         </div>
@@ -30,7 +30,7 @@
                 </div>
 
                 <div class='col col--12 py12'>
-                    <button v-if='model.modelId' @click='postModel' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Model</button>
+                    <button v-if='$route.params.modelid !== "new"' @click='postModel' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Model</button>
                     <button v-else @click='postModel' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Model</button>
                 </div>
             </div>
@@ -41,34 +41,48 @@
 <script>
 export default {
     name: 'EditModel',
-    props: ['model'],
+    props: ['meta'],
+    data: function() {
+        return {
+            model: {}
+        }
+    },
+    mounted: function() {
+        this.getModel();
+    },
     methods: {
-        close: function() {
-            this.$emit('close');
-        },
         postModel: function() {
-            fetch(window.api + `/v1/model${this.model.modelId ? '/' + this.model.modelId : ''}`, {
-                method: this.model.modelId ? 'PUT' : 'POST',
+            fetch(window.api + `/v1/model${this.$route.params.modelid !== 'new' ? '/' + this.$route.params.modelid : ''}`, {
+                method: this.$route.params.modelid ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    modelId: this.model.modelId ? this.model.modelId : undefined,
+                    modelId: this.$route.params.modelid !== "new" ? this.$route.params.modelid : undefined,
                     name: this.model.name,
                     source: this.model.source,
                     projectUrl: this.model.projectUrl
                 })
             }).then(() => {
-                this.close();
+                this.$router.push({ path: '/' });
+            });
+        },
+        getModel: function() {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.model = res;
             });
         },
         deleteModel: function() {
-            fetch(window.api + `/v1/model/${this.model.modelId}`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}`, {
                 method: 'DELETE'
             }).then((res) => {
                 return res.json();
             }).then(() => {
-                this.close();
+                this.$router.push({ path: '/' });
             });
         }
     }
