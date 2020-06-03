@@ -14,7 +14,7 @@ const router = new VueRouter({
     mode: 'hash',
     routes: [
         { path: '/', name: 'home', component: Home },
-        { path: '/model/new', name: 'newmodel', component: Model },
+        { path: '/model/new', name: 'newmodel', component: EditModel },
         { path: '/model/:modelid', name: 'model', component: Model },
         { path: '/model/:modelid/edit', name: 'editmodel', component: EditModel }
     ]

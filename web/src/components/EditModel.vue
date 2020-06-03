@@ -1,14 +1,14 @@
 <template>
     <div class="col col--12">
         <div class='col col--12 clearfix py6'>
-            <h2 v-if='$route.params.modelid !== "new"' class='fl'>Modify Model</h2>
+            <h2 v-if='!newModel' class='fl'>Modify Model</h2>
             <h2 v-else class='fl cursor-default'>Add Model</h2>
 
             <button @click='$router.push({ path: "/" });' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-close'/></svg>
             </button>
 
-            <button v-if='$route.params.modelid !== "new"' @click='deleteModel($route.params.modelid)' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
+            <button v-if='!newModel' @click='deleteModel($route.params.modelid)' class='mr12 btn fr round btn--stroke color-gray color-red-on-hover'>
                 <svg class='icon'><use href='#icon-trash'/></svg>
             </button>
         </div>
@@ -30,7 +30,7 @@
                 </div>
 
                 <div class='col col--12 py12'>
-                    <button v-if='$route.params.modelid !== "new"' @click='postModel' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Model</button>
+                    <button v-if='!newModel' @click='postModel' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Model</button>
                     <button v-else @click='postModel' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Model</button>
                 </div>
             </div>
@@ -44,6 +44,7 @@ export default {
     props: ['meta'],
     data: function() {
         return {
+            newModel: this.$route.name === 'newmodel',
             model: {}
         }
     },
@@ -52,13 +53,13 @@ export default {
     },
     methods: {
         postModel: function() {
-            fetch(window.api + `/v1/model${this.$route.params.modelid !== 'new' ? '/' + this.$route.params.modelid : ''}`, {
+            fetch(window.api + `/v1/model${!this.newModel ? '/' + this.$route.params.modelid : ''}`, {
                 method: this.$route.params.modelid ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    modelId: this.$route.params.modelid !== "new" ? this.$route.params.modelid : undefined,
+                    modelId: !this.newModel ? this.$route.params.modelid : undefined,
                     name: this.model.name,
                     source: this.model.source,
                     projectUrl: this.model.projectUrl
@@ -68,6 +69,8 @@ export default {
             });
         },
         getModel: function() {
+            if (this.$route.name === "newmodel") return;
+
             fetch(window.api + `/v1/model/${this.$route.params.modelid}`, {
                 method: 'GET'
             }).then((res) => {
