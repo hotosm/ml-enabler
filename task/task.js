@@ -228,7 +228,7 @@ function docker(tmp, model) {
             }
 
             CP.execSync(`
-                docker run -d --name serving_base tensorflow/serving:serving:2.1.0-gpu
+                docker run -d --name serving_base tensorflow/serving:2.1.0-gpu
             `);
 
             CP.execSync(`
