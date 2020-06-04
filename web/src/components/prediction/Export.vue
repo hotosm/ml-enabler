@@ -64,11 +64,11 @@
 </template>
 
 <script>
-import PredictionHeader from './PredictionHeader.vue';
+import PredictionHeader from './../PredictionHeader.vue';
 
 export default {
     name: 'Export',
-    props: ['meta', 'model', 'prediction', 'tilejson'],
+    props: ['meta', 'tilejson'],
     data: function() {
         return {
             loading: false,
@@ -81,7 +81,7 @@ export default {
     },
     methods: {
         getExport: function() {
-            const url = new URL(`${window.location.origin}${window.api}/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/export`);
+            const url = new URL(`${window.location.origin}${window.api}/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/export`);
 
             url.searchParams.set('format', this.params.format);
             url.searchParams.set('inferences', this.params.inferences);

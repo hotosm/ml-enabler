@@ -3,7 +3,7 @@
         <div class='col col--12 clearfix py6'>
             <h2 class='fl cursor-default' v-text='"Prediction: " + prediction.versionString'></h2>
 
-            <button @click='close' class='btn fr round btn--stroke color-gray color-black-on-hover'>
+            <button @click='$router.push({ name: "model", params: { modelid: $route.params.modelid } })' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-close'/></svg>
             </button>
 
@@ -48,14 +48,12 @@
                 <template v-else>
                     <div class='align-center pb6'>Upload a model to get started</div>
 
-                    <UploadPrediction :prediction='prediction' v-on:close='close'/>
+                    <UploadPrediction :prediction='prediction' v-on:close='$router.push({ name: "model", params: { modelid: $route.params.modelid } })'/>
                 </template>
             </template>
             <template v-else-if='mode === "stack"'>
                 <Stack
                     :meta='meta'
-                    :model='model'
-                    :imagery='imagery'
                     :prediction='prediction'
                     v-on:mode='mode = $event'
                 />
@@ -74,7 +72,7 @@
                 <template v-if='tiles'>
                     <div class='align-center pb6'>Prediction Tiles</div>
 
-                    <Map :model='model' :prediction='prediction' :tilejson='tiles'/>
+                    <Map :prediction='prediction' :tilejson='tiles'/>
                 </template>
                 <template v-else>
                     <div class='col col--12 py6'>
@@ -91,7 +89,6 @@
             <template v-else-if='mode === "export"'>
                 <Export
                     :meta='meta'
-                    :model='model'
                     :prediction='prediction'
                     :tilejson='tiles'
                     v-on:mode='mode = $event'
@@ -102,18 +99,19 @@
 </template>
 
 <script>
-import UploadPrediction from './UploadPrediction.vue';
+import UploadPrediction from './prediction/UploadPrediction.vue';
 import PredictionHeader from './PredictionHeader.vue';
-import Export from './Export.vue';
-import Stack from './Stack.vue';
-import Map from './Map.vue';
+import Export from './prediction/Export.vue';
+import Stack from './prediction/Stack.vue';
+import Map from './prediction/Map.vue';
 
 export default {
     name: 'Prediction',
-    props: ['meta', 'imagery', 'model', 'prediction'],
+    props: ['meta'],
     data: function() {
         return {
             mode: 'assets',
+            prediction: {},
             tiles: false
         }
     },
@@ -128,9 +126,6 @@ export default {
         UploadPrediction
     },
     methods: {
-        close: function() {
-            this.$emit('close');
-        },
         ecrLink(ecr) {
             const url = `https://console.aws.amazon.com/ecr/repositories/${ecr.split(':')[0]}/`;
             this.external(url);
@@ -146,9 +141,19 @@ export default {
         },
         refresh: function() {
             this.getTilejson();
+            this.getPrediction();
+        },
+        getPrediction: function() {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.prediction = res;
+            });
         },
         getTilejson: function() {
-            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/tiles`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/tiles`, {
                 method: 'GET',
                 credentials: 'same-origin'
             }).then((res) => {

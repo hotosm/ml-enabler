@@ -44,7 +44,10 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div :key='pred.predictionsId' v-for='pred in predictions' @click='showPrediction(pred)' class='cursor-pointer col col--12'>
+                        <div :key='pred.predictionsId' v-for='pred in predictions' @click='$router.push({ name: "prediction", params: {
+                            modelid: $route.params.modelid,
+                            predid: pred.predictionsId
+                        }})' class='cursor-pointer col col--12'>
                             <div class='col col--12 grid py6 px12 bg-darken10-on-hover'>
                                 <div class='col col--6'>
                                     <div class='col col--12 clearfix'>
@@ -109,24 +112,14 @@
             <template v-else-if='mode === "editPrediction"'>
                 <CreatePrediction :modelid='model.modelId' v-on:close='refresh' />
             </template>
-            <template v-else-if='mode === "showPrediction"'>
-                <Prediction
-                    :meta='meta'
-                    :imagery='imagery'
-                    :model='model'
-                    :prediction='prediction'
-                    v-on:close='refresh'
-                />
-            </template>
         </div>
     </div>
 </template>
 
 <script>
 import vSort from 'semver-sort';
-import Prediction from './Prediction.vue';
-import CreatePrediction from './CreatePrediction.vue';
 import Imagery from './Imagery.vue';
+import CreatePrediction from './CreatePrediction.vue';
 
 export default {
     name: 'Model',
@@ -158,7 +151,6 @@ export default {
     },
     components: {
         Imagery,
-        Prediction,
         CreatePrediction
     },
     mounted: function() {
@@ -174,10 +166,6 @@ export default {
         },
         close: function() {
             this.$emit('close');
-        },
-        showPrediction: function(pred) {
-            this.prediction = pred;
-            this.mode = 'showPrediction';
         },
         external: function(url) {
             if (!url) return;
