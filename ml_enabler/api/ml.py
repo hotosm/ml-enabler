@@ -1001,6 +1001,13 @@ class PredictionUploadAPI(Resource):
                 "error": "model exists"
             }, 400
 
+class PredictionSingleAPI(Resource):
+    def get(self, model_id, prediction_id):
+        prediction = PredictionService.get_prediction_json(prediction_id)
+
+        return prediction, 400
+
+
 class PredictionAPI(Resource):
     """ Methods to manage ML predictions """
 
