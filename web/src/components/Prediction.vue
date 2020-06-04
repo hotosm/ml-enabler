@@ -141,6 +141,7 @@ export default {
         },
         refresh: function() {
             this.getTilejson();
+            this.getPrediction();
         },
         getPrediction: function() {
             fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}`, {

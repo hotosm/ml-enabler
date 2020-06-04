@@ -260,10 +260,6 @@ export default {
         }
     },
     mounted: function() {
-        if (this.imagery.length === 1) {
-            this.params.image = this.imagery[0];
-        }
-
         this.refresh();
     },
     methods: {
@@ -372,6 +368,10 @@ export default {
                 return res.json();
             }).then((res) => {
                 this.imagery = res;
+
+                if (this.imagery.length === 1) {
+                    this.params.image = this.imagery[0];
+                }
             }).catch((err) => {
                 alert(err);
             });
