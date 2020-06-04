@@ -205,11 +205,11 @@
 
 <script>
 import TileMap from './TileMap.vue';
-import PredictionHeader from './PredictionHeader.vue';
+import PredictionHeader from './../PredictionHeader.vue';
 
 export default {
     name: 'Stack',
-    props: ['meta', 'model', 'prediction', 'imagery'],
+    props: ['meta', 'prediction'],
     data: function() {
         return {
             advanced: false,
@@ -228,6 +228,7 @@ export default {
             },
             looping: false,
             tagit: 0,
+            imagery: [],
             params: {
                 type: 'classification',
                 image: false,
@@ -269,11 +270,12 @@ export default {
         refresh: function() {
             this.getStatus();
             this.getQueue();
+            this.getImagery();
         },
         purgeQueue: function() {
             this.loading.queue = true;
 
-            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack/tiles`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack/tiles`, {
                 method: 'DELETE'
             }).then(() => {
                 this.getQueue();
@@ -282,7 +284,7 @@ export default {
         getQueue: function() {
             this.loading.queue = true;
 
-            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack/tiles`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack/tiles`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -294,7 +296,7 @@ export default {
         postQueue: function(geojson) {
             this.loading.stack = true;
 
-            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack/tiles`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack/tiles`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -338,7 +340,7 @@ export default {
         getStatus: function() {
             this.loading.stack = true;
 
-            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
@@ -352,7 +354,7 @@ export default {
         deleteStack: function() {
             this.loading.stack = true;
 
-            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack`, {
                 method: 'DELETE'
             }).then((res) => {
                 return res.json();
@@ -361,6 +363,17 @@ export default {
                 this.loading.stack = false;
 
                 if (!this.looping) this.loop();
+            });
+        },
+        getImagery: function() {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.imagery = res;
+            }).catch((err) => {
+                alert(err);
             });
         },
         emitmode: function(mode) {
@@ -372,7 +385,7 @@ export default {
 
             this.loading.stack = true;
 
-            fetch(window.api + `/v1/model/${this.model.modelId}/prediction/${this.prediction.predictionsId}/stack`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

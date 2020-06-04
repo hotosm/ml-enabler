@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import bboxPolygon from '../../node_modules/@turf/bbox-polygon/index.js';
+import bboxPolygon from '../../../node_modules/@turf/bbox-polygon/index.js';
 
 export default {
     name: 'TileMap',

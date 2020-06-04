@@ -95,12 +95,12 @@
 </template>
 
 <script>
-import buffer from '../../node_modules/@turf/buffer/index.js';
-import bboxPolygon from '../../node_modules/@turf/bbox-polygon/index.js';
+import buffer from '../../../node_modules/@turf/buffer/index.js';
+import bboxPolygon from '../../../node_modules/@turf/bbox-polygon/index.js';
 
 export default {
     name: 'Map',
-    props: ['model', 'prediction', 'tilejson'],
+    props: ['prediction', 'tilejson'],
     data: function() {
         return {
             bg: 'default',
@@ -304,7 +304,7 @@ export default {
             }
         },
         getImagery: function() {
-            fetch(window.api + `/v1/model/${this.model.modelId}/imagery`, {
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
                 method: 'GET'
             }).then((res) => {
                 return res.json();

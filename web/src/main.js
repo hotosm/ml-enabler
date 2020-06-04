@@ -20,7 +20,7 @@ const router = new VueRouter({
         { path: '/model/:modelid', name: 'model', component: Model },
         { path: '/model/:modelid/edit', name: 'editmodel', component: EditModel },
 
-        { path: '/model/:modelid/prediction/:prediction', name: 'prediction', component: Prediction },
+        { path: '/model/:modelid/prediction/:predid', name: 'prediction', component: Prediction },
     ]
 });
 
