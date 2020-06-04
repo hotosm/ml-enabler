@@ -70,20 +70,6 @@ class PredictionService():
             raise NotFound('Prediction does not exist')
 
     @staticmethod
-    def get_prediction_json(prediction_id: int):
-        """
-        Get a JSON representation of a prediction
-        :params prediction_id
-        """
-
-        prediction = Prediction.get(prediction_id)
-
-        if prediction:
-            return prediction.as_dto()
-        else:
-            raise PredictionsNotFound
-
-    @staticmethod
     def get_prediction_by_id(prediction_id: int):
         """
         Get a prediction by ID

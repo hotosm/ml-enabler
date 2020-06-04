@@ -10,6 +10,7 @@ from flask import Response
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
+from ml_enabler.models.ml_model import MLModelVersion
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.services.imagery_service import ImageryService
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
@@ -1003,9 +1004,23 @@ class PredictionUploadAPI(Resource):
 
 class PredictionSingleAPI(Resource):
     def get(self, model_id, prediction_id):
-        prediction = PredictionService.get_prediction_json(prediction_id)
+        prediction = PredictionService.get_prediction_by_id(prediction_id)
+        version = MLModelVersion.get(prediction.version_id)
 
-        return prediction, 400
+        pred = {
+            "predictionsId": prediction.id,
+            "modelId": prediction.model_id,
+            "versionId": prediction.version_id,
+            "versionString": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
+            "dockerUrl": prediction.docker_url,
+            "tileZoom": prediction.tile_zoom,
+            "logLink": prediction.log_link,
+            "modelLink": prediction.model_link,
+            "dockerLink": prediction.docker_link,
+            "saveLink": prediction.save_link
+        }
+
+        return pred, 400
 
 
 class PredictionAPI(Resource):
