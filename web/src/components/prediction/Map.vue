@@ -147,6 +147,9 @@ export default {
         });
     },
     methods: {
+        infValidity: function(valid) {
+            console.error('VALID: ', valid);
+        },
         hide: function() {
             for (const inf of this.tilejson.inferences) {
                 this.map.setLayoutProperty(`inf-${inf}`, 'visibility', 'none');
@@ -273,6 +276,37 @@ export default {
                 });
 
                 this.filter(inf);
+
+                this.map.on('click', `inf-${inf}`, (e) => {
+                    if (
+                        e.features.length === 0
+                        || !e.features[0].properties[this.inf]
+                        || e.features[0].properties[this.inf] === 0
+                    ) return;
+
+                    new mapboxgl.Popup({
+                        className: 'infpop'
+                    })
+                        .setLngLat(e.lngLat)
+                        .setHTML(`
+                            <div class='col col--12'>
+                                <h1 class="txt-h5 mb3 align-center">Inf Geom</h1>
+                                <button id="valid" class="w-full round btn btn--gray color-green-on-hover btn--s btn--stroke mb6">Valid</button>
+                                <button id="invalid" class="w-full round btn btn--gray color-red-on-hover btn--s btn--stroke">Invalid</button>
+                            </div>
+                        `)
+                        .setMaxWidth("200px")
+                        .addTo(this.map);
+
+                    this.$nextTick(() => {
+                        document.querySelector('#valid').addEventListener('click', () => {
+                            this.infValidity(true)
+                        });
+                        document.querySelector('#invalid').addEventListener('click', () => {
+                            this.infValidity(false)
+                        });
+                    });
+                });
 
                 this.map.on('mousemove', `inf-${inf}`, (e) => {
                     if (
