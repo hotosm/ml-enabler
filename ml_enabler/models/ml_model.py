@@ -114,6 +114,9 @@ class PredictionTile(db.Model):
 
         return PredictionTile.query.get(predictiontile_id)
 
+    def update(self):
+        db.session.commit()
+
     @staticmethod
     def inferences(prediction_id: int):
         results = db.session.execute(text('''

@@ -1009,28 +1009,34 @@ class PredictionValidity(Resource):
 
             inferences = PredictionService.inferences(prediction_id)
 
-            final = {}
+            if payload.get("id") is None or payload.get("validity") is None:
+                return {
+                    "status": 400,
+                    "error": "id and validity keys must be present"
+                }, 400
+
+            tile = PredictionTileService.get(payload["id"])
+            if tile is None:
+                return {
+                    "status": 404,
+                    "error": "prediction tile not found"
+                }, 404
+
+            if tile is None:
+                current = {}
+
+            current = tile.validity
             for inf in inferences:
-                p = payload.get(inf)
+                p = payload["validity"].get(inf)
 
                 if p is None or type(p) is not bool:
                     continue
 
-                final[inf] = payload.get(inf)
+                current[inf] = p
 
-            tile = PredictionTileService.get(28455)
-            if tile is None:
-                return {
-                    "status": 404,
-                    "error": "model not found"
-                }, 404
+            PredictionTileService.validity(payload["id"], current)
 
-            tile = tile.validity
-            if tile is None:
-                current = {}
-
-            print(current, final)
-
+            return current, 200
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)

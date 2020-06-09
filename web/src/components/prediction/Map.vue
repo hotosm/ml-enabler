@@ -103,6 +103,7 @@ export default {
     props: ['prediction', 'tilejson'],
     data: function() {
         return {
+            popup: false,
             bg: 'default',
             inf: false,
             inspect: false,
@@ -147,9 +148,13 @@ export default {
         });
     },
     methods: {
-        infValidity: function(valid) {
-            const body = {};
-            body[this.inf] = valid;
+        infValidity: function(id, valid) {
+            const body = {
+                id: id,
+                validity: {}
+            };
+
+            body.validity[this.inf] = valid;
 
             fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/validity`, {
                 method: 'POST',
@@ -160,7 +165,7 @@ export default {
             }).then((res) => {
                 return res.json();
             }).then(() => {
-                
+
             }).catch((err) => {
                 alert(err);
             });
@@ -299,7 +304,7 @@ export default {
                         || e.features[0].properties[this.inf] === 0
                     ) return;
 
-                    console.error(e.features[0]);
+                    this.popup = e.features[0].properties.id;
 
                     new mapboxgl.Popup({
                         className: 'infpop'
@@ -317,10 +322,10 @@ export default {
 
                     this.$nextTick(() => {
                         document.querySelector('#valid').addEventListener('click', () => {
-                            this.infValidity(true)
+                            this.infValidity(this.popup, true)
                         });
                         document.querySelector('#invalid').addEventListener('click', () => {
-                            this.infValidity(false)
+                            this.infValidity(this.popup, false)
                         });
                     });
                 });
