@@ -170,10 +170,8 @@ class PredictionTileService():
     @staticmethod
     def validity(predictiontile_id, validity):
         tile = PredictionTile.get(predictiontile_id)
+        tile.update(validity)
 
-        tile.validity = validity
-
-        tile.update()
     @staticmethod
     def mvt(model_id, prediction_id, z, x, y):
         """

@@ -1,4 +1,7 @@
 import mercantile
+import json
+from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy.ext.mutable import MutableDict
 from ml_enabler import db
 from ml_enabler.models.utils import timestamp
 from ml_enabler.utils import bbox_to_polygon_wkt, geojson_to_bbox
@@ -95,7 +98,7 @@ class PredictionTile(db.Model):
     quadkey_geom = db.Column(Geometry('POLYGON', srid=4326), nullable=False)
     centroid = db.Column(Geometry('POINT', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
-    validity = db.Column(postgresql.JSONB, nullable=True)
+    validity = db.Column(MutableDict.as_mutable(postgresql.JSONB), nullable=True)
 
     prediction_tiles_quadkey_idx = db.Index(
         'prediction_tiles_quadkey_idx',
@@ -114,7 +117,11 @@ class PredictionTile(db.Model):
 
         return PredictionTile.query.get(predictiontile_id)
 
-    def update(self):
+    def update(self, validity):
+        self.validity = validity
+
+        print(self.id, self.validity)
+
         db.session.commit()
 
     @staticmethod
