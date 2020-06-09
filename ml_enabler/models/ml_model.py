@@ -1,4 +1,7 @@
 import mercantile
+import json
+from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy.ext.mutable import MutableDict
 from ml_enabler import db
 from ml_enabler.models.utils import timestamp
 from ml_enabler.utils import bbox_to_polygon_wkt, geojson_to_bbox
@@ -95,12 +98,29 @@ class PredictionTile(db.Model):
     quadkey_geom = db.Column(Geometry('POLYGON', srid=4326), nullable=False)
     centroid = db.Column(Geometry('POINT', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
+    validity = db.Column(MutableDict.as_mutable(postgresql.JSONB), nullable=True)
 
     prediction_tiles_quadkey_idx = db.Index(
         'prediction_tiles_quadkey_idx',
         'prediction_tiles.quadkey',
         postgresql_ops={ 'quadkey': 'text_pattern_ops' }
     )
+
+    @staticmethod
+    def get(predictiontile_id: int):
+
+        query = db.session.query(
+            PredictionTile.id,
+            PredictionTile.prediction_id,
+            PredictionTile.validity,
+        ).filter(PredictionTile.id == predictiontile_id)
+
+        return PredictionTile.query.get(predictiontile_id)
+
+    def update(self, validity):
+        self.validity = validity
+
+        db.session.commit()
 
     @staticmethod
     def inferences(prediction_id: int):
@@ -152,17 +172,28 @@ class PredictionTile(db.Model):
 
         result = db.session.execute(text('''
             SELECT
-                ST_AsMVT(q, 'data', 4096, 'geom') AS mvt
+                ST_AsMVT(q, 'data', 4096, 'geom', 'id') AS mvt
             FROM (
                 SELECT
-                    quadkey AS id,
-                    predictions AS props,
+                    p.id AS id,
+                    quadkey AS quadkey,
+                    predictions || COALESCE(v.validity, '{}'::JSONB) AS props,
                     ST_AsMVTGeom(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326), 4096, 256, false) AS geom
                 FROM
-                    prediction_tiles
+                    prediction_tiles AS p
+                    LEFT JOIN (
+                        SELECT
+                            id,
+                            JSONB_Object_Agg('v_'||key, value) AS validity
+                        FROM
+                            prediction_tiles,
+                            jsonb_each(validity)
+                        GROUP BY
+                            id
+                    ) AS v ON p.id = v.id
                 WHERE
-                    prediction_id = :pred
-                    AND ST_Intersects(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326))
+                    p.prediction_id = :pred
+                    AND ST_Intersects(p.quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326))
             ) q
         '''), {
             'pred': prediction_id,

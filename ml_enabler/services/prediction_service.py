@@ -164,6 +164,15 @@ class PredictionTileService():
         connection.execute(PredictionTile.__table__.insert(), data['predictions'])
 
     @staticmethod
+    def get(predictiontile_id):
+        return PredictionTile.get(predictiontile_id)
+
+    @staticmethod
+    def validity(predictiontile_id, validity):
+        tile = PredictionTile.get(predictiontile_id)
+        tile.update(validity)
+
+    @staticmethod
     def mvt(model_id, prediction_id, z, x, y):
         """
         :params model_id

@@ -1002,25 +1002,76 @@ class PredictionUploadAPI(Resource):
                 "error": "model exists"
             }, 400
 
+class PredictionValidity(Resource):
+    def post(self, model_id, prediction_id):
+        try:
+            payload = request.get_json()
+
+            inferences = PredictionService.inferences(prediction_id)
+
+            if payload.get("id") is None or payload.get("validity") is None:
+                return {
+                    "status": 400,
+                    "error": "id and validity keys must be present"
+                }, 400
+
+            tile = PredictionTileService.get(payload["id"])
+            if tile is None:
+                return {
+                    "status": 404,
+                    "error": "prediction tile not found"
+                }, 404
+
+            current = tile.validity
+            if current is None:
+                current = {}
+
+            for inf in inferences:
+                p = payload["validity"].get(inf)
+
+                if p is None or type(p) is not bool:
+                    continue
+
+                current[inf] = p
+
+            PredictionTileService.validity(payload["id"], current)
+
+            return current, 200
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
+
 class PredictionSingleAPI(Resource):
     def get(self, model_id, prediction_id):
-        prediction = PredictionService.get_prediction_by_id(prediction_id)
-        version = MLModelVersion.get(prediction.version_id)
+        try:
+            prediction = PredictionService.get_prediction_by_id(prediction_id)
+            version = MLModelVersion.get(prediction.version_id)
 
-        pred = {
-            "predictionsId": prediction.id,
-            "modelId": prediction.model_id,
-            "versionId": prediction.version_id,
-            "versionString": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
-            "dockerUrl": prediction.docker_url,
-            "tileZoom": prediction.tile_zoom,
-            "logLink": prediction.log_link,
-            "modelLink": prediction.model_link,
-            "dockerLink": prediction.docker_link,
-            "saveLink": prediction.save_link
-        }
+            pred = {
+                "predictionsId": prediction.id,
+                "modelId": prediction.model_id,
+                "versionId": prediction.version_id,
+                "versionString": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
+                "dockerUrl": prediction.docker_url,
+                "tileZoom": prediction.tile_zoom,
+                "logLink": prediction.log_link,
+                "modelLink": prediction.model_link,
+                "dockerLink": prediction.docker_link,
+                "saveLink": prediction.save_link
+            }
 
-        return pred, 400
+            return pred, 200
+        except Exception as e:
+            error_msg = f'Unhandled error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return {
+                "status": 500,
+                "error": error_msg
+            }, 500
 
 
 class PredictionAPI(Resource):

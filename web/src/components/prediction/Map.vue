@@ -71,7 +71,7 @@
                     </div>
                     <div class='flex-parent flex-parent--center-main'>
                         <div class='flex-child'>
-                            <span v-text='this.inf'></span>: <span v-text='(this.inspect * 100).toFixed(1)'></span>%
+                            <span v-text='inf'></span>: <span v-text='(inspect * 100).toFixed(1)'></span>%
                         </div>
                     </div>
                 </template>
@@ -103,6 +103,8 @@ export default {
     props: ['prediction', 'tilejson'],
     data: function() {
         return {
+            popup: false,
+            popupid: false,
             bg: 'default',
             inf: false,
             inspect: false,
@@ -147,6 +149,38 @@ export default {
         });
     },
     methods: {
+        infValidity: function(id, valid) {
+            this.popup.remove();
+
+            const prop = {};
+            prop[`v_${this.inf}`] = valid;
+            this.map.setFeatureState({
+                id: id,
+                source: 'tiles',
+                sourceLayer: 'data'
+            }, prop);
+
+            const body = {
+                id: id,
+                validity: {}
+            };
+
+            body.validity[this.inf] = valid;
+
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/validity`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            }).then((res) => {
+                return res.json();
+            }).then(() => {
+
+            }).catch((err) => {
+                alert(err);
+            });
+        },
         hide: function() {
             for (const inf of this.tilejson.inferences) {
                 this.map.setLayoutProperty(`inf-${inf}`, 'visibility', 'none');
@@ -264,7 +298,14 @@ export default {
                     source: 'tiles',
                     'source-layer': 'data',
                     paint: {
-                        'fill-color': '#ff0000',
+                        'fill-color': [
+                            'case',
+                            ['==', ["feature-state", `v_${inf}`], false], '#ffffff',
+                            ['==', ["feature-state", `v_${inf}`], true], '#00ff00',
+                            ['==', ['get', `v_${inf}`], false], '#ffffff',
+                            ['==', ['get', `v_${inf}`], true], '#00ff00',
+                            '#ff0000'
+                        ],
                         'fill-opacity': [
                             'number',
                             [ '*', ['get', inf], (this.opacity / 100) ]
@@ -273,6 +314,39 @@ export default {
                 });
 
                 this.filter(inf);
+
+                this.map.on('click', `inf-${inf}`, (e) => {
+                    if (
+                        e.features.length === 0
+                        || !e.features[0].properties[this.inf]
+                        || e.features[0].properties[this.inf] === 0
+                    ) return;
+
+                    this.popupid = e.features[0].id;
+
+                    this.popup = new mapboxgl.Popup({
+                        className: 'infpop'
+                    })
+                        .setLngLat(e.lngLat)
+                        .setHTML(`
+                            <div class='col col--12'>
+                                <h1 class="txt-h5 mb3 align-center">Inf Geom</h1>
+                                <button id="valid" class="w-full round btn btn--gray color-green-on-hover btn--s btn--stroke mb6">Valid</button>
+                                <button id="invalid" class="w-full round btn btn--gray color-red-on-hover btn--s btn--stroke">Invalid</button>
+                            </div>
+                        `)
+                        .setMaxWidth("200px")
+                        .addTo(this.map);
+
+                    this.$nextTick(() => {
+                        document.querySelector('#valid').addEventListener('click', () => {
+                            this.infValidity(this.popupid, true)
+                        });
+                        document.querySelector('#invalid').addEventListener('click', () => {
+                            this.infValidity(this.popupid, false)
+                        });
+                    });
+                });
 
                 this.map.on('mousemove', `inf-${inf}`, (e) => {
                     if (
