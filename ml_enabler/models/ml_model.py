@@ -95,13 +95,24 @@ class PredictionTile(db.Model):
     quadkey_geom = db.Column(Geometry('POLYGON', srid=4326), nullable=False)
     centroid = db.Column(Geometry('POINT', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
-    validity = db.Column(postgresql.JSONB, nullable=False)
+    validity = db.Column(postgresql.JSONB, nullable=True)
 
     prediction_tiles_quadkey_idx = db.Index(
         'prediction_tiles_quadkey_idx',
         'prediction_tiles.quadkey',
         postgresql_ops={ 'quadkey': 'text_pattern_ops' }
     )
+
+    @staticmethod
+    def get(predictiontile_id: int):
+
+        query = db.session.query(
+            PredictionTile.id,
+            PredictionTile.prediction_id,
+            PredictionTile.validity,
+        ).filter(PredictionTile.id == predictiontile_id)
+
+        return PredictionTile.query.get(predictiontile_id)
 
     @staticmethod
     def inferences(prediction_id: int):
@@ -156,7 +167,8 @@ class PredictionTile(db.Model):
                 ST_AsMVT(q, 'data', 4096, 'geom') AS mvt
             FROM (
                 SELECT
-                    quadkey AS id,
+                    id AS id,
+                    quadkey AS quadkey,
                     predictions AS props,
                     ST_AsMVTGeom(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326), 4096, 256, false) AS geom
                 FROM

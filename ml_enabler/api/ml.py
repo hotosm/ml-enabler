@@ -1018,6 +1018,19 @@ class PredictionValidity(Resource):
 
                 final[inf] = payload.get(inf)
 
+            tile = PredictionTileService.get(28455)
+            if tile is None:
+                return {
+                    "status": 404,
+                    "error": "model not found"
+                }, 404
+
+            tile = tile.validity
+            if tile is None:
+                current = {}
+
+            print(current, final)
+
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)

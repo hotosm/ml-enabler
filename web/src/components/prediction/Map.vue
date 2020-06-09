@@ -299,6 +299,8 @@ export default {
                         || e.features[0].properties[this.inf] === 0
                     ) return;
 
+                    console.error(e.features[0]);
+
                     new mapboxgl.Popup({
                         className: 'infpop'
                     })
