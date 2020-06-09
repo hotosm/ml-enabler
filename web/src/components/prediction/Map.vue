@@ -152,6 +152,14 @@ export default {
         infValidity: function(id, valid) {
             this.popup.remove();
 
+            const prop = {};
+            prop[`v_${this.inf}`] = valid;
+            this.map.setFeatureState({
+                id: id,
+                source: 'tiles',
+                sourceLayer: 'data'
+            }, prop);
+
             const body = {
                 id: id,
                 validity: {}
@@ -290,7 +298,14 @@ export default {
                     source: 'tiles',
                     'source-layer': 'data',
                     paint: {
-                        'fill-color': '#ff0000',
+                        'fill-color': [
+                            'case',
+                            ['==', ["feature-state", `v_${inf}`], false], '#ffffff',
+                            ['==', ["feature-state", `v_${inf}`], true], '#00ff00',
+                            ['==', ['get', `v_${inf}`], false], '#ffffff',
+                            ['==', ['get', `v_${inf}`], true], '#00ff00',
+                            '#ff0000'
+                        ],
                         'fill-opacity': [
                             'number',
                             [ '*', ['get', inf], (this.opacity / 100) ]
@@ -307,8 +322,7 @@ export default {
                         || e.features[0].properties[this.inf] === 0
                     ) return;
 
-                    this.popupid = e.features[0].properties.id;
-                    console.error(e.features[0]);
+                    this.popupid = e.features[0].id;
 
                     this.popup = new mapboxgl.Popup({
                         className: 'infpop'

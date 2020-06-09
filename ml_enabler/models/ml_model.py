@@ -120,8 +120,6 @@ class PredictionTile(db.Model):
     def update(self, validity):
         self.validity = validity
 
-        print(self.id, self.validity)
-
         db.session.commit()
 
     @staticmethod
@@ -174,10 +172,10 @@ class PredictionTile(db.Model):
 
         result = db.session.execute(text('''
             SELECT
-                ST_AsMVT(q, 'data', 4096, 'geom') AS mvt
+                ST_AsMVT(q, 'data', 4096, 'geom', 'id') AS mvt
             FROM (
                 SELECT
-                    v.id AS id,
+                    p.id AS id,
                     quadkey AS quadkey,
                     predictions || COALESCE(v.validity, '{}'::JSONB) AS props,
                     ST_AsMVTGeom(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326), 4096, 256, false) AS geom
