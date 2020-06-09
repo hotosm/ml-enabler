@@ -71,7 +71,7 @@
                     </div>
                     <div class='flex-parent flex-parent--center-main'>
                         <div class='flex-child'>
-                            <span v-text='this.inf'></span>: <span v-text='(this.inspect * 100).toFixed(1)'></span>%
+                            <span v-text='inf'></span>: <span v-text='(inspect * 100).toFixed(1)'></span>%
                         </div>
                     </div>
                 </template>
@@ -148,7 +148,22 @@ export default {
     },
     methods: {
         infValidity: function(valid) {
-            console.error('VALID: ', valid);
+            const body = {};
+            body[this.inf] = valid;
+
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/validity`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            }).then((res) => {
+                return res.json();
+            }).then(() => {
+                
+            }).catch((err) => {
+                alert(err);
+            });
         },
         hide: function() {
             for (const inf of this.tilejson.inferences) {

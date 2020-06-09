@@ -95,6 +95,7 @@ class PredictionTile(db.Model):
     quadkey_geom = db.Column(Geometry('POLYGON', srid=4326), nullable=False)
     centroid = db.Column(Geometry('POINT', srid=4326))
     predictions = db.Column(postgresql.JSONB, nullable=False)
+    validity = db.Column(postgresql.JSONB, nullable=False)
 
     prediction_tiles_quadkey_idx = db.Index(
         'prediction_tiles_quadkey_idx',
