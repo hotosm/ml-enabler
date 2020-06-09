@@ -177,15 +177,25 @@ class PredictionTile(db.Model):
                 ST_AsMVT(q, 'data', 4096, 'geom') AS mvt
             FROM (
                 SELECT
-                    id AS id,
+                    v.id AS id,
                     quadkey AS quadkey,
-                    predictions AS props,
+                    predictions || COALESCE(v.validity, '{}'::JSONB) AS props,
                     ST_AsMVTGeom(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326), 4096, 256, false) AS geom
                 FROM
-                    prediction_tiles
+                    prediction_tiles AS p
+                    LEFT JOIN (
+                        SELECT
+                            id,
+                            JSONB_Object_Agg('v_'||key, value) AS validity
+                        FROM
+                            prediction_tiles,
+                            jsonb_each(validity)
+                        GROUP BY
+                            id
+                    ) AS v ON p.id = v.id
                 WHERE
-                    prediction_id = :pred
-                    AND ST_Intersects(quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326))
+                    p.prediction_id = :pred
+                    AND ST_Intersects(p.quadkey_geom, ST_Transform(ST_MakeEnvelope(:minx, :miny, :maxx, :maxy, 3857), 4326))
             ) q
         '''), {
             'pred': prediction_id,

@@ -104,6 +104,7 @@ export default {
     data: function() {
         return {
             popup: false,
+            popupid: false,
             bg: 'default',
             inf: false,
             inspect: false,
@@ -149,6 +150,8 @@ export default {
     },
     methods: {
         infValidity: function(id, valid) {
+            this.popup.remove();
+
             const body = {
                 id: id,
                 validity: {}
@@ -304,9 +307,10 @@ export default {
                         || e.features[0].properties[this.inf] === 0
                     ) return;
 
-                    this.popup = e.features[0].properties.id;
+                    this.popupid = e.features[0].properties.id;
+                    console.error(e.features[0]);
 
-                    new mapboxgl.Popup({
+                    this.popup = new mapboxgl.Popup({
                         className: 'infpop'
                     })
                         .setLngLat(e.lngLat)
@@ -322,10 +326,10 @@ export default {
 
                     this.$nextTick(() => {
                         document.querySelector('#valid').addEventListener('click', () => {
-                            this.infValidity(this.popup, true)
+                            this.infValidity(this.popupid, true)
                         });
                         document.querySelector('#invalid').addEventListener('click', () => {
-                            this.infValidity(this.popup, false)
+                            this.infValidity(this.popupid, false)
                         });
                     });
                 });
