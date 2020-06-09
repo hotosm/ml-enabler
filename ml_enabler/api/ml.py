@@ -1022,10 +1022,10 @@ class PredictionValidity(Resource):
                     "error": "prediction tile not found"
                 }, 404
 
-            if tile is None:
+            current = tile.validity
+            if current is None:
                 current = {}
 
-            current = tile.validity
             for inf in inferences:
                 p = payload["validity"].get(inf)
 
