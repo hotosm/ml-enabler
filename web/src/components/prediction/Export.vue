@@ -18,6 +18,7 @@
                             <option value='geojson'>GeoJSON</option>
                             <option value='geojsonld'>GeoJSON LD</option>
                             <option value='csv'>CSV</option>
+                            <option value='npz'>NPZ</option>
                         </select>
                         <div class='select-arrow'></div>
                     </div>

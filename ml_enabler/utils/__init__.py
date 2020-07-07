@@ -94,6 +94,9 @@ class InvalidGeojson(Exception):
     """ Custom exception for invalid GeoJSON"""
     pass
 
+class NoValid(Exception): 
+    """ Custom exception for invalid NPZ request"""
+    pass
 
 def validate_geojson(data):
     """

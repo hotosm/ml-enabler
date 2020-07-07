@@ -61,23 +61,7 @@
                     </div>
                 </div>
 
-                <div class='col col--4'>
-                    <label>Model Type:</label>
-                    <div class='select-container'>
-                        <select v-model='params.type' class='select'>
-                            <option value='classification'>Classification</option>
-                            <option value='detection'>Object Detection</option>
-                        </select>
-                        <div class='select-arrow'></div>
-                    </div>
-                </div>
 
-                <template v-if='params.type === "classification"'>
-                    <div class='col col--8'>
-                        <label>Inferences List:</label>
-                        <input v-model='params.inferences' type='text' class='input' placeholder='buildings,schools,roads,...'/>
-                    </div>
-                </template>
 
                 <template v-if='!advanced'>
                     <div class='col col--12'>
@@ -230,9 +214,7 @@ export default {
             tagit: 0,
             imagery: [],
             params: {
-                type: 'classification',
                 image: false,
-                inferences: '',
                 maxSize: '1',
                 maxConcurrency: '50',
                 tags: []
@@ -397,9 +379,7 @@ export default {
                             Value: tag.Value
                         };
                     }),
-                    type: this.params.type,
                     imagery: this.params.image.url,
-                    inferences: this.params.inferences,
                     maxSize: this.params.maxSize,
                     maxConcurrency: this.params.maxConcurrency
                 })

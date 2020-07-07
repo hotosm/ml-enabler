@@ -246,6 +246,9 @@ class Prediction(db.Model):
     model_link =  db.Column(db.String)
     docker_link =  db.Column(db.String)
     save_link = db.Column(db.String)
+    inf_list = db.Column(db.String)
+    inf_type = db.Column(db.String)
+    inf_binary = db.Column(db.Boolean) #should this be String? 
 
     def create(self, prediction_dto: PredictionDTO):
         """ Creates and saves the current model to the DB """
@@ -255,6 +258,9 @@ class Prediction(db.Model):
         self.docker_url = prediction_dto.docker_url
         self.bbox = ST_GeomFromText(bbox_to_polygon_wkt(prediction_dto.bbox), 4326)
         self.tile_zoom = prediction_dto.tile_zoom
+        self.inf_list = prediction_dto.inf_list
+        self.inf_type = prediction_dto.inf_type
+        self.inf_binary = prediction_dto.inf_binary
 
         db.session.add(self)
         db.session.commit()
@@ -283,6 +289,7 @@ class Prediction(db.Model):
             PredictionTile.quadkey,
             ST_AsGeoJSON(PredictionTile.quadkey_geom).label('geometry'),
             PredictionTile.predictions,
+            PredictionTile.validity
         ).filter(PredictionTile.prediction_id == self.id).yield_per(100)
 
     @staticmethod
@@ -299,7 +306,10 @@ class Prediction(db.Model):
             ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
             Prediction.model_id,
             Prediction.tile_zoom,
-            Prediction.version_id
+            Prediction.version_id,
+            Prediction.inf_list,
+            Prediction.inf_type, 
+            Prediction.inf_binary
         ).filter(Prediction.id == prediction_id)
 
         return Prediction.query.get(prediction_id)
@@ -322,7 +332,10 @@ class Prediction(db.Model):
             Prediction.log_link,
             Prediction.model_link,
             Prediction.docker_link,
-            Prediction.save_link
+            Prediction.save_link,
+            Prediction.inf_list,
+            Prediction.inf_type, 
+            Prediction.inf_binary
         ).filter(Prediction.model_id == model_id)
 
         return query.all()
@@ -388,6 +401,9 @@ class Prediction(db.Model):
         prediction_dto.model_link = prediction[8]
         prediction_dto.docker_link = prediction[9]
         prediction_dto.save_link = prediction[10]
+        prediction_dto.inf_list = prediction[11]
+        prediction_dto.inf_type = prediction[12]
+        prediction_dto.inf_binary = prediction[13]
 
         return prediction_dto
 

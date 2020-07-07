@@ -1,5 +1,5 @@
 from schematics import Model
-from schematics.types import StringType, IntType, DateTimeType, ListType, FloatType
+from schematics.types import StringType, IntType, DateTimeType, ListType, FloatType, BooleanType
 
 
 class MLModelDTO(Model):
@@ -22,6 +22,9 @@ class PredictionDTO(Model):
     docker_url = StringType(serialized_name='dockerUrl')
     bbox = ListType(FloatType, required=True)
     tile_zoom = IntType(serialized_name='tileZoom', required=True)
+    inf_list = StringType(serialized_name='infList', required=True)
+    inf_type = StringType(serialized_name='infType', required=True)
+    inf_binary = BooleanType(serialized_name='infBinary', required=True)
 
     """ Asset Status
         log_link - store a link to the AWS CloudWatch Console

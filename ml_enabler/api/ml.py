@@ -1,5 +1,5 @@
 import ml_enabler.config as CONFIG
-import io, os, pyproj, json, csv, geojson, boto3
+import io, os, pyproj, json, csv, geojson, boto3, mercantile
 from tiletanic import tilecover, tileschemes
 from shapely.geometry import shape
 from shapely.ops import transform
@@ -15,8 +15,10 @@ from ml_enabler.services.prediction_service import PredictionService, Prediction
 from ml_enabler.services.imagery_service import ImageryService
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
     PredictionsNotFound, ImageryNotFound
-from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson
+from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson, NoValid
 from sqlalchemy.exc import IntegrityError
+import numpy as np
+
 
 class MetaAPI(Resource):
     """
@@ -389,18 +391,68 @@ class PredictionExport(Resource):
         req_threshold = request.args.get('threshold', '0')
 
         req_threshold = float(req_threshold)
-
         stream = PredictionService.export(prediction_id)
 
         inferences = PredictionService.inferences(prediction_id)
+
+        pred = PredictionService.get_prediction_by_id(prediction_id)
+
         first = False
 
         if req_inferences != 'all':
             inferences = [ req_inferences ]
 
+        def generate_npz():
+            labels_dict ={}
+            for row in stream:
+                if req_inferences != 'all' and row[3].get(req_inferences) is None:
+                    continue
+                if req_inferences != 'all' and row[3].get(req_inferences) <= req_threshold:
+                    continue
+                if row[4]:
+                    i_lst = pred.inf_list.split(",")
+
+                    #convert raw predictions into 0 or 1 based on threshold
+                    raw_pred = [row[3][i_lst[0]], row[3][i_lst[1]]]
+                    l = [1 if score >= req_threshold else 0 for score in raw_pred]
+
+                    #convert quadkey to x-y-z
+                    t = '-'.join([str(i) for i in mercantile.quadkey_to_tile(row[1])])
+
+                    # special case for binary                
+                    if (pred.inf_binary) and (len(i_lst) != 2): 
+                            return {
+                            "status": 400,
+                            "error": "binary models must have two catagories"
+                            }, 400             
+                    if (len(i_lst) == 2) and (pred.inf_binary): 
+                        if list(row[4].values())[0]: #validated and true, keep original
+                            labels_dict.update({t:l})
+                        else:
+                            if l == [1, 0]:
+                                l = [0, 1]
+                            else:
+                                l = [1, 0]
+                            labels_dict.update({t:l})
+                    else:
+                        # for multi-label
+                        for key in list(row[4].keys()):
+                            i = i_lst.index(key)
+                            if not row[4][key]:
+                                if l[i] == 0:
+                                    l[i] = 1
+                                else:
+                                    l[i] = 0
+                        labels_dict.update({t:l})
+            if not labels_dict: 
+                raise NoValid
+
+            bytestream = io.BytesIO()
+            np.savez(bytestream, **labels_dict)
+            return bytestream.getvalue()
+
         def generate():
             nonlocal first
-
             if req_format == "geojson":
                 yield '{ "type": "FeatureCollection", "features": ['
             elif req_format == "csv":
@@ -411,7 +463,6 @@ class PredictionExport(Resource):
                 yield output.getvalue()
 
             for row in stream:
-
                 if req_inferences != 'all' and row[3].get(req_inferences) is None:
                     continue
 
@@ -419,14 +470,21 @@ class PredictionExport(Resource):
                     continue
 
                 if req_format == "geojson" or req_format == "geojsonld":
+                    properties_dict = {}
+                    if row[4]: 
+                        properties_dict = row[3]
+                        valid_dict = {}
+                        valid_dict.update({'validity': row[4]})
+                        properties_dict.update(valid_dict)
+                    else: 
+                        properties_dict = row[3]
                     feat = {
                         "id": row[0],
                         "quadkey": row[1],
                         "type": "Feature",
-                        "properties": row[3],
+                        "properties": properties_dict,
                         "geometry": json.loads(row[2])
                     }
-
                     if req_format == "geojsonld":
                         yield json.dumps(feat) + '\n'
                     elif req_format == "geojson":
@@ -437,18 +495,16 @@ class PredictionExport(Resource):
                             yield ',\n' + json.dumps(feat)
                 elif req_format == "csv":
                     output = io.StringIO()
-                    rowdata = [ row[0], row[1], row[2] ]
+                    rowdata = [ row[0], row[1], row[2]]
                     for inf in inferences:
                         rowdata.append(row[3].get(inf, 0.0))
                     csv.writer(output, quoting=csv.QUOTE_NONNUMERIC).writerow(rowdata)
                     yield output.getvalue()
                 else:
-                    raise "Unsupported export format"
+                    return {"status": 501, "error": "not a valid export type, valid export types are: geojson, csv, and npz"}, 501
 
             if req_format == "geojson":
                 yield ']}'
-
-
 
         if req_format == "csv":
             mime = "text/csv"
@@ -456,15 +512,33 @@ class PredictionExport(Resource):
             mime = "application/geo+json"
         elif req_format == "geojsonld":
             mime = "application/geo+json-seq"
-
-        return Response(
-            generate(),
-            mimetype = mime,
-            status = 200,
-            headers = {
-                "Content-Disposition": 'attachment; filename="export."' + req_format
-            }
-        )
+        elif req_format == "npz":
+            mime = "application/npz"
+        if req_format == "npz":
+            try: 
+                npz = generate_npz()
+                return Response(
+                response = generate_npz(),
+                mimetype = mime,
+                status = 200,
+                headers = {
+                    "Content-Disposition": 'attachment; filename="export.' + req_format + '"'
+                }
+            )        
+            except NoValid: 
+                return {
+                    "status": 400,
+                    "error": "Can only return npz if predictions are validated. Currently there are no valid predictions"
+                }, 400     
+        else:
+            return Response(
+                generate(),
+                mimetype = mime,
+                status = 200,
+                headers = {
+                    "Content-Disposition": 'attachment; filename="export.' + req_format + '"'
+                }
+            )
 
 class PredictionInfAPI(Resource):
     """ Add GeoJSON to SQS Inference Queue """
@@ -740,12 +814,7 @@ class PredictionStackAPI(Resource):
                 "error": "imagery key required in body"
             }, 400
 
-        if payload.get("inferences") is None:
-            return {
-                "status": 400,
-                "error": "inferences key required in body"
-            }, 400
-
+        pred = PredictionService.get_prediction_by_id(prediction_id) 
         image = "models-{model}-prediction-{prediction}".format(
             model=model_id,
             prediction=prediction_id
@@ -776,7 +845,7 @@ class PredictionStackAPI(Resource):
                     'ParameterValue': image,
                 },{
                     'ParameterKey': 'Inferences',
-                    'ParameterValue': payload["inferences"],
+                    'ParameterValue': pred.inf_list,
                 },{
                     'ParameterKey': 'PredictionId',
                     'ParameterValue': str(prediction_id)
