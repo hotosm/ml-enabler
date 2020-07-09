@@ -991,7 +991,7 @@ class PredictionUploadAPI(Resource):
             }, 501
 
         modeltype = request.args.get('type', 'model')
-        if modeltype not in ["model", "tfrecords", "checkpoint"]
+        if modeltype not in ["model", "tfrecords", "checkpoint"]:
             return {
                 "status": 400,
                 "error": "Unsupported type param"
@@ -1033,7 +1033,7 @@ class PredictionUploadAPI(Resource):
                     "error": "Failed to upload model to S3"
                 }, 500
 
-            if modeltype == "model"
+            if modeltype == "model":
                 # Save the model link to ensure UI shows upload success
                 try:
                     PredictionService.patch(prediction_id, {
