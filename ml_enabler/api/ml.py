@@ -1140,7 +1140,9 @@ class PredictionSingleAPI(Resource):
                 "logLink": prediction.log_link,
                 "modelLink": prediction.model_link,
                 "dockerLink": prediction.docker_link,
-                "saveLink": prediction.save_link
+                "saveLink": prediction.save_link,
+                "tfrecordLink": prediction.tfrecord_link,
+                "checkpointLink": prediction.checkpoint_link
             }
 
             return pred, 200
