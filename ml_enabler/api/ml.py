@@ -419,13 +419,13 @@ class PredictionExport(Resource):
                     #convert quadkey to x-y-z
                     t = '-'.join([str(i) for i in mercantile.quadkey_to_tile(row[1])])
 
-                    # special case for binary                
-                    if (pred.inf_binary) and (len(i_lst) != 2): 
+                    # special case for binary
+                    if (pred.inf_binary) and (len(i_lst) != 2):
                             return {
                             "status": 400,
                             "error": "binary models must have two catagories"
-                            }, 400             
-                    if (len(i_lst) == 2) and (pred.inf_binary): 
+                            }, 400
+                    if (len(i_lst) == 2) and (pred.inf_binary):
                         if list(row[4].values())[0]: #validated and true, keep original
                             labels_dict.update({t:l})
                         else:
@@ -444,7 +444,7 @@ class PredictionExport(Resource):
                                 else:
                                     l[i] = 0
                         labels_dict.update({t:l})
-            if not labels_dict: 
+            if not labels_dict:
                 raise NoValid
 
             bytestream = io.BytesIO()
@@ -471,12 +471,12 @@ class PredictionExport(Resource):
 
                 if req_format == "geojson" or req_format == "geojsonld":
                     properties_dict = {}
-                    if row[4]: 
+                    if row[4]:
                         properties_dict = row[3]
                         valid_dict = {}
                         valid_dict.update({'validity': row[4]})
                         properties_dict.update(valid_dict)
-                    else: 
+                    else:
                         properties_dict = row[3]
                     feat = {
                         "id": row[0],
@@ -515,7 +515,7 @@ class PredictionExport(Resource):
         elif req_format == "npz":
             mime = "application/npz"
         if req_format == "npz":
-            try: 
+            try:
                 npz = generate_npz()
                 return Response(
                 response = generate_npz(),
@@ -524,12 +524,12 @@ class PredictionExport(Resource):
                 headers = {
                     "Content-Disposition": 'attachment; filename="export.' + req_format + '"'
                 }
-            )        
-            except NoValid: 
+            )
+            except NoValid:
                 return {
                     "status": 400,
                     "error": "Can only return npz if predictions are validated. Currently there are no valid predictions"
-                }, 400     
+                }, 400
         else:
             return Response(
                 generate(),
@@ -814,7 +814,7 @@ class PredictionStackAPI(Resource):
                 "error": "imagery key required in body"
             }, 400
 
-        pred = PredictionService.get_prediction_by_id(prediction_id) 
+        pred = PredictionService.get_prediction_by_id(prediction_id)
         image = "models-{model}-prediction-{prediction}".format(
             model=model_id,
             prediction=prediction_id
@@ -990,9 +990,18 @@ class PredictionUploadAPI(Resource):
                 "error": "Not Configured"
             }, 501
 
-        key = "models/{0}/prediction/{1}/model.zip".format(
+        modeltype = request.args.get('type', 'model')
+        if modeltype not in ["model", "tfrecords", "checkpoint"]
+            return {
+                "status": 400,
+                "error": "Unsupported type param"
+            }, 501
+
+
+        key = "models/{0}/prediction/{1}/{2}.zip".format(
             model_id,
-            prediction_id
+            prediction_id,
+            modeltype
         )
 
         try:
@@ -1024,45 +1033,46 @@ class PredictionUploadAPI(Resource):
                     "error": "Failed to upload model to S3"
                 }, 500
 
-            # Save the model link to ensure UI shows upload success
-            try:
-                PredictionService.patch(prediction_id, {
-                    "modelLink": CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
-                })
-            except Exception as e:
-                error_msg = f'SaveLink Error: {str(e)}'
-                current_app.logger.error(error_msg)
-                return {
-                    "status": 500,
-                    "error": "Failed to save model state to DB"
-                }, 500
+            if modeltype == "model"
+                # Save the model link to ensure UI shows upload success
+                try:
+                    PredictionService.patch(prediction_id, {
+                        "modelLink": CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
+                    })
+                except Exception as e:
+                    error_msg = f'SaveLink Error: {str(e)}'
+                    current_app.logger.error(error_msg)
+                    return {
+                        "status": 500,
+                        "error": "Failed to save model state to DB"
+                    }, 500
 
-            try:
-                batch = boto3.client(
-                    service_name='batch',
-                    region_name='us-east-1',
-                    endpoint_url='https://batch.us-east-1.amazonaws.com'
-                )
+                try:
+                    batch = boto3.client(
+                        service_name='batch',
+                        region_name='us-east-1',
+                        endpoint_url='https://batch.us-east-1.amazonaws.com'
+                    )
 
-                # Submit to AWS Batch to convert to ECR image
-                batch.submit_job(
-                    jobName=CONFIG.EnvironmentConfig.STACK + 'ecr-build',
-                    jobQueue=CONFIG.EnvironmentConfig.STACK + '-queue',
-                    jobDefinition=CONFIG.EnvironmentConfig.STACK + '-job',
-                    containerOverrides={
-                        'environment': [{
-                            'name': 'MODEL',
-                            'value': CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
-                        }]
-                    }
-                )
-            except Exception as e:
-                error_msg = f'Batch Error: {str(e)}'
-                current_app.logger.error(error_msg)
-                return {
-                    "status": 500,
-                    "error": "Failed to start ECR build"
-                }, 500
+                    # Submit to AWS Batch to convert to ECR image
+                    batch.submit_job(
+                        jobName=CONFIG.EnvironmentConfig.STACK + 'ecr-build',
+                        jobQueue=CONFIG.EnvironmentConfig.STACK + '-queue',
+                        jobDefinition=CONFIG.EnvironmentConfig.STACK + '-job',
+                        containerOverrides={
+                            'environment': [{
+                                'name': 'MODEL',
+                                'value': CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
+                            }]
+                        }
+                    )
+                except Exception as e:
+                    error_msg = f'Batch Error: {str(e)}'
+                    current_app.logger.error(error_msg)
+                    return {
+                        "status": 500,
+                        "error": "Failed to start ECR build"
+                    }, 500
 
             return { "status": "model uploaded" }, 200
         else:
