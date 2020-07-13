@@ -110,7 +110,7 @@
                 <Imagery :modelid='model.modelId' :imageryid='imageryid' v-on:close='refresh'/>
             </template>
             <template v-else-if='mode === "editPrediction"'>
-                <CreatePrediction :modelid='model.modelId' v-on:close='refresh' />
+                <CreatePrediction @err='$emit("err", $event)' :modelid='model.modelId' v-on:close='refresh' />
             </template>
         </div>
     </div>
