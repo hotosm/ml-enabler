@@ -3,12 +3,20 @@
         <div class='col col--12 clearfix py6'>
             <h2 class='fl cursor-default'>Models</h2>
 
-            <button @click='$router.push({ name: "newmodel" })' class='btn fr round btn--stroke color-gray color-green-on-hover'>
-                <svg class='icon'><use href='#icon-plus'/></svg>
-            </button>
-            <button @click='refresh' class='btn fr round btn--stroke color-gray color-blue-on-hover mr12'>
-                <svg class='icon'><use href='#icon-refresh'/></svg>
-            </button>
+            <div class='fr'>
+                <label class='switch-container px6'>
+                    <span class='mr6'>Archived</span>
+                    <input v-model='archived' type='checkbox' />
+                    <div class='switch'></div>
+                </label>
+
+                <button @click='refresh' class='btn round btn--stroke color-gray color-blue-on-hover mr12'>
+                    <svg class='icon'><use href='#icon-refresh'/></svg>
+                </button>
+                <button @click='$router.push({ name: "newmodel" })' class='btn round btn--stroke color-gray color-green-on-hover'>
+                    <svg class='icon'><use href='#icon-plus'/></svg>
+                </button>
+            </div>
         </div>
         <div class='border border--gray-light round'>
             <template v-if='models.length === 0'>
@@ -21,7 +29,7 @@
                 </div>
             </template>
             <template v-else>
-                <div @click='$router.push({ name: "model", params: { modelid: model.modelId } })' :key='model.modelId' v-for='model in models' class='cursor-pointer bg-darken10-on-hover col col--12 py12'>
+                <div @click='$router.push({ name: "model", params: { modelid: model.modelId } })' :key='model.modelId' v-if='!model.archived || archived' v-for='model in models' class='cursor-pointer bg-darken10-on-hover col col--12 py12'>
                     <div class='col col--12 grid py6 px12'>
                         <div class='col col--6'>
                             <div class='col col--12 clearfix'>
@@ -40,6 +48,9 @@
                             <div v-if='stacks.models.includes(model.modelId)' class='fr bg-green-faint bg-green-on-hover color-white-on-hover color-green inline-block px6 py3 round txt-xs txt-bold mr3'>
                                 Active Stack
                             </div>
+                            <div v-if='model.archived' class='fr bg-gray-faint bg-gray-on-hover color-white-on-hover color-gray inline-block px6 py3 round txt-xs txt-bold mr3'>
+                                Archived
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -54,6 +65,7 @@ export default {
     props: ['meta', 'stacks'],
     data: function() {
         return {
+            archived: false,
             models: []
         }
     },

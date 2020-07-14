@@ -432,6 +432,7 @@ class MLModel(db.Model):
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     name = db.Column(db.String, unique=True)
     source = db.Column(db.String)
+    archived = db.Column(db.Boolean)
     project_url = db.Column(db.String)
     predictions = db.relationship(
         Prediction,
@@ -445,6 +446,7 @@ class MLModel(db.Model):
 
         self.name = ml_model_dto.name
         self.source = ml_model_dto.source
+        self.archived = False
         self.project_url = ml_model_dto.project_url
 
         db.session.add(self)
@@ -485,6 +487,7 @@ class MLModel(db.Model):
         model_dto.name = self.name
         model_dto.created = self.created
         model_dto.source = self.source
+        model_dto.archived = self.archived
         model_dto.project_url = self.project_url
 
         return model_dto
@@ -495,9 +498,9 @@ class MLModel(db.Model):
         self.name = updated_ml_model_dto.name
         self.source = updated_ml_model_dto.source
         self.project_url = updated_ml_model_dto.project_url
+        self.archived = updated_ml_model_dto.archived
 
         db.session.commit()
-
 
 class MLModelVersion(db.Model):
     """ Stores versions of all subscribed ML Models """
