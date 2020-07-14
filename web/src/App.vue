@@ -1,8 +1,14 @@
 <template>
     <div id="app" class='flex-parent flex-parent--center-main relative'>
         <div class='flex-child wmax600 col col--12'>
-            <div class='flex-parent flex-parent--center-main py36'>
-                <h1 @click='$router.push({ path: "/" })' class='flex-child txt-h3 cursor-default txt-underline-on-hover cursor-pointer'>ML Enabler</h1>
+            <div class='py36 col col--12 grid'>
+                <div class='col col--2'></div>
+                <div class='col col--8'>
+                    <h1 @click='$router.push({ path: "/" })' class='align-center txt-h3 cursor-default txt-underline-on-hover cursor-pointer'>ML Enabler</h1>
+                </div>
+                <div class='col col--2'>
+                    <button class='fr btn btn--stroke btn--s round color-gray-light color-gray-on-hover'>Login</button>
+                </div>
             </div>
 
             <router-view
