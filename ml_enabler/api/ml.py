@@ -17,10 +17,13 @@ from ml_enabler.models.utils import NotFound, VersionNotFound, \
     PredictionsNotFound, ImageryNotFound
 from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson, NoValid
 from sqlalchemy.exc import IntegrityError
+from flask_login import login_required
 import numpy as np
 
 
 class MetaAPI(Resource):
+    method_decorators = [login_required]
+
     """
     Return metadata about the API
     """

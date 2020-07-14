@@ -2,12 +2,15 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_restful import Api
+from flask_login import LoginManager
 
 db = SQLAlchemy()
 migrate = Migrate()
+login_manager = LoginManager()
 
 # import models
 from ml_enabler.models import * # noqa
+from ml_enabler import auth
 
 def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
     # create and configure the app
@@ -16,6 +19,9 @@ def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
 
     db.init_app(app)
     migrate.init_app(app, db)
+    login_manager.init_app(app)
+
+    app.register_blueprint(auth.auth_bp)
 
     init_routes(app)
     return app
