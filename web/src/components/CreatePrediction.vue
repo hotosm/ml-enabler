@@ -33,22 +33,13 @@
                     <template v-if='prediction.infType === "classification"'>
                         <div class='col col--8'>
                             <label>Inferences List:</label>
+                            <label class='switch-container px6 fr'>
+                                <span class='mr6'>Binary Inference</span>
+                                <input :disabled='prediction.infList.split(",").length !== 2' v-model='prediction.infBinary' type='checkbox' />
+                                <div class='switch'></div>
+                            </label>
                             <input v-model='prediction.infList' type='text' class='input' placeholder='buildings,schools,roads,...'/>
                         </div>
-                    </template>
-                    <template v-if='prediction.infList.split(",").length === 2'>
-                        <div class='col col--4'>
-                            <label class='checkbox-container px6'>
-                                Binary Inference:
-                                <input v-model='prediction.infBinary' type='checkbox' />
-                                <div class='checkbox mx6'>
-                                    <svg class='icon'><use xlink:href='#icon-check' /></svg>
-                                </div>
-                            </label>
-                        </div>
-                        <div class='col col--8'>
-                        </div>
-
                     </template>
                     <div class='col col--12 py12'>
                         <button @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
@@ -75,7 +66,6 @@ export default {
                 predictionsId: false,
                 version: '',
                 tileZoom: '18',
-                bbox: [-180.0, -90.0, 180.0, 90.0],
                 infList: '',
                 infType: 'classification',
                 infBinary: false
@@ -93,30 +83,48 @@ export default {
         close: function() {
             this.$emit('close');
         },
-        postPrediction: function() {
-            fetch(window.api + `/v1/model/${this.modelid}/prediction`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    modelId: this.prediction.modelId,
-                    version: this.prediction.version,
-                    tileZoom: this.prediction.tileZoom,
-                    bbox: this.prediction.bbox,
-                    infList: this.prediction.infList,
-                    infType: this.prediction.infType,
-                    infBinary: this.prediction.infBinary
-                })
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
+        postPrediction: async function() {
+            if (!/^\d+\.\d+\.\d+$/.test(this.prediction.version)) {
+                return this.$emit('err', new Error('Version must be valid semver'));
+            } else if (this.prediction.infType === 'classification' && this.prediction.infList.trim().length === 0) {
+                return this.$emit('err', new Error('Classification model must have inference list'));
+            } else if (isNaN(parseInt(this.prediction.tileZoom))) {
+                return this.$emit('err', new Error('Tile Zoom must be an integer'));
+            }
+
+            try {
+                let res = await fetch(window.api + `/v1/model/${this.modelid}/prediction`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        modelId: this.prediction.modelId,
+                        version: this.prediction.version,
+                        tileZoom: this.prediction.tileZoom,
+                        bbox: [-180.0, -90.0, 180.0, 90.0],
+                        infList: this.prediction.infList,
+                        infType: this.prediction.infType,
+                        infBinary: this.prediction.infBinary
+                    })
+                });
+
+                if (!res.ok) {
+                    res = await res.json();
+                    if (res.message) {
+                        return this.$emit('err', new Error(res.message));
+                    } else {
+                        return this.$emit('err', new Error('Failed to post prediction'));
+                    }
+                }
+
+                res = await res.json();
                 this.predictionId = res.prediction_id;
                 this.prediction.predictionsId = res.prediction_id;
                 this.close();
-            }).catch((err) => {
-                alert(err);
-            });
+            } catch(err) {
+                return this.$emit('err', err);
+            }
         }
     }
 }

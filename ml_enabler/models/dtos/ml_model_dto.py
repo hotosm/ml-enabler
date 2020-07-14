@@ -9,6 +9,7 @@ class MLModelDTO(Model):
     created = DateTimeType()
     name = StringType(required=True)
     source = StringType(required=True)
+    archived = BooleanType()
     project_url = StringType(serialized_name='projectUrl')
 
 class PredictionDTO(Model):

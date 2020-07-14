@@ -1,5 +1,5 @@
 <template>
-    <div id="app" class='flex-parent flex-parent--center-main'>
+    <div id="app" class='flex-parent flex-parent--center-main relative'>
         <div class='flex-child wmax600 col col--12'>
             <div class='flex-parent flex-parent--center-main py36'>
                 <h1 @click='$router.push({ path: "/" })' class='flex-child txt-h3 cursor-default txt-underline-on-hover cursor-pointer'>ML Enabler</h1>
@@ -8,16 +8,26 @@
             <router-view
                 :meta='meta'
                 :stacks='stacks'
+                @err='err = $event'
             />
         </div>
+
+        <Err
+            v-if='err'
+            :err='err'
+            @err='err = $event'
+        />
     </div>
 </template>
 
 <script>
+import Err from './components/Err.vue';
+
 export default {
     name: 'MLEnabler',
     data: function() {
         return {
+            err: false,
             stacks: {
                 models: [],
                 predictions: [],
@@ -63,6 +73,9 @@ export default {
                 }
             });
         }
+    },
+    components: {
+        Err
     }
 }
 </script>

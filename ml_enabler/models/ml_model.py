@@ -246,9 +246,11 @@ class Prediction(db.Model):
     model_link =  db.Column(db.String)
     docker_link =  db.Column(db.String)
     save_link = db.Column(db.String)
+    tfrecord_link = db.Column(db.String)
+    checkpoint_link = db.Column(db.String)
     inf_list = db.Column(db.String)
     inf_type = db.Column(db.String)
-    inf_binary = db.Column(db.Boolean) #should this be String? 
+    inf_binary = db.Column(db.Boolean) #should this be String?
 
     def create(self, prediction_dto: PredictionDTO):
         """ Creates and saves the current model to the DB """
@@ -276,6 +278,10 @@ class Prediction(db.Model):
             self.docker_link = update["dockerLink"]
         if update.get("saveLink") is not None:
             self.save_link = update["saveLink"]
+        if update.get("tfrecordLink") is not None:
+            self.tfrecord_link = update["tfrecordLink"]
+        if update.get("checkpointLink") is not None:
+            self.checkpoint_link = update["checkpointLink"]
 
         db.session.commit()
 
@@ -307,8 +313,14 @@ class Prediction(db.Model):
             Prediction.model_id,
             Prediction.tile_zoom,
             Prediction.version_id,
+            Prediction.log_link,
+            Prediction.model_link,
+            Prediction.docker_link,
+            Prediction.save_link,
+            Prediction.tfrecord_link,
+            Prediction.checkpoint_link,
             Prediction.inf_list,
-            Prediction.inf_type, 
+            Prediction.inf_type,
             Prediction.inf_binary
         ).filter(Prediction.id == prediction_id)
 
@@ -333,8 +345,10 @@ class Prediction(db.Model):
             Prediction.model_link,
             Prediction.docker_link,
             Prediction.save_link,
+            Prediction.tfrecord_link,
+            Prediction.checkpoint_link,
             Prediction.inf_list,
-            Prediction.inf_type, 
+            Prediction.inf_type,
             Prediction.inf_binary
         ).filter(Prediction.model_id == model_id)
 
@@ -401,9 +415,11 @@ class Prediction(db.Model):
         prediction_dto.model_link = prediction[8]
         prediction_dto.docker_link = prediction[9]
         prediction_dto.save_link = prediction[10]
-        prediction_dto.inf_list = prediction[11]
-        prediction_dto.inf_type = prediction[12]
-        prediction_dto.inf_binary = prediction[13]
+        prediction_dto.tfrecord_link = prediction[11]
+        prediction_dto.checkpoint_link = prediction[12]
+        prediction_dto.inf_list = prediction[13]
+        prediction_dto.inf_type = prediction[14]
+        prediction_dto.inf_binary = prediction[15]
 
         return prediction_dto
 
@@ -416,6 +432,7 @@ class MLModel(db.Model):
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     name = db.Column(db.String, unique=True)
     source = db.Column(db.String)
+    archived = db.Column(db.Boolean)
     project_url = db.Column(db.String)
     predictions = db.relationship(
         Prediction,
@@ -429,6 +446,7 @@ class MLModel(db.Model):
 
         self.name = ml_model_dto.name
         self.source = ml_model_dto.source
+        self.archived = False
         self.project_url = ml_model_dto.project_url
 
         db.session.add(self)
@@ -469,6 +487,7 @@ class MLModel(db.Model):
         model_dto.name = self.name
         model_dto.created = self.created
         model_dto.source = self.source
+        model_dto.archived = self.archived
         model_dto.project_url = self.project_url
 
         return model_dto
@@ -479,9 +498,9 @@ class MLModel(db.Model):
         self.name = updated_ml_model_dto.name
         self.source = updated_ml_model_dto.source
         self.project_url = updated_ml_model_dto.project_url
+        self.archived = updated_ml_model_dto.archived
 
         db.session.commit()
-
 
 class MLModelVersion(db.Model):
     """ Stores versions of all subscribed ML Models """

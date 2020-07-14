@@ -30,6 +30,7 @@
                 </div>
 
                 <div class='col col--12 py12'>
+                    <button v-if='!newModel' @click='postModel(true)' class='btn btn--stroke round fl color-gray color-red-on-hover'>Archive Model</button>
                     <button v-if='!newModel' @click='postModel' class='btn btn--stroke round fr color-blue-light color-blue-on-hover'>Update Model</button>
                     <button v-else @click='postModel' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Model</button>
                 </div>
@@ -52,7 +53,7 @@ export default {
         this.getModel();
     },
     methods: {
-        postModel: function() {
+        postModel: function(archive) {
             fetch(window.api + `/v1/model${!this.newModel ? '/' + this.$route.params.modelid : ''}`, {
                 method: this.$route.params.modelid ? 'PUT' : 'POST',
                 headers: {
@@ -62,7 +63,8 @@ export default {
                     modelId: !this.newModel ? this.$route.params.modelid : undefined,
                     name: this.model.name,
                     source: this.model.source,
-                    projectUrl: this.model.projectUrl
+                    projectUrl: this.model.projectUrl,
+                    archived: archive ? true : false
                 })
             }).then(() => {
                 this.$router.push({ path: '/' });
