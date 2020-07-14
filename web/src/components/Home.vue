@@ -29,30 +29,34 @@
                 </div>
             </template>
             <template v-else>
-                <div @click='$router.push({ name: "model", params: { modelid: model.modelId } })' :key='model.modelId' v-if='!model.archived || archived' v-for='model in models' class='cursor-pointer bg-darken10-on-hover col col--12 py12'>
-                    <div class='col col--12 grid py6 px12'>
-                        <div class='col col--6'>
-                            <div class='col col--12 clearfix'>
-                                <h3 class='txt-h4 fl' v-text='model.name'></h3>
-                                <svg @click.prevent.stop='$router.push({ name: "editmodel", params: { modelid: model.modelId } })' class='fl my6 mx6 icon cursor-pointer color-gray-light color-gray-on-hover'><use href='#icon-pencil'/></svg>
-                            </div>
-                            <div class='col col--12'>
-                                <h3 class='txt-xs' v-text='model.source'></h3>
-                            </div>
-                        </div>
-                        <div class='col col--6'>
-                            <div @click.prevent.stop='external(model.projectUrl)' class='fr bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
-                                Project Page
-                            </div>
+                <div @click='$router.push({ name: "model", params: { modelid: model.modelId } })' :key='model.modelId' v-for='model in models'>
+                    <template v-if='!model.archived || archived'>
+                        <div class='cursor-pointer bg-darken10-on-hover col col--12 py12'>
+                            <div class='col col--12 grid py6 px12'>
+                                <div class='col col--6'>
+                                    <div class='col col--12 clearfix'>
+                                        <h3 class='txt-h4 fl' v-text='model.name'></h3>
+                                        <svg @click.prevent.stop='$router.push({ name: "editmodel", params: { modelid: model.modelId } })' class='fl my6 mx6 icon cursor-pointer color-gray-light color-gray-on-hover'><use href='#icon-pencil'/></svg>
+                                    </div>
+                                    <div class='col col--12'>
+                                        <h3 class='txt-xs' v-text='model.source'></h3>
+                                    </div>
+                                </div>
+                                <div class='col col--6'>
+                                    <div @click.prevent.stop='external(model.projectUrl)' class='fr bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue inline-block px6 py3 round txt-xs txt-bold cursor-pointer'>
+                                        Project Page
+                                    </div>
 
-                            <div v-if='stacks.models.includes(model.modelId)' class='fr bg-green-faint bg-green-on-hover color-white-on-hover color-green inline-block px6 py3 round txt-xs txt-bold mr3'>
-                                Active Stack
-                            </div>
-                            <div v-if='model.archived' class='fr bg-gray-faint bg-gray-on-hover color-white-on-hover color-gray inline-block px6 py3 round txt-xs txt-bold mr3'>
-                                Archived
+                                    <div v-if='stacks.models.includes(model.modelId)' class='fr bg-green-faint bg-green-on-hover color-white-on-hover color-green inline-block px6 py3 round txt-xs txt-bold mr3'>
+                                        Active Stack
+                                    </div>
+                                    <div v-if='model.archived' class='fr bg-gray-faint bg-gray-on-hover color-white-on-hover color-gray inline-block px6 py3 round txt-xs txt-bold mr3'>
+                                        Archived
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </template>
         </div>
