@@ -7,7 +7,7 @@
                     <h1 @click='$router.push({ path: "/" })' class='align-center txt-h3 cursor-default txt-underline-on-hover cursor-pointer'>ML Enabler</h1>
                 </div>
                 <div class='col col--2'>
-                    <button class='fr btn btn--stroke btn--s round color-gray-light color-gray-on-hover'>Login</button>
+                    <button @click='$router.push({ path: "/login" })' class='fr btn btn--stroke btn--s round color-gray-light color-gray-on-hover'>Login</button>
                 </div>
             </div>
 
