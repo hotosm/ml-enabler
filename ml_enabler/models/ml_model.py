@@ -24,6 +24,21 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String)
     name = db.Column(db.String)
 
+    def password_check(self, test):
+        results = db.session.execute(text('''
+             SELECT
+                password = crypt(:test, password)
+            FROM
+                users
+            WHERE
+                id = :uid
+        '''), {
+            'test': test,
+            'uid': self.id
+        }).fetchall()
+
+        return results[0][0]
+
 class Imagery(db.Model):
     """ Store an imagery source for a given model """
     __tablename__ = 'imagery'

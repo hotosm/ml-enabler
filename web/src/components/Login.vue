@@ -73,7 +73,7 @@ export default {
                 if (!res.ok) throw new Error('Incorrect username or password');
 
                 this.$emit('auth');
-                this.$router.push('/data')
+                this.$router.push('/')
             }).catch((err) => {
                 this.$emit('err', err);
             });

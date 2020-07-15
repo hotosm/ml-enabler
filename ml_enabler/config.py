@@ -11,6 +11,8 @@ class EnvironmentConfig:
     # One of 'docker' or 'aws'
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'docker');
 
+    SECRET_KEY = os.getenv('SECRET_KEY', 'secretkey');
+
     # Database connection
     POSTGRES_USER = os.getenv('POSTGRES_USER', None)
     POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', None)
