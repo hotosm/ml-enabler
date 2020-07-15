@@ -37,6 +37,7 @@
                     :meta='meta'
                     :stacks='stacks'
                     @err='err = $event'
+                    @auth='refresh'
                 />
             </template>
         </div>
