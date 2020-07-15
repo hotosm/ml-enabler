@@ -7,7 +7,8 @@
                     <h1 @click='$router.push({ path: "/" })' class='align-center txt-h3 cursor-default txt-underline-on-hover cursor-pointer'>ML Enabler</h1>
                 </div>
                 <div class='col col--2'>
-                    <button @click='$router.push({ path: "/login" })' class='fr btn btn--stroke btn--s round color-gray-light color-gray-on-hover'>Login</button>
+                    <button v-if='user.name' class='fr btn btn--stroke btn--s round color-gray color-black-on-hover' v-text='user.name'></button>
+                    <button v-else @click='$router.push({ path: "/login" })' class='fr btn btn--stroke btn--s round color-gray-light color-gray-on-hover'>Login</button>
                 </div>
             </div>
 
@@ -34,6 +35,9 @@ export default {
     data: function() {
         return {
             err: false,
+            user: {
+                name: false
+            },
             stacks: {
                 models: [],
                 predictions: [],
@@ -52,6 +56,7 @@ export default {
         refresh: function() {
             this.getMeta();
             this.getStacks();
+            this.getUser();
         },
         external: function(url) {
             if (!url) return;
@@ -64,6 +69,17 @@ export default {
                 return res.json();
             }).then((res) => {
                 this.meta = res;
+            }).catch((err) => {
+                console.error(err);
+            });
+        },
+        getUser: function() {
+            fetch(window.api + '/v1/user/self', {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.user = res;
             }).catch((err) => {
                 console.error(err);
             });

@@ -40,7 +40,12 @@ def login():
 
 @auth_bp.route('/v1/user/self', methods=['GET'])
 def meta():
-    print("HERE")
+    if current_user.is_anonymous:
+        return { "status": 401, "error": "Not Authenticated" }, 401
+
+    return {
+        "name": current_user.name
+    }, 200
 
 @auth_bp.route('/v1/user/logout', methods=['GET'])
 def logout():

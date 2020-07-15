@@ -27,9 +27,12 @@ class MetaAPI(Resource):
     Return metadata about the API
     """
     def get(self):
+        # -- NOT AUTHENTICATED --
+        # Do not put sensitive data in this response
         return {
             'version': 1,
-            'environment': CONFIG.EnvironmentConfig.ENVIRONMENT
+            'environment': CONFIG.EnvironmentConfig.ENVIRONMENT,
+            'security': 'authenticated'
         }, 200
 
 class StatusCheckAPI(Resource):
