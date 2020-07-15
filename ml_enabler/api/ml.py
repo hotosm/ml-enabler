@@ -22,7 +22,6 @@ import numpy as np
 
 
 class MetaAPI(Resource):
-    method_decorators = [login_required]
 
     """
     Return metadata about the API
@@ -48,6 +47,8 @@ class StatusCheckAPI(Resource):
         return {'hello': 'world'}, 200
 
 class MapboxAPI(Resource):
+
+    @login_required
     def get(self):
         return {
             "token": CONFIG.EnvironmentConfig.MAPBOX_TOKEN
@@ -55,6 +56,7 @@ class MapboxAPI(Resource):
 
 class MLModelAPI(Resource):
 
+    @login_required
     def post(self):
         """
         Subscribe a new ML model
@@ -99,6 +101,7 @@ class MLModelAPI(Resource):
             current_app.logger.error(f'A model with the same name already exists: {str(e)}')
             return str(e), 400
 
+    @login_required
     def delete(self, model_id):
         """
         Deletes an existing model and it's predictions
@@ -135,6 +138,7 @@ class MLModelAPI(Resource):
                 "error": error_msg
             }, 500
 
+    @login_required
     def get(self, model_id):
         """
         Get model information with the ID
@@ -171,6 +175,7 @@ class MLModelAPI(Resource):
                 "error": error_msg
             }, 500
 
+    @login_required
     def put(self, model_id):
         """
         Update an existing model
@@ -228,6 +233,8 @@ class MLModelAPI(Resource):
 
 class GetAllModels(Resource):
     """ Methods to fetch many ML models """
+
+    @login_required
     def get(self):
         """
         Get all ML models
@@ -261,6 +268,7 @@ class GetAllModels(Resource):
 class ImageryAPI(Resource):
     """ Upload imagery sources for a given model """
 
+    @login_required
     def delete(self, model_id, imagery_id):
         """
         Delete an imagery source
@@ -287,6 +295,7 @@ class ImageryAPI(Resource):
 
         return "deleted", 200
 
+    @login_required
     def patch(self, model_id, imagery_id):
         """
         Update an existing imagery source
@@ -316,6 +325,7 @@ class ImageryAPI(Resource):
         }, 200
 
 
+    @login_required
     def post(self, model_id):
         """
         Create a new imagery source
@@ -348,6 +358,7 @@ class ImageryAPI(Resource):
                 "error": "Failed to save imagery source to DB"
             }, 500
 
+    @login_required
     def get(self, model_id):
         """
         Fetch all imagery for the given model
@@ -388,6 +399,8 @@ class PredictionExport(Resource):
     # ?format=(geojson/geojsonseq/csv)  [default: geojson]
     # ?inferences=all/<custom>          [default: all]
     # ?threshold=0->1                   [default 0]
+
+    @login_required
     def get(self, model_id, prediction_id):
         req_format = request.args.get('format', 'geojson')
         req_inferences = request.args.get('inferences', 'all')
@@ -546,6 +559,7 @@ class PredictionExport(Resource):
 class PredictionInfAPI(Resource):
     """ Add GeoJSON to SQS Inference Queue """
 
+    @login_required
     def delete(self, model_id, prediction_id):
         if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
             return {
@@ -585,6 +599,7 @@ class PredictionInfAPI(Resource):
                     "error": "Failed to get stack info"
                 }, 500
 
+    @login_required
     def get(self, model_id, prediction_id):
         if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
             return {
@@ -644,6 +659,7 @@ class PredictionInfAPI(Resource):
                     "error": "Failed to get stack info"
                 }, 500
 
+    @login_required
     def post(self, model_id, prediction_id):
         if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
             return {
@@ -707,6 +723,7 @@ class PredictionInfAPI(Resource):
             }, 500
 
 class PredictionStacksAPI(Resource):
+    @login_required
     def get(self):
         """
         Return a list of all running substacks
@@ -802,6 +819,7 @@ class PredictionStacksAPI(Resource):
 class PredictionStackAPI(Resource):
     """ Create, Manage & Destroy Prediction Stacks """
 
+    @login_required
     def post(self, model_id, prediction_id):
         if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
             return {
@@ -877,6 +895,7 @@ class PredictionStackAPI(Resource):
                 "error": "Failed to create stack info"
             }, 500
 
+    @login_required
     def delete(self, model_id, prediction_id):
         if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
             return {
@@ -910,6 +929,7 @@ class PredictionStackAPI(Resource):
                     "error": "Failed to get stack info"
                 }, 500
 
+    @login_required
     def get(self, model_id, prediction_id):
         """
         Return status of a prediction stack
@@ -966,6 +986,7 @@ class PredictionStackAPI(Resource):
 class PredictionUploadAPI(Resource):
     """ Upload raw ML Models to the platform """
 
+    @login_required
     def post(self, model_id, prediction_id):
         """
         Attach a raw model to a given predition
@@ -1085,6 +1106,7 @@ class PredictionUploadAPI(Resource):
             }, 400
 
 class PredictionValidity(Resource):
+    @login_required
     def post(self, model_id, prediction_id):
         try:
             payload = request.get_json()
@@ -1128,6 +1150,7 @@ class PredictionValidity(Resource):
             }, 500
 
 class PredictionSingleAPI(Resource):
+    @login_required
     def get(self, model_id, prediction_id):
         try:
             prediction = PredictionService.get_prediction_by_id(prediction_id)
@@ -1161,6 +1184,7 @@ class PredictionSingleAPI(Resource):
 class PredictionAPI(Resource):
     """ Methods to manage ML predictions """
 
+    @login_required
     def post(self, model_id):
         """
         Store predictions for an ML Model
@@ -1253,6 +1277,7 @@ class PredictionAPI(Resource):
                 "error": error_msg
             }, 500
 
+    @login_required
     def get(self, model_id):
         """
         Fetch predictions for a model within supplied bbox
@@ -1305,6 +1330,7 @@ class PredictionAPI(Resource):
                 "error": error_msg
             }, 500
 
+    @login_required
     def patch(self, model_id, prediction_id):
         """
         Allow updating of links in model
@@ -1359,6 +1385,7 @@ class PredictionAPI(Resource):
             }, 500
 
 class GetAllPredictions(Resource):
+    @login_required
     def get(self, model_id):
         """
         Fetch all predictions for a model
@@ -1403,6 +1430,7 @@ class PredictionTileMVT(Resource):
     Methods to retrieve vector tiles
     """
 
+    @login_required
     def get(self, model_id, prediction_id, z, x, y):
         """
         Mapbox Vector Tile Response
@@ -1469,6 +1497,7 @@ class PredictionTileAPI(Resource):
     Methods to manage tile predictions
     """
 
+    @login_required
     def get(self, model_id, prediction_id):
         """
         TileJSON response for the predictions
@@ -1510,6 +1539,7 @@ class PredictionTileAPI(Resource):
                 "error": error_msg
             }, 500
 
+    @login_required
     def post(self, prediction_id):
         """
         Submit tile level predictions
@@ -1586,6 +1616,7 @@ class MLModelTilesAPI(Resource):
     """
     Methods to manage prediction tiles at the model level
     """
+    @login_required
     def get(self, model_id):
         """
         Get aggregated prediction tile for a model
@@ -1667,6 +1698,7 @@ class MLModelTilesGeojsonAPI(Resource):
     Methods to manage prediction tile aggregation for GeoJSON data
     """
 
+    @login_required
     def post(self, model_id: int):
         """
         Aggregate ml predictions for polygons in the supplied GeoJSON
