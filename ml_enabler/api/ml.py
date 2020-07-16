@@ -862,6 +862,9 @@ class PredictionStackAPI(Resource):
                     'ParameterKey': 'GitSha',
                     'ParameterValue': CONFIG.EnvironmentConfig.GitSha,
                 },{
+                    'ParameterKey': 'MachineAuth',
+                    'ParameterValue': CONFIG.EnvironmentConfig.MACHINE_AUTH
+                },{
                     'ParameterKey': 'StackName',
                     'ParameterValue': CONFIG.EnvironmentConfig.STACK,
                 },{
@@ -883,7 +886,7 @@ class PredictionStackAPI(Resource):
                     'ParameterKey': 'MaxConcurrency',
                     'ParameterValue': payload.get("maxConcurrency", "50"),
                 },{
-                    'ParameterKey': 'InfSupertile', 
+                    'ParameterKey': 'InfSupertile',
                     'ParameterValue': str(pred.inf_supertile),
 
                 }],
@@ -1174,7 +1177,7 @@ class PredictionSingleAPI(Resource):
                 "logLink": prediction.log_link,
                 "modelLink": prediction.model_link,
                 "dockerLink": prediction.docker_link,
-                "saveLink": prediction.save_link, 
+                "saveLink": prediction.save_link,
                 "infSupertile": prediction.inf_supertile,
                 "tfrecordLink": prediction.tfrecord_link,
                 "checkpointLink": prediction.checkpoint_link

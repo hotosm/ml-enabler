@@ -20,6 +20,7 @@ class EnvironmentConfig:
     POSTGRES_DB = os.getenv('POSTGRES_DB', None)
     POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')
 
+    MACHINE_AUTH=os.getenv('MACHINE_AUTH', None)
     ASSET_BUCKET=os.getenv('ASSET_BUCKET', None)
     STACK=os.getenv('STACK', None)
     GitSha=os.getenv('GitSha', None)
@@ -28,6 +29,9 @@ class EnvironmentConfig:
     if ENVIRONMENT == 'aws':
         if GitSha is None:
             print("GitSha Env Var Required")
+            raise
+        if MachineAuth is None:
+            print("MACHINE_AUTH Env Var Required")
             raise
         if STACK is None:
             print("STACK Env Var Required")
