@@ -18,9 +18,12 @@ depends_on = None
 
 def upgrade():
     op.add_column('predictions', sa.Column('inf_supertile', sa.Boolean(), nullable=True))
-    # ### end Alembic commands ###
-
+    op.add_column('predictions', sa.Column('checkpoint_link', sa.TEXT(), autoincrement=False, nullable=True))
+    op.add_column('predictions', sa.Column('tfrecord_link', sa.TEXT(), autoincrement=False, nullable=True))
+    op.add_column('ml_models', sa.Column('archived', sa.BOOLEAN(), autoincrement=False, nullable=True))
 
 def downgrade():
     op.drop_column('predictions', 'inf_supertile')
-    # ### end Alembic commands ###
+    op.drop_column('predictions', 'checkpoint_link')
+    op.drop_column('predictions', 'tfrecord_link')
+    op.drop_column('ml_models', 'archived')
