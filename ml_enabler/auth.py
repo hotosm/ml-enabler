@@ -3,6 +3,7 @@ from flask_login import current_user, login_required, logout_user, login_user
 from flask_restful import request, current_app
 from ml_enabler.models.ml_model import User
 from . import login_manager
+import base64
 
 auth_bp = Blueprint(
     'auth_bp', __name__
@@ -61,4 +62,30 @@ def user_load(user_id):
     if user_id is not None:
         return User.query.get(user_id)
     return None
+
+@login_manager.request_loader
+def load_user_from_header(request):
+    header_val = request.headers.get('Authorization')
+    if header_val is None:
+        return None
+
+    header_val = header_val.replace('Basic ', '', 1)
+
+    try:
+        header_val = base64.b64decode(header_val).decode("utf-8")
+    except TypeError:
+        pass
+
+    if len(header_val.split(':')) != 2:
+        return None
+
+    username = header_val.split(':')[0]
+    password = header_val.split(':')[1]
+
+    user = User.query.filter_by(name=username).first()
+
+    if user is None or not user.password_check(password):
+        return None
+
+    return user
 

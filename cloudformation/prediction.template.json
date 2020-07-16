@@ -5,6 +5,10 @@
             "Type": "String",
             "Description": "GitSha to Deploy"
         },
+        "MachineAuth": {
+            "Type": "String",
+            "Description": "The password for the default machine user"
+        },
         "StackName": {
             "Type": "String",
             "Description": "Name of parent stack"
