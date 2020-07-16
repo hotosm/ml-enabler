@@ -9,6 +9,7 @@ import geojson
 import requests
 import rasterio
 
+from requests.auth import HTTPBasicAuth
 from shapely import affinity, geometry
 from enum import Enum
 from functools import reduce
@@ -185,9 +186,9 @@ class DownloadAndPredict(object):
             "predictions": pred_list
         }
 
-    def save_prediction(self, prediction_id: str, payload):
+    def save_prediction(self, prediction_id: str, payload, auth: str):
         url = self.mlenabler_endpoint + "/v1/model/prediction/" + prediction_id + "/tiles"
-        r = requests.post(url, json=payload)
+        r = requests.post(url, json=payload, auth=HTTPBasicAuth('machine', auth))
 
         print(r.text)
 
@@ -225,7 +226,7 @@ class SuperTileDownloader(DownloadAndPredict):
                 for j in range(2):
                     window = Window(i * 256, j * 256, 256, 256)
                     w_lst.append(window)
-            z = 1 + tile.z 
+            z = 1 + tile.z
             child_tiles = children(tile, zoom=z) #get this from database (tile_zoom)
             child_tiles.sort()
             print('in supertile get_images')
@@ -250,7 +251,7 @@ class SuperTileDownloader(DownloadAndPredict):
                         print()
                         dataset.write(img, window=w_lst[num])
                 dataset_b = memfile.read() #but this fails
-                yield( 
+                yield(
                     tile,
                     dataset_b)
 

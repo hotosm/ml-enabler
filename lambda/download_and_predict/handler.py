@@ -7,12 +7,14 @@ from download_and_predict.custom_types import SQSEvent
 
 def handler(event: SQSEvent, context: Dict[str, Any]) -> bool:
     # read all our environment variables to throw errors early
+    auth = os.getenv('MACHINE_AUTH')
     imagery = os.getenv('TILE_ENDPOINT')
     prediction_id = os.getenv('PREDICTION_ID')
     prediction_endpoint = os.getenv('PREDICTION_ENDPOINT')
     mlenabler_endpoint = os.getenv('MLENABLER_ENDPOINT')
     super_tile = os.getenv('INF_SUPERTILE')
 
+    assert(auth)
     assert(imagery)
     assert(prediction_id)
     assert(prediction_endpoint)
@@ -53,7 +55,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> bool:
             print('RESULT: ' + str(len(preds["predictions"])) + ' Predictions')
 
             # Save the prediction to ML-Enabler
-            dap.save_prediction(prediction_id, preds)
+            dap.save_prediction(prediction_id, preds, auth)
     elif model_type == ModelType.CLASSIFICATION:
         print("TYPE: Classification")
 
@@ -65,7 +67,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> bool:
         preds = dap.cl_post_prediction(payload, tiles, prediction_id, inferences)
 
         # Save the prediction to ML-Enabler
-        dap.save_prediction(prediction_id, preds)
+        dap.save_prediction(prediction_id, preds, auth)
     else:
         print("Unknown Model")
 
