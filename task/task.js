@@ -119,7 +119,7 @@ function set_link(model, prediction, patch) {
 
         const url = new URL(process.env.API_URL);
         url.username = 'machine';
-        url.password = process.env.MACHINE_USER;
+        url.password = process.env.MACHINE_AUTH;
 
         request({
             method: 'PATCH',
