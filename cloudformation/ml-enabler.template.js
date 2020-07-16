@@ -40,6 +40,14 @@ const Parameters = {
     MapboxAccessToken: {
         Type: 'String',
         Description: 'Mapbox API Token'
+    }, 
+    InfSupertile: {
+        Type: 'String', 
+        Description: "If model was trained and should inference on supertiles", 
+        AllowedValues: [
+            'True', 
+            'False'
+        ]
     }
 };
 

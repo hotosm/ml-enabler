@@ -3,14 +3,15 @@
 from setuptools import setup, find_packages
 
 inst_reqs = [
-    "mercantile",
+    "mercantile == 1.1.5",
     "requests",
     "geojson",
     "pillow",
     "gdal == 2.4.2",
     "shapely == 1.6.4",
-    "affine",
-    "numpy"
+    "affine == 2.3.0",
+    "numpy == 1.19.0", 
+    "rasterio == 1.1.5"
 ]
 extra_reqs = {"test": ["pytest", "pytest-cov"]}
 

@@ -26,6 +26,7 @@ class PredictionDTO(Model):
     inf_list = StringType(serialized_name='infList', required=True)
     inf_type = StringType(serialized_name='infType', required=True)
     inf_binary = BooleanType(serialized_name='infBinary', required=True)
+    inf_supertile = BooleanType(serialized_name='infSupertile', required=True)
 
     """ Asset Status
         log_link - store a link to the AWS CloudWatch Console

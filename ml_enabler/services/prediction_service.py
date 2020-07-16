@@ -25,6 +25,7 @@ class PredictionService():
         prediction_dto.inf_list = payload['infList']
         prediction_dto.inf_type = payload['infType']
         prediction_dto.inf_binary = payload['infBinary']
+        prediction_dto.inf_supertile = payload['infSupertile']
         prediction_dto.validate()
 
         new_prediction = Prediction()

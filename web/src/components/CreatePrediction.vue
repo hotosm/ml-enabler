@@ -40,7 +40,17 @@
                             </label>
                             <input v-model='prediction.infList' type='text' class='input' placeholder='buildings,schools,roads,...'/>
                         </div>
+                        <div class='col col--8'>
+                        </div>
                     </template>
+                    <div class='col col--4'>
+                        <label class='switch-container px6 fr'>
+                            <span class='mr6'>Supertile</span>
+                            <input :disabled='prediction.infType == "detection"' v-model='prediction.infSupertile' type='checkbox' />
+                            <div class='switch'></div>
+                        </label>
+                    </div>
+                    <div class='col col--8'></div>
                     <div class='col col--12 py12'>
                         <button @click='postPrediction' class='btn btn--stroke round fr color-green-light color-green-on-hover'>Add Prediction</button>
                     </div>
@@ -68,7 +78,8 @@ export default {
                 tileZoom: '18',
                 infList: '',
                 infType: 'classification',
-                infBinary: false
+                infBinary: false, 
+                infSupertile: false
             }
         };
     },
@@ -105,7 +116,8 @@ export default {
                         bbox: [-180.0, -90.0, 180.0, 90.0],
                         infList: this.prediction.infList,
                         infType: this.prediction.infType,
-                        infBinary: this.prediction.infBinary
+                        infBinary: this.prediction.infBinary, 
+                        infSupertile: this.prediction.infSupertile
                     })
                 });
 

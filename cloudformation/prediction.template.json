@@ -34,6 +34,10 @@
             "Type": "Number",
             "Default": 10,
             "Description": "Max number of TFServing Images"
+        },  
+        "InfSupertile": {
+            "Type": "String", 
+            "Description": "Model was trained and should inference on supertiles"
         }
     },
     "Resources" : {
@@ -86,6 +90,7 @@
                     "Variables": {
                         "StackName": { "Ref": "AWS::StackName" },
                         "INFERENCES": { "Ref": "Inferences" },
+                        "INF_SUPERTILE": {"Ref": "InfSupertile"}, 
                         "PREDICTION_ID": { "Ref": "PredictionId" },
                         "TILE_ENDPOINT": { "Ref": "TileEndpoint" },
                         "PREDICTION_ENDPOINT": { "Fn::Join": ["", [
