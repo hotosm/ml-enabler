@@ -122,9 +122,11 @@ export default {
             }).then((res) => {
                 return res.json();
             }).then((res) => {
-                if (!res.error) {
+                if (res.ok) {
                     this.stacks = res;
                 }
+            }).catch((err) => {
+                console.error(err);
             });
         }
     },
