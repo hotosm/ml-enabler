@@ -30,7 +30,7 @@ class EnvironmentConfig:
         if GitSha is None:
             print("GitSha Env Var Required")
             raise
-        if MachineAuth is None:
+        if MACHINE_AUTH is None:
             print("MACHINE_AUTH Env Var Required")
             raise
         if STACK is None:
