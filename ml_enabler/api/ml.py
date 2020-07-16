@@ -882,7 +882,12 @@ class PredictionStackAPI(Resource):
                 },{
                     'ParameterKey': 'MaxConcurrency',
                     'ParameterValue': payload.get("maxConcurrency", "50"),
+                },{
+                    'ParameterKey': 'InfSupertile', 
+                    'ParameterValue': str(pred.inf_supertile),
+
                 }],
+
                 Capabilities=[
                     'CAPABILITY_NAMED_IAM'
                 ],
@@ -1169,7 +1174,8 @@ class PredictionSingleAPI(Resource):
                 "logLink": prediction.log_link,
                 "modelLink": prediction.model_link,
                 "dockerLink": prediction.docker_link,
-                "saveLink": prediction.save_link,
+                "saveLink": prediction.save_link, 
+                "infSupertile": prediction.inf_supertile,
                 "tfrecordLink": prediction.tfrecord_link,
                 "checkpointLink": prediction.checkpoint_link
             }
