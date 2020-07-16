@@ -68,7 +68,7 @@ export default {
             },
             meta: {
                 version: 1,
-                environemnt: 'docker',
+                environment: 'docker',
                 security: false
             },
             loading: {
@@ -116,18 +116,22 @@ export default {
                 console.error(err);
             });
         },
-        getStacks: function() {
-            fetch(window.api + '/v1/stacks', {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
+        getStacks: async function() {
+            try {
+                let res = await fetch(window.api + '/v1/stacks', {
+                    method: 'GET'
+                });
+
                 if (res.ok) {
+                    res = await res.json();
                     this.stacks = res;
+                } else {
+                    res = await res.json();
+                    throw new Error(res.error);
                 }
-            }).catch((err) => {
+            } catch(err) {
                 console.error(err);
-            });
+            }
         }
     },
     components: {
