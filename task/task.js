@@ -24,6 +24,7 @@ main();
 async function main() {
     try {
         if (!process.env.MODEL) throw new Error('MODEL env var not set');
+        if (!process.env.MACHINE_AUTH) throw new Error('MACHINE_AUTH env var not set');
         if (!process.env.BATCH_ECR) throw new Error('BATCH_ECR env var not set');
         if (!process.env.AWS_ACCOUNT_ID) throw new Error('AWS_ACCOUT_ID env var not set');
         if (!process.env.AWS_REGION) throw new Error('AWS_REGION env var not set');
@@ -116,9 +117,13 @@ function set_link(model, prediction, patch) {
     return new Promise((resolve, reject) => {
         console.error(`ok - saving model (${model}), prediction (${prediction}) state: ${JSON.stringify(patch)}`);
 
+        const url = new URL(process.env.API_URL);
+        url.username = 'machine';
+        url.password = process.env.MACHINE_USER;
+
         request({
             method: 'PATCH',
-            url: `${process.env.API_URL}/v1/model/${model}/prediction/${prediction}`,
+            url: `${String(url)}/v1/model/${model}/prediction/${prediction}`,
             json: true,
             body: patch
         }, (err, res) => {
