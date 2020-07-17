@@ -1,0 +1,28 @@
+#! /bin/bash
+#
+# Clone a stacks database into a local database for development
+#
+
+if [[ -z $1 ]]; then
+    echo "Error: Must provide stack name"
+    echo
+    echo "./clone <stack>"
+    echo
+    exit 1
+fi
+
+set -xeuo pipefail
+
+DB=$(deploy info $1 | jq -rc .Outputs.DB)
+pg_dump --verbose --schema public -Fc "$DB" > /tmp/$1-out.sql
+
+echo "
+    DROP DATABASE mlenabler;
+    CREATE DATABASE mlenabler;
+" | psql -U postgres
+
+echo "
+    CREATE EXTENSION POSTGIS;
+" | psql -U postgres mlenabler
+
+pg_restore -U postgres -d mlenabler < /tmp/$1-out.sql
