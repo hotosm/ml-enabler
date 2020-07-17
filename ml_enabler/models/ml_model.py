@@ -14,7 +14,7 @@ from sqlalchemy.sql.expression import cast
 import sqlalchemy
 from flask_login import UserMixin
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, \
-    MLModelVersionDTO, PredictionDTO
+     PredictionDTO
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -256,11 +256,7 @@ class Prediction(db.Model):
         nullable=False
     )
 
-    version_id = db.Column(
-        db.Integer,
-        db.ForeignKey('ml_model_versions.id', name='ml_model_versions_fk'),
-        nullable=False
-    )
+    version = db.Column(db.String, nullable=False)
 
     docker_url = db.Column(db.String)
     bbox = db.Column(Geometry('POLYGON', srid=4326))
@@ -281,7 +277,7 @@ class Prediction(db.Model):
         """ Creates and saves the current model to the DB """
 
         self.model_id = prediction_dto.model_id
-        self.version_id = prediction_dto.version_id
+        self.version = prediction_dto.version
         self.docker_url = prediction_dto.docker_url
         self.bbox = ST_GeomFromText(bbox_to_polygon_wkt(prediction_dto.bbox), 4326)
         self.tile_zoom = prediction_dto.tile_zoom
@@ -338,7 +334,7 @@ class Prediction(db.Model):
             ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
             Prediction.model_id,
             Prediction.tile_zoom,
-            Prediction.version_id,
+            Prediction.version,
             Prediction.log_link,
             Prediction.model_link,
             Prediction.docker_link,
@@ -346,7 +342,7 @@ class Prediction(db.Model):
             Prediction.tfrecord_link,
             Prediction.checkpoint_link,
             Prediction.inf_list,
-            Prediction.inf_type, 
+            Prediction.inf_type,
             Prediction.inf_binary,
             Prediction.inf_supertile
         ).filter(Prediction.id == prediction_id)
@@ -367,7 +363,7 @@ class Prediction(db.Model):
             ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
             Prediction.model_id,
             Prediction.tile_zoom,
-            Prediction.version_id,
+            Prediction.version,
             Prediction.log_link,
             Prediction.model_link,
             Prediction.docker_link,
@@ -375,44 +371,10 @@ class Prediction(db.Model):
             Prediction.tfrecord_link,
             Prediction.checkpoint_link,
             Prediction.inf_list,
-            Prediction.inf_type, 
+            Prediction.inf_type,
             Prediction.inf_binary,
             Prediction.inf_supertile
         ).filter(Prediction.model_id == model_id)
-
-        return query.all()
-
-    @staticmethod
-    def get_latest_predictions_in_bbox(model_id: int, version_id: int, bbox: list):
-        """
-        Fetch latest predictions for the specified model intersecting
-        the given bbox
-
-        :param model_id, version_id, bbox
-        :return list of predictions
-        """
-        query = db.session.query(
-            Prediction.id,
-            Prediction.created,
-            Prediction.docker_url,
-            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id
-        ).filter(Prediction.model_id == model_id).filter(Prediction.version_id == version_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326))).order_by(Prediction.created.desc()).limit(1)
-
-        return query.all()
-
-    def get_all_predictions_in_bbox(model_id: int, bbox: list):
-        """
-        Fetch all predictions for the specified model intersecting the given
-        bbox
-        :param model_id, bbox
-        :return list of predictions
-        """
-        query = db.session.query(
-            Prediction.id,
-            Prediction.created,
-            Prediction.docker_url,
-            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'), Prediction.model_id, Prediction.tile_zoom, Prediction.version_id
-        ).filter(Prediction.model_id == model_id).filter(ST_Intersects(Prediction.bbox, ST_MakeEnvelope(bbox[0], bbox[1], bbox[2], bbox[3], 4326)))
 
         return query.all()
 
@@ -426,9 +388,6 @@ class Prediction(db.Model):
         """ Static method to convert the prediction result as a schematic """
 
         prediction_dto = PredictionDTO()
-        version = MLModelVersion.get(prediction[6])
-
-        version_dto = version.as_dto()
 
         prediction_dto.prediction_id = prediction[0]
         prediction_dto.created = prediction[1]
@@ -436,9 +395,7 @@ class Prediction(db.Model):
         prediction_dto.bbox = geojson_to_bbox(prediction[3])
         prediction_dto.model_id = prediction[4]
         prediction_dto.tile_zoom = prediction[5]
-        prediction_dto.version_id = prediction[6]
-        prediction_dto.version_string = f'{version_dto.version_major}.{version_dto.version_minor}.{version_dto.version_patch}'
-
+        prediction_dto.version = prediction[6]
         prediction_dto.log_link = prediction[7]
         prediction_dto.model_link = prediction[8]
         prediction_dto.docker_link = prediction[9]
@@ -530,73 +487,3 @@ class MLModel(db.Model):
         self.archived = updated_ml_model_dto.archived
 
         db.session.commit()
-
-class MLModelVersion(db.Model):
-    """ Stores versions of all subscribed ML Models """
-    __tablename__ = 'ml_model_versions'
-
-    id = db.Column(db.Integer, primary_key=True)
-    created = db.Column(db.DateTime, default=timestamp, nullable=False)
-    model_id = db.Column(db.BigInteger, db.ForeignKey(
-        'ml_models.id', name='fk_models_versions'), nullable=False)
-    version_major = db.Column(db.Integer, nullable=False)
-    version_minor = db.Column(db.Integer, nullable=False)
-    version_patch = db.Column(db.Integer, nullable=False)
-
-    def create(self, version_dto: MLModelVersionDTO):
-        """  Creates a new version of an ML model """
-
-        self.model_id = version_dto.model_id
-        self.version_major = version_dto.version_major
-        self.version_minor = version_dto.version_minor
-        self.version_patch = version_dto.version_patch
-
-        db.session.add(self)
-        db.session.commit()
-        return self
-
-    def save(self):
-        """ Save changes to the db """
-        db.session.commit()
-
-    @staticmethod
-    def get(version_id: int):
-        """
-        Get a version using the id
-        :param version_id
-        :return version or None
-        """
-        return MLModelVersion.query.get(version_id)
-
-    @staticmethod
-    def get_version(model_id: int, version_major: int, version_minor: int, version_patch: int):
-        """
-        Get a version object for the supplied and corresponding semver
-        :param model_id, version_major, version_minor, version_patch
-        :return version or None
-        """
-        return MLModelVersion.query.filter_by(model_id=model_id, version_major=version_major, version_minor=version_minor, version_patch=version_patch).one()
-
-    @staticmethod
-    def get_latest_version(model_id: int):
-        """
-        Get the latest version of a given model
-        :param model_id
-        :return version or None
-        """
-        return MLModelVersion.query.filter_by(model_id=model_id).order_by(MLModelVersion.version_major.desc(), MLModelVersion.version_minor.desc(),
-                                                                          MLModelVersion.version_patch.desc()).first()
-
-    def as_dto(self):
-        """
-        Convert the version object to it's DTO
-        """
-        version_dto = MLModelVersionDTO()
-        version_dto.version_id = self.id
-        version_dto.model_id = self.model_id
-        version_dto.created = self.created
-        version_dto.version_major = self.version_major
-        version_dto.version_minor = self.version_minor
-        version_dto.version_patch = self.version_patch
-
-        return version_dto
