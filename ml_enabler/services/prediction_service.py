@@ -1,5 +1,5 @@
 import ml_enabler.config as CONFIG
-import mercantile
+import mercantile, semver
 from ml_enabler.models.ml_model import MLModel, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
 from ml_enabler.models.utils import PredictionsNotFound
@@ -15,6 +15,12 @@ class PredictionService():
         :raises DataError
         :returns ID of the prediction
         """
+
+        version = payload['version']
+        try
+            semver.VersionInfo.parse(version)
+        except Exception as e
+            raise "Version Must be SemVer"
 
         prediction_dto = PredictionDTO()
         prediction_dto.model_id = model_id
