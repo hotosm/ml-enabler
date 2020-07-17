@@ -92,6 +92,7 @@
                 "Timeout": 240,
                 "Environment": {
                     "Variables": {
+                        "MACHINE_AUTH": { "Ref": "MachineAuth" },
                         "StackName": { "Ref": "AWS::StackName" },
                         "INFERENCES": { "Ref": "Inferences" },
                         "INF_SUPERTILE": {"Ref": "InfSupertile"}, 
