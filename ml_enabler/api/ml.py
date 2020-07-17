@@ -7,10 +7,9 @@ from functools import partial
 from flask import make_response
 from flask_restful import Resource, request, current_app
 from flask import Response
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, PredictionDTO
 from schematics.exceptions import DataError
-from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
-from ml_enabler.models.ml_model import MLModelVersion
+from ml_enabler.services.ml_model_service import MLModelService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.services.imagery_service import ImageryService
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
@@ -1237,39 +1236,17 @@ class PredictionAPI(Resource):
         """
         try:
             payload = request.get_json()
+
+            # TODO DO SEMVER VERSION CHECK
             version = payload['version']
 
             # check if this model exists
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
 
             # check if the version is registered
-            model_version = MLModelVersionService.get_version_by_model_version(ml_model_dto.model_id, version)
-            prediction_id = PredictionService.create(model_id, model_version.version_id, payload)
+            prediction_id = PredictionService.create(model_id, payload)
+
             return {"prediction_id": prediction_id}, 200
-
-        except VersionNotFound:
-            # if not, add it
-            try:
-                version_array = version_to_array(version)
-                version_dto = MLModelVersionDTO()
-                version_dto.model_id = model_id
-                version_dto.version_major = version_array[0]
-                version_dto.version_minor = version_array[1]
-                version_dto.version_patch = version_array[2]
-                version_id = MLModelVersionService.create_version(version_dto)
-
-                prediction_id = PredictionService.create(model_id, version_id, payload)
-                return {"prediction_id": prediction_id}, 200
-            except DataError as e:
-                current_app.logger.error(f'Error validating request: {str(e)}')
-                return str(e), 400
-            except Exception as e:
-                error_msg = f'Unhandled error: {str(e)}'
-                current_app.logger.error(error_msg)
-                return {
-                    "status": 500,
-                    "error": error_msg
-                }, 500
         except NotFound:
             return {
                 "status": 404,
