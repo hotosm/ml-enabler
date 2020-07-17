@@ -12,8 +12,32 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import func, text
 from sqlalchemy.sql.expression import cast
 import sqlalchemy
+from flask_login import UserMixin
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, \
     MLModelVersionDTO, PredictionDTO
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String, unique=True)
+    password = db.Column(db.String)
+    name = db.Column(db.String)
+
+    def password_check(self, test):
+        results = db.session.execute(text('''
+             SELECT
+                password = crypt(:test, password)
+            FROM
+                users
+            WHERE
+                id = :uid
+        '''), {
+            'test': test,
+            'uid': self.id
+        }).fetchall()
+
+        return results[0][0]
 
 class Imagery(db.Model):
     """ Store an imagery source for a given model """

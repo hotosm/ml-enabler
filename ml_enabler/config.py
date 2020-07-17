@@ -11,6 +11,8 @@ class EnvironmentConfig:
     # One of 'docker' or 'aws'
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'docker');
 
+    SECRET_KEY = os.getenv('SECRET_KEY', 'secretkey');
+
     # Database connection
     POSTGRES_USER = os.getenv('POSTGRES_USER', None)
     POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', None)
@@ -18,6 +20,7 @@ class EnvironmentConfig:
     POSTGRES_DB = os.getenv('POSTGRES_DB', None)
     POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')
 
+    MACHINE_AUTH=os.getenv('MACHINE_AUTH', None)
     ASSET_BUCKET=os.getenv('ASSET_BUCKET', None)
     STACK=os.getenv('STACK', None)
     GitSha=os.getenv('GitSha', None)
@@ -26,6 +29,9 @@ class EnvironmentConfig:
     if ENVIRONMENT == 'aws':
         if GitSha is None:
             print("GitSha Env Var Required")
+            raise
+        if MACHINE_AUTH is None:
+            print("MACHINE_AUTH Env Var Required")
             raise
         if STACK is None:
             print("STACK Env Var Required")

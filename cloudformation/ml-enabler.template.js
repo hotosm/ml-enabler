@@ -6,6 +6,10 @@ const Parameters = {
         Type: 'String',
         Description: 'GitSha to Deploy'
     },
+    MachineAuth: {
+        Description: 'The password for the default machine user',
+        Type: 'String'
+    },
     ContainerCpu: {
         Description: 'How much CPU to give to the container. 1024 is 1 cpu. See aws docs for acceptable cpu/mem combinations',
         Default: 1024,
@@ -385,6 +389,9 @@ const Resources = {
                 },{
                     Name: 'ENVIRONMENT',
                     Value: 'aws'
+                },{
+                    Name: 'MACHINE_AUTH',
+                    Value: cf.ref('MachineAuth')
                 },{
                     Name:'POSTGRES_USER',
                     Value: cf.ref('DatabaseUser')

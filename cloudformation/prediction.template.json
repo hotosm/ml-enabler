@@ -5,6 +5,10 @@
             "Type": "String",
             "Description": "GitSha to Deploy"
         },
+        "MachineAuth": {
+            "Type": "String",
+            "Description": "The password for the default machine user"
+        },
         "StackName": {
             "Type": "String",
             "Description": "Name of parent stack"
@@ -88,6 +92,7 @@
                 "Timeout": 240,
                 "Environment": {
                     "Variables": {
+                        "MACHINE_AUTH": { "Ref": "MachineAuth" },
                         "StackName": { "Ref": "AWS::StackName" },
                         "INFERENCES": { "Ref": "Inferences" },
                         "INF_SUPERTILE": {"Ref": "InfSupertile"}, 

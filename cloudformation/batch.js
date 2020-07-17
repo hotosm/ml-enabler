@@ -143,6 +143,9 @@ const stack = {
                         Name: 'StackName' ,
                         Value: cf.stackName
                     },{
+                        Name: 'MACHINE_AUTH',
+                        Value: cf.ref('MachineAuth')
+                    },{
                         Name: 'AWS_ACCOUNT_ID',
                         Value: cf.accountId
                     },{
