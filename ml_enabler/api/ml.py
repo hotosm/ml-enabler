@@ -1164,13 +1164,11 @@ class PredictionSingleAPI(Resource):
     def get(self, model_id, prediction_id):
         try:
             prediction = PredictionService.get_prediction_by_id(prediction_id)
-            version = MLModelVersion.get(prediction.version_id)
 
             pred = {
                 "predictionsId": prediction.id,
                 "modelId": prediction.model_id,
-                "versionId": prediction.version_id,
-                "versionString": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
+                "version": prediction.version,
                 "dockerUrl": prediction.docker_url,
                 "tileZoom": prediction.tile_zoom,
                 "logLink": prediction.log_link,
@@ -1236,9 +1234,6 @@ class PredictionAPI(Resource):
         """
         try:
             payload = request.get_json()
-
-            # TODO DO SEMVER VERSION CHECK
-            version = payload['version']
 
             # check if this model exists
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)

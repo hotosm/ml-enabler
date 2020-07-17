@@ -17,9 +17,9 @@ class PredictionService():
         """
 
         version = payload['version']
-        try
+        try:
             semver.VersionInfo.parse(version)
-        except Exception as e
+        except Exception as e:
             raise "Version Must be SemVer"
 
         prediction_dto = PredictionDTO()
