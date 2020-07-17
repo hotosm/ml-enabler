@@ -1290,59 +1290,6 @@ class PredictionAPI(Resource):
             }, 500
 
     @login_required
-    def get(self, model_id):
-        """
-        Fetch predictions for a model within supplied bbox
-        ---
-        produces:
-            - application/json
-        parameters:
-            - in: path
-              name: model_id
-              description: ID of the Model
-              required: true
-              type: integer
-            - in: query
-              name: bbox
-              description: bbox in the wsen format. Comma separated floats
-              required: true
-              type: string
-        responses:
-            200:
-                description: List of all predictions for the model within supplied bbox
-            404:
-                description: No predictions found
-            500:
-                description: Internal Server Error
-        """
-        try:
-            bbox = request.args.get('bbox', '')
-            if (bbox is None or bbox == ''):
-                return {
-                    "status": 400,
-                    "error": 'A bbox is required'
-                }, 400
-
-            # check if this model exists
-            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
-
-            boundingBox = bbox_str_to_list(bbox)
-            predictions = PredictionService.get(ml_model_dto.model_id, boundingBox)
-            return predictions, 200
-        except PredictionsNotFound:
-            return {
-                "status": 404,
-                "error": "Predictions not found"
-            }, 404
-        except Exception as e:
-            error_msg = f'Unhandled error: {str(e)}'
-            current_app.logger.error(error_msg)
-            return {
-                "status": 500,
-                "error": error_msg
-            }, 500
-
-    @login_required
     def patch(self, model_id, prediction_id):
         """
         Allow updating of links in model
