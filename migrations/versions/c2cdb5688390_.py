@@ -21,6 +21,7 @@ def upgrade():
     op.add_column('predictions', sa.Column('version', sa.TEXT(), autoincrement=False, nullable=True))
     op.drop_column('predictions', 'version_id')
     op.drop_column('predictions', 'bbox')
+    op.drop_table('ml_model_versions')
     # ### end Alembic commands ###
 
 
