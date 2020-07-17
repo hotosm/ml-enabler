@@ -3,7 +3,6 @@ import mercantile
 from ml_enabler.models.ml_model import MLModel, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
 from ml_enabler.models.utils import PredictionsNotFound
-from ml_enabler.utils import bbox_str_to_list, bbox_to_quadkeys, tuple_to_dict, polygon_to_wkt, geojson_to_bbox
 from ml_enabler import db
 
 class PredictionService():
@@ -20,7 +19,6 @@ class PredictionService():
         prediction_dto = PredictionDTO()
         prediction_dto.model_id = model_id
         prediction_dto.version = payload['version']
-        prediction_dto.bbox = payload['bbox']
         prediction_dto.tile_zoom = payload['tileZoom']
         prediction_dto.inf_list = payload['infList']
         prediction_dto.inf_type = payload['infType']
@@ -194,46 +192,3 @@ class PredictionTileService():
         }
 
         return tilejson
-
-    @staticmethod
-    def get_aggregated_tiles(model_id: int, bbox: list, zoom: int):
-        """
-        Get aggregated predictions at the specified zoom level for the supplied bbox
-        :params model_id, bbox, zoom
-        :returns list of tiles with predictions
-        """
-        # get predictions within this bbox
-        boundingBox = bbox_str_to_list(bbox)
-        predictions = PredictionService.get(model_id, boundingBox, latest=True)
-        # find quadkeys for the given bbox
-        boundingBox = bbox_str_to_list(bbox)
-        quadkeys = bbox_to_quadkeys(boundingBox, zoom)
-        prediction_tiles = {}
-        for prediction in predictions:
-            # query all tiles within those quadkeys and aggregate
-            if int(prediction['tileZoom']) < int(zoom):
-                raise ValueError('Aggregate zoom level is greater than prediction zoom')
-
-            tiles = list(map(tuple_to_dict, PredictionTile.get_tiles_by_quadkey
-                         (prediction['predictionsId'], tuple(quadkeys), zoom)))
-            prediction_tiles[prediction['predictionsId']] = tiles
-
-        return prediction_tiles
-
-    @staticmethod
-    def get_aggregated_tiles_geojson(model_id: int, bbox: list, geojson: dict):
-        """
-        For the given geojson, find predictions for each polygon and return the geojson
-        :param model_id, bbox, geojson
-        :returns geojson
-        """
-        # get the latest prediction
-        prediction = PredictionService.get(model_id, bbox, latest=True)
-        # for each geojson feature, find the tiles and aggregate
-        for feature in geojson['features']:
-            tile_aggregate = PredictionTile.get_aggregate_for_polygon(prediction[0]['predictionsId'], polygon_to_wkt(feature['geometry']))
-            if (len(tile_aggregate) > 0):
-                feature['properties']['ml_prediction'] = tile_aggregate[0]
-                feature['properties']['osm_building_area'] = tile_aggregate[1]
-
-        return geojson

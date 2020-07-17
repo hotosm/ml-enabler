@@ -4,7 +4,6 @@ from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.ext.mutable import MutableDict
 from ml_enabler import db
 from ml_enabler.models.utils import timestamp
-from ml_enabler.utils import bbox_to_polygon_wkt, geojson_to_bbox
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_Envelope, ST_AsGeoJSON, ST_Within, \
      ST_GeomFromText, ST_Intersects, ST_MakeEnvelope
@@ -259,7 +258,6 @@ class Prediction(db.Model):
     version = db.Column(db.String, nullable=False)
 
     docker_url = db.Column(db.String)
-    bbox = db.Column(Geometry('POLYGON', srid=4326))
     tile_zoom = db.Column(db.Integer, nullable=False)
 
     log_link = db.Column(db.String)
@@ -279,7 +277,6 @@ class Prediction(db.Model):
         self.model_id = prediction_dto.model_id
         self.version = prediction_dto.version
         self.docker_url = prediction_dto.docker_url
-        self.bbox = ST_GeomFromText(bbox_to_polygon_wkt(prediction_dto.bbox), 4326)
         self.tile_zoom = prediction_dto.tile_zoom
         self.inf_list = prediction_dto.inf_list
         self.inf_type = prediction_dto.inf_type
@@ -331,7 +328,6 @@ class Prediction(db.Model):
             Prediction.id,
             Prediction.created,
             Prediction.docker_url,
-            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
             Prediction.model_id,
             Prediction.tile_zoom,
             Prediction.version,
@@ -360,7 +356,6 @@ class Prediction(db.Model):
             Prediction.id,
             Prediction.created,
             Prediction.docker_url,
-            ST_AsGeoJSON(ST_Envelope(Prediction.bbox)).label('bbox'),
             Prediction.model_id,
             Prediction.tile_zoom,
             Prediction.version,
@@ -392,20 +387,19 @@ class Prediction(db.Model):
         prediction_dto.prediction_id = prediction[0]
         prediction_dto.created = prediction[1]
         prediction_dto.docker_url = prediction[2]
-        prediction_dto.bbox = geojson_to_bbox(prediction[3])
-        prediction_dto.model_id = prediction[4]
-        prediction_dto.tile_zoom = prediction[5]
-        prediction_dto.version = prediction[6]
-        prediction_dto.log_link = prediction[7]
-        prediction_dto.model_link = prediction[8]
-        prediction_dto.docker_link = prediction[9]
-        prediction_dto.save_link = prediction[10]
-        prediction_dto.tfrecord_link = prediction[11]
-        prediction_dto.checkpoint_link = prediction[12]
-        prediction_dto.inf_list = prediction[13]
-        prediction_dto.inf_type = prediction[14]
-        prediction_dto.inf_binary = prediction[15]
-        prediction_dto.inf_supertile = prediction[16]
+        prediction_dto.model_id = prediction[3]
+        prediction_dto.tile_zoom = prediction[4]
+        prediction_dto.version = prediction[5]
+        prediction_dto.log_link = prediction[6]
+        prediction_dto.model_link = prediction[7]
+        prediction_dto.docker_link = prediction[8]
+        prediction_dto.save_link = prediction[9]
+        prediction_dto.tfrecord_link = prediction[10]
+        prediction_dto.checkpoint_link = prediction[11]
+        prediction_dto.inf_list = prediction[12]
+        prediction_dto.inf_type = prediction[13]
+        prediction_dto.inf_binary = prediction[14]
+        prediction_dto.inf_supertile = prediction[15]
 
         return prediction_dto
 
