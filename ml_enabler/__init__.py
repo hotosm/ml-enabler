@@ -34,8 +34,8 @@ def init_routes(app):
 
     # import apis
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, \
-        PredictionAPI, PredictionUploadAPI, PredictionTileAPI, MLModelTilesAPI, \
-        MLModelTilesGeojsonAPI, GetAllPredictions, PredictionTileMVT, ImageryAPI, \
+        PredictionAPI, PredictionUploadAPI, PredictionTileAPI, \
+        GetAllPredictions, PredictionTileMVT, ImageryAPI, \
         PredictionStackAPI, PredictionStacksAPI, PredictionInfAPI, MapboxAPI, MetaAPI, \
         PredictionExport, PredictionSingleAPI, PredictionValidity
     from ml_enabler.api.swagger import SwaggerDocsAPI
@@ -54,9 +54,6 @@ def init_routes(app):
     api.add_resource(MLModelAPI,                '/v1/model', endpoint="post", methods=['POST'])
 
     api.add_resource(MLModelAPI,                '/v1/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
-
-    api.add_resource(MLModelTilesAPI,           '/v1/model/<int:model_id>/tiles', methods=['GET'])
-    api.add_resource(MLModelTilesGeojsonAPI,    '/v1/model/<int:model_id>/tiles/geojson', methods=['POST'])
 
     api.add_resource(ImageryAPI,                '/v1/model/<int:model_id>/imagery', methods=['POST', 'GET'])
     api.add_resource(ImageryAPI,                '/v1/model/<int:model_id>/imagery/<int:imagery_id>', endpoint="ImageryAPI.patch", methods=['PATCH'])

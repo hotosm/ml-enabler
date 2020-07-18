@@ -7,10 +7,9 @@ from functools import partial
 from flask import make_response
 from flask_restful import Resource, request, current_app
 from flask import Response
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO, PredictionDTO
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, PredictionDTO
 from schematics.exceptions import DataError
-from ml_enabler.services.ml_model_service import MLModelService, MLModelVersionService
-from ml_enabler.models.ml_model import MLModelVersion
+from ml_enabler.services.ml_model_service import MLModelService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.services.imagery_service import ImageryService
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
@@ -1165,13 +1164,11 @@ class PredictionSingleAPI(Resource):
     def get(self, model_id, prediction_id):
         try:
             prediction = PredictionService.get_prediction_by_id(prediction_id)
-            version = MLModelVersion.get(prediction.version_id)
 
             pred = {
                 "predictionsId": prediction.id,
                 "modelId": prediction.model_id,
-                "versionId": prediction.version_id,
-                "versionString": f'{version.version_major}.{version.version_minor}.{version.version_patch}',
+                "version": prediction.version,
                 "dockerUrl": prediction.docker_url,
                 "tileZoom": prediction.tile_zoom,
                 "logLink": prediction.log_link,
@@ -1237,39 +1234,14 @@ class PredictionAPI(Resource):
         """
         try:
             payload = request.get_json()
-            version = payload['version']
 
             # check if this model exists
             ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
 
             # check if the version is registered
-            model_version = MLModelVersionService.get_version_by_model_version(ml_model_dto.model_id, version)
-            prediction_id = PredictionService.create(model_id, model_version.version_id, payload)
+            prediction_id = PredictionService.create(model_id, payload)
+
             return {"prediction_id": prediction_id}, 200
-
-        except VersionNotFound:
-            # if not, add it
-            try:
-                version_array = version_to_array(version)
-                version_dto = MLModelVersionDTO()
-                version_dto.model_id = model_id
-                version_dto.version_major = version_array[0]
-                version_dto.version_minor = version_array[1]
-                version_dto.version_patch = version_array[2]
-                version_id = MLModelVersionService.create_version(version_dto)
-
-                prediction_id = PredictionService.create(model_id, version_id, payload)
-                return {"prediction_id": prediction_id}, 200
-            except DataError as e:
-                current_app.logger.error(f'Error validating request: {str(e)}')
-                return str(e), 400
-            except Exception as e:
-                error_msg = f'Unhandled error: {str(e)}'
-                current_app.logger.error(error_msg)
-                return {
-                    "status": 500,
-                    "error": error_msg
-                }, 500
         except NotFound:
             return {
                 "status": 404,
@@ -1281,59 +1253,6 @@ class PredictionAPI(Resource):
                 "status": 400,
                 "error": str(e)
             }, 400
-        except Exception as e:
-            error_msg = f'Unhandled error: {str(e)}'
-            current_app.logger.error(error_msg)
-            return {
-                "status": 500,
-                "error": error_msg
-            }, 500
-
-    @login_required
-    def get(self, model_id):
-        """
-        Fetch predictions for a model within supplied bbox
-        ---
-        produces:
-            - application/json
-        parameters:
-            - in: path
-              name: model_id
-              description: ID of the Model
-              required: true
-              type: integer
-            - in: query
-              name: bbox
-              description: bbox in the wsen format. Comma separated floats
-              required: true
-              type: string
-        responses:
-            200:
-                description: List of all predictions for the model within supplied bbox
-            404:
-                description: No predictions found
-            500:
-                description: Internal Server Error
-        """
-        try:
-            bbox = request.args.get('bbox', '')
-            if (bbox is None or bbox == ''):
-                return {
-                    "status": 400,
-                    "error": 'A bbox is required'
-                }, 400
-
-            # check if this model exists
-            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
-
-            boundingBox = bbox_str_to_list(bbox)
-            predictions = PredictionService.get(ml_model_dto.model_id, boundingBox)
-            return predictions, 200
-        except PredictionsNotFound:
-            return {
-                "status": 404,
-                "error": "Predictions not found"
-            }, 404
         except Exception as e:
             error_msg = f'Unhandled error: {str(e)}'
             current_app.logger.error(error_msg)
@@ -1623,149 +1542,3 @@ class PredictionTileAPI(Resource):
                 "error": error_msg
             }, 500
 
-
-class MLModelTilesAPI(Resource):
-    """
-    Methods to manage prediction tiles at the model level
-    """
-    @login_required
-    def get(self, model_id):
-        """
-        Get aggregated prediction tile for a model
-        within the supplied bbox and tile size
-        ---
-        produces:
-            - application/json
-        parameters:
-            - in: path
-              name: model_id
-              description: ID of the Model
-              required: true
-              type: integer
-            - in: query
-              name: bbox
-              description: bbox in the wsen format. Comma separated floats
-              required: true
-              type: string
-            - in: query
-              name: zoom
-              description: zoom level for specifying aggregate tile size
-              required: true
-              type: integer
-        responses:
-            200:
-                description: List of all predictions for the model within supplied bbox
-            404:
-                description: No predictions found
-            500:
-                description: Internal Server Error
-        """
-        try:
-            bbox = request.args.get('bbox', '')
-            zoom = request.args.get('zoom', '')
-            if (bbox is None or bbox == ''):
-                return {
-                    "status": 400,
-                    "error": 'A bbox is required'
-                }, 400
-
-            if (zoom is None or zoom == ''):
-                return {
-                    "status": 400,
-                    "error": 'Zoom level is required for aggregation'
-                }, 400
-
-            # check if this model exists
-            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
-            tiles = PredictionTileService.get_aggregated_tiles(
-                    ml_model_dto.model_id, bbox, zoom)
-            return tiles, 200
-
-        except NotFound:
-            return {
-                "status": 404,
-                "error": "Model not found"
-            }, 404
-        except PredictionsNotFound:
-            return {
-                "status": 404,
-                "error": "No predictions for this bbox"
-            }, 404
-        except ValueError as e:
-            return {
-                "status": 400,
-                "error": str(e)
-            }, 400
-        except Exception as e:
-            error_msg = f'Unhandled error: {str(e)}'
-            current_app.logger.error(error_msg)
-            return {
-                "status": 500,
-                "error": error_msg
-            }, 500
-
-
-class MLModelTilesGeojsonAPI(Resource):
-    """
-    Methods to manage prediction tile aggregation for GeoJSON data
-    """
-
-    @login_required
-    def post(self, model_id: int):
-        """
-        Aggregate ml predictions for polygons in the supplied GeoJSON
-        ---
-        produces:
-            - application/json
-        parameters:
-            - in: body
-              name: body
-              required: true
-              type: string
-              description: GeoJSON FeatureCollection of Polygons
-        responses:
-            200:
-                description: GeoJSON FeatureCollection with prediction data in properties
-            404:
-                description: Model not found
-            400:
-                description: Invalid Request
-            500:
-                description: Internal Server Error
-        """
-        try:
-            # FIXME - validate the geojson
-            data = request.get_json()
-            if validate_geojson(data) is False:
-                raise InvalidGeojson
-
-            # check if the model exists
-            ml_model_dto = MLModelService.get_ml_model_by_id(model_id)
-
-            # get the bbox the geojson
-            bbox = geojson_bounds(data)
-            prediction_tile_geojson = PredictionTileService.get_aggregated_tiles_geojson(ml_model_dto.model_id, bbox, data)
-            return prediction_tile_geojson, 200
-
-        except InvalidGeojson:
-            return {
-                "status": 400,
-                "error": "Invalid GeoJSON"
-            }, 400
-        except NotFound:
-            return {
-                "status": 404,
-                "error": "Model not found"
-            }, 404
-        except PredictionsNotFound:
-            return {
-                "status": 404,
-                "error": "No predictions for this bbox"
-            }, 404
-        except Exception as e:
-            error_msg = f'Unhandled error: {str(e)}'
-            current_app.logger.error(error_msg)
-            return {
-                "status": 500,
-                "error": error_msg
-            }, 500
