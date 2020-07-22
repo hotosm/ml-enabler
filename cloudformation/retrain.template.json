@@ -155,10 +155,7 @@
                     "vpc"
                 ]]}},
                 "GroupDescription": "Access to the ECS hosts and the tasks/containers that run on them",
-                "SecurityGroupIngress": [{
-                    "SourceSecurityGroupId": { "Ref": "PredELBSecurityGroup" },
-                    "IpProtocol": -1
-                }]
+                "SecurityGroupIngress": []
             }
         },
         "PredService": {
@@ -172,12 +169,7 @@
                 "DeploymentConfiguration": {
                     "MaximumPercent": 100,
                     "MinimumHealthyPercent": 0
-                },
-                "LoadBalancers": [{
-                    "ContainerName": "pred-app",
-                    "ContainerPort": 8501,
-                    "TargetGroupArn": { "Ref": "PredTargetGroup" }
-                }]
+                }
             }
         },
         "PredTaskDefinition": {
