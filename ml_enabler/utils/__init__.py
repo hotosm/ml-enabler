@@ -3,6 +3,11 @@ import mercantile
 import json
 import geojson
 
+def err(status , msg: str):
+    return {
+        "status": status,
+        "message": msg
+    }
 
 def version_to_array(version: str):
     """ Convert a semver string into it's components as integers """
@@ -94,7 +99,7 @@ class InvalidGeojson(Exception):
     """ Custom exception for invalid GeoJSON"""
     pass
 
-class NoValid(Exception): 
+class NoValid(Exception):
     """ Custom exception for invalid NPZ request"""
     pass
 

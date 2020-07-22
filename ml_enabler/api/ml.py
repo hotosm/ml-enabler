@@ -12,6 +12,7 @@ from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.services.imagery_service import ImageryService
+from ml_enabler.utils import err
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
     PredictionsNotFound, ImageryNotFound
 from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson, NoValid
@@ -723,6 +724,50 @@ class PredictionInfAPI(Resource):
                 "status": 500,
                 "error": error_msg
             }, 500
+
+class PredictionRetrain(Resource):
+    @login_required
+    def post(self, model_id, prediction_id):
+        """
+        Retrain a model with validated predictions
+        ---
+        produces:
+            - application/json
+        """
+
+        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+            return err(501, "stack must be in 'aws' mode to use this endpoint"), 501
+
+        if CONFIG.EnvironmentConfig.ASSET_BUCKET is None:
+            return err(501, "Not Configured"), 501
+
+        modeltype = request.args.get('type', 'model')
+        if modeltype not in ["model", "tfrecords", "checkpoint"]:
+            return err(400, "Unsupported type param"), 501
+
+        try:
+            batch = boto3.client(
+                service_name='batch',
+                region_name='us-east-1',
+                endpoint_url='https://batch.us-east-1.amazonaws.com'
+            )
+
+            # Submit to AWS Batch to convert to ECR image
+            batch.submit_job(
+                jobName=CONFIG.EnvironmentConfig.STACK + 'ecr-build',
+                jobQueue=CONFIG.EnvironmentConfig.STACK + '-gpu-queue',
+                jobDefinition=CONFIG.EnvironmentConfig.STACK + '-gpu-job',
+                containerOverrides={
+                    'environment': [{
+                        'name': 'HERE',
+                        'value': 'HERE'
+                    }]
+                }
+            )
+        except Exception as e:
+            error_msg = f'Batch GPU Error: {str(e)}'
+            current_app.logger.error(error_msg)
+            return err(500, "Failed to start GPU Retrain"), 500
 
 class PredictionStacksAPI(Resource):
     @login_required

@@ -1,7 +1,7 @@
 <template>
     <div class="col col--12">
         <div class='col col--12 clearfix py6'>
-            <h2 class='fl cursor-default' v-text='"Prediction: " + prediction.versionString'></h2>
+            <h2 class='fl cursor-default' v-text='"Prediction: " + prediction.version'></h2>
 
             <button @click='$router.push({ name: "model", params: { modelid: $route.params.modelid } })' class='btn fr round btn--stroke color-gray color-black-on-hover'>
                 <svg class='icon'><use href='#icon-close'/></svg>
