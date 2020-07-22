@@ -735,15 +735,11 @@ class PredictionRetrain(Resource):
             - application/json
         """
 
-        if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
-            return err(501, "stack must be in 'aws' mode to use this endpoint"), 501
+        #if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
+        #    return err(501, "stack must be in 'aws' mode to use this endpoint"), 501
 
-        if CONFIG.EnvironmentConfig.ASSET_BUCKET is None:
-            return err(501, "Not Configured"), 501
-
-        modeltype = request.args.get('type', 'model')
-        if modeltype not in ["model", "tfrecords", "checkpoint"]:
-            return err(400, "Unsupported type param"), 501
+        #if CONFIG.EnvironmentConfig.ASSET_BUCKET is None:
+        #    return err(501, "Not Configured"), 501
 
         try:
             batch = boto3.client(
@@ -754,7 +750,7 @@ class PredictionRetrain(Resource):
 
             # Submit to AWS Batch to convert to ECR image
             batch.submit_job(
-                jobName=CONFIG.EnvironmentConfig.STACK + 'ecr-build',
+                jobName=CONFIG.EnvironmentConfig.STACK + '-retrain',
                 jobQueue=CONFIG.EnvironmentConfig.STACK + '-gpu-queue',
                 jobDefinition=CONFIG.EnvironmentConfig.STACK + '-gpu-job',
                 containerOverrides={
