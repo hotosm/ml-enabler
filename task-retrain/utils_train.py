@@ -1,204 +1,114 @@
+import os
+import os.path as op
+import json
+import numpy as np
+import pandas as pd
+import shutil
+import glob
+
+from functools import partial
+
+from absl import app, flags, logging
+
+from tqdm import tqdm
+
 import tensorflow as tf
-from sklearn.metrics import fbeta_score
+from tensorflow.keras.models import Model
+from tensorflow.keras.applications import ResNet50, Xception
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.estimator import model_to_estimator
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
 
-def fbeta(true_label, prediction):
-    return fbeta_score(true_label, prediction, beta=1, average='samples')
+from utils_metrics import FBetaScore
+from utils_readtfrecords import parse_and_augment_fn, parse_fn, get_dataset_feeder
+from utils_loss import sigmoid_focal_crossentropy
 
+from sklearn.metrics import precision_score, recall_score, fbeta_score
 
-class FBetaScore(tf.keras.metrics.Metric):
-    """Computes F-Beta score.
-    It is the weighted harmonic mean of precision
-    and recall. Output range is [0, 1]. Works for
-    both multi-class and multi-label classification.
-    F-Beta = (1 + beta^2) * (prec * recall) / ((beta^2 * prec) + recall)
-    Args:
-        num_classes: Number of unique classes in the dataset.
-        average: Type of averaging to be performed on data.
-            Acceptable values are `None`, `micro`, `macro` and
-            `weighted`. Default value is None.
-        beta: Determines the weight of precision and recall
-            in harmonic mean. Determines the weight given to the
-            precision and recall. Default value is 1.
-        threshold: Elements of `y_pred` greater than threshold are
-            converted to be 1, and the rest 0. If threshold is
-            None, the argmax is converted to 1, and the rest 0.
-    Returns:
-        F-Beta Score: float
-    Raises:
-        ValueError: If the `average` has values other than
-        [None, micro, macro, weighted].
-        ValueError: If the `beta` value is less than or equal
-        to 0.
-    `average` parameter behavior:
-        None: Scores for each class are returned
-        micro: True positivies, false positives and
-            false negatives are computed globally.
-        macro: True positivies, false positives and
-            false negatives are computed for each class
-            and their unweighted mean is returned.
-        weighted: Metrics are computed for each class
-            and returns the mean weighted by the
-            number of true instances in each class.
-    """
+#File Manipulation 
 
-    def __init__(self,
-                 num_classes,
-                 average=None,
-                 beta=1.0,
-                 threshold=None,
-                 name='fbeta_score',
-                 dtype=tf.float32):
-        super(FBetaScore, self).__init__(name=name)
+def zip_model_export(model_id, zip_dir='/ml/models/model'):
+    logging.info("zipping model export")
+    d = '/ml/models/' + model_id + '/export/' + model_id + '/*'
+    dir_name = glob.glob(d)[0]
+    logging.info(dir_name)
+    shutil.make_archive(zip_dir, 'zip', dir_name)
+    logging.info('written export as zip file')
 
-        if average not in (None, 'micro', 'macro', 'weighted'):
-            raise ValueError("Unknown average type. Acceptable values "
-                             "are: [None, micro, macro, weighted]")
+def zip_chekpoint(model_id, zip_dir='/ml/models/checkpoint'):
+    logging.info("zipping up best model checkpoint")
+    d = '/ml/models/' + model_id + '/keras/'
+    shutil.make_archive('/ml/models/checkpoint', 'zip', d)
+    logging.info('written checkpoint as zip file')
 
-        if not isinstance(beta, float):
-            raise TypeError("The value of beta should be a python float")
+# Modeling Functions 
+def model_estimator(params, model_dir, run_config):
+    """Get a model as a tf.estimator object"""
 
-        if beta <= 0.0:
-            raise ValueError("beta value should be greater than zero")
+    # Get the original resnet model pre-initialized weights
+    base_model = Xception(weights='imagenet',
+                          include_top=False,  # Peel off top layer
+                          pooling='avg',
+                          input_shape=params['input_shape'])
+    # Get final layer of base Resnet50 model
+    x = base_model.output
+    # Add a fully-connected layer
+    x = Dense(params['dense_size_a'],
+              activation=params['dense_activation'],
+              name='dense')(x)
+    # Add (optional) dropout and output layer
+    x = Dropout(rate=params['dense_dropout_rate_a'])(x)
+    x = Dense(params['dense_size'],
+              activation=params['dense_activation'],
+              name='dense_preoutput')(x)
+    x = Dropout(rate=params['dense_dropout_rate'])(x)
+    output = Dense(params['n_classes'], name='output', activation='sigmoid')(x)
 
-        if threshold is not None:
-            if not isinstance(threshold, float):
-                raise TypeError(
-                    "The value of threshold should be a python float")
-            if threshold > 1.0 or threshold <= 0.0:
-                raise ValueError("threshold should be between 0 and 1")
+    model = Model(inputs=base_model.input, outputs=output)
 
-        self.num_classes = num_classes
-        self.average = average
-        self.beta = beta
-        self.threshold = threshold
-        self.axis = None
-        self.init_shape = []
+    # Get (potentially decaying) learning rate
+    optimizer = get_optimizer(params['optimizer'], params['learning_rate'])
+    model.compile(optimizer=optimizer,
+                  loss=params['loss'], metrics=params['metrics'])
+    
+    if FLAGS.retraining_weights:
+        model.load_weights(FLAGS.retraining_weights)
 
-        if self.average != 'micro':
-            self.axis = 0
-            self.init_shape = [self.num_classes]
-
-        def _zero_wt_init(name):
-            return self.add_weight(
-                name,
-                shape=self.init_shape,
-                initializer='zeros',
-                dtype=self.dtype)
-
-        self.true_positives = _zero_wt_init('true_positives')
-        self.false_positives = _zero_wt_init('false_positives')
-        self.false_negatives = _zero_wt_init('false_negatives')
-        self.weights_intermediate = _zero_wt_init('weights_intermediate')
-
-    # TODO: Add sample_weight support, currently it is
-    # ignored during calculations.
-    def update_state(self, y_true, y_pred, sample_weight=None):
-        if self.threshold is None:
-            threshold = tf.reduce_max(y_pred, axis=-1, keepdims=True)
-            # make sure [0, 0, 0] doesn't become [1, 1, 1]
-            # Use abs(x) > eps, instead of x != 0 to check for zero
-            y_pred = tf.logical_and(y_pred >= threshold,
-                                    tf.abs(y_pred) > 1e-12)
-        else:
-            y_pred = y_pred > self.threshold
-
-        y_true = tf.cast(y_true, tf.int32)
-        y_pred = tf.cast(y_pred, tf.int32)
-
-        def _count_non_zero(val):
-            non_zeros = tf.math.count_nonzero(val, axis=self.axis)
-            return tf.cast(non_zeros, self.dtype)
-
-        self.true_positives.assign_add(_count_non_zero(y_pred * y_true))
-        self.false_positives.assign_add(_count_non_zero(y_pred * (y_true - 1)))
-        self.false_negatives.assign_add(_count_non_zero((y_pred - 1) * y_true))
-        self.weights_intermediate.assign_add(_count_non_zero(y_true))
-
-    def result(self):
-        precision = tf.math.divide_no_nan(
-            self.true_positives, self.true_positives + self.false_positives)
-        recall = tf.math.divide_no_nan(
-            self.true_positives, self.true_positives + self.false_negatives)
-
-        mul_value = precision * recall
-        add_value = (tf.math.square(self.beta) * precision) + recall
-        mean = (tf.math.divide_no_nan(mul_value, add_value))
-        f1_score = mean * (1 + tf.math.square(self.beta))
-
-        if self.average == 'weighted':
-            weights = tf.math.divide_no_nan(
-                self.weights_intermediate,
-                tf.reduce_sum(self.weights_intermediate))
-            f1_score = tf.reduce_sum(f1_score * weights)
-
-        elif self.average is not None:  # [micro, macro]
-            f1_score = tf.reduce_mean(f1_score)
-
-        return f1_score
-
-    def get_config(self):
-        """Returns the serializable config of the metric."""
-
-        config = {
-            "num_classes": self.num_classes,
-            "average": self.average,
-            "beta": self.beta,
-        }
-
-        if self.threshold is not None:
-            config["threshold"] = self.threshold
-
-        base_config = super(FBetaScore, self).get_config()
-        return dict(list(base_config.items()) + list(config.items()))
-
-    def reset_states(self):
-        self.true_positives.assign(tf.zeros(self.init_shape, self.dtype))
-        self.false_positives.assign(tf.zeros(self.init_shape, self.dtype))
-        self.false_negatives.assign(tf.zeros(self.init_shape, self.dtype))
-        self.weights_intermediate.assign(tf.zeros(self.init_shape, self.dtype))
+    # Return estimator
+    m_e = model_to_estimator(keras_model=model, model_dir=model_dir + FLAGS.model_id,
+                             config=run_config)
+    return m_e
 
 
-class F1Score(FBetaScore):
-    """Computes F-1 Score.
-    It is the harmonic mean of precision and recall.
-    Output range is [0, 1]. Works for both multi-class
-    and multi-label classification.
-    F-1 = 2 * (precision * recall) / (precision + recall)
-    Args:
-        num_classes: Number of unique classes in the dataset.
-        average: Type of averaging to be performed on data.
-            Acceptable values are `None`, `micro`, `macro`
-            and `weighted`. Default value is None.
-        threshold: Elements of `y_pred` above threshold are
-            considered to be 1, and the rest 0. If threshold is
-            None, the argmax is converted to 1, and the rest 0.
-    Returns:
-        F-1 Score: float
-    Raises:
-        ValueError: If the `average` has values other than
-        [None, micro, macro, weighted].
-    `average` parameter behavior:
-        None: Scores for each class are returned
-        micro: True positivies, false positives and
-            false negatives are computed globally.
-        macro: True positivies, false positives and
-            false negatives are computed for each class
-            and their unweighted mean is returned.
-        weighted: Metrics are computed for each class
-            and returns the mean weighted by the
-            number of true instances in each class.
-    """
+def get_optimizer(opt_name, lr, momentum=0.9):
+    """Helper to get optimizer from text params"""
+    if opt_name == 'adam':
+        return Adam(learning_rate=lr)
+    if opt_name == 'sgd':
+        return SGD(learning_rate=lr)
+    if opt_name == 'rmsprop':
+        return RMSprop(learning_rate=lr, momentum=momentum)
+    raise ValueError('`opt_name`: {} not understood.'.format(opt_name))
 
-    def __init__(self,
-                 num_classes,
-                 average=None,
-                 threshold=None,
-                 name='f1_score',
-                 dtype=tf.float32):
-        super(F1Score, self).__init__(
-            num_classes, average, 1.0, threshold, name=name, dtype=dtype)
 
-    def get_config(self):
-        base_config = super(F1Score, self).get_config()
-        del base_config["beta"]
-        return base_config
+def resnet_serving_input_receiver_fn():
+    """Convert b64 string encoded images into a tensor for production"""
+    def decode_and_resize(image_str_tensor):
+        """Decodes image string, resizes it and returns a uint8 tensor."""
+        image = tf.image.decode_image(image_str_tensor,
+                                      channels=3,
+                                      dtype=tf.uint8)
+        image = tf.reshape(image, FLAGS.x_feature_shape[1:])
+        return image
+    # Run processing for batch prediction.
+    input_ph = tf.compat.v1.placeholder(tf.string, shape=[None], name='image_binary')
+    with tf.device("/cpu:0"):
+        images_tensor = tf.map_fn(decode_and_resize, input_ph, back_prop=False, dtype=tf.uint8)
+    # Cast to float
+    images_tensor = tf.cast(images_tensor, dtype=tf.float32)
+    # re-scale pixel values between 0 and 1
+    images_tensor = tf.divide(images_tensor, 255)
+
+    return tf.estimator.export.ServingInputReceiver(
+        {FLAGS.x_feature_name: images_tensor},
+        {'image_bytes': input_ph})
