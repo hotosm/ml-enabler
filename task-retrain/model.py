@@ -8,8 +8,7 @@ import os.path as op
 import json
 import numpy as np
 import pandas as pd
-
-import zipfile
+import shutil
 
 from functools import partial
 
@@ -27,7 +26,6 @@ from tensorflow.keras.optimizers import Adam, SGD, RMSprop
 from utils_train import FBetaScore
 from utils_readtfrecords import parse_and_augment_fn, parse_fn, get_dataset_feeder
 from utils_loss import sigmoid_focal_crossentropy
-import glob
 
 from sklearn.metrics import precision_score, recall_score, fbeta_score
 
@@ -383,6 +381,12 @@ def main(_):
     ############################################################################
     # Upload checkpoints, tf events, and model exported for evaluation to AWS
     ############################################################################
+
+    logging.info("zipping model export")
+
+    #shutil.make_archive('/ml/models/model.zip', 'zip', dir_name)
+
+
 
 #TO-DO
 

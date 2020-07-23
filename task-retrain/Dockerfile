@@ -1,4 +1,5 @@
-FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.0.2-gpu-py36-cu100-ubuntu18.04
+#FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.0.2-gpu-py36-cu100-ubuntu18.04
+FROM tensorflow/tensorflow:2.1.0-gpu-py3
 
 ENV SHELL /bin/bash
 ENV HOME=/home/task
