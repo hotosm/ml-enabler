@@ -37,8 +37,8 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer('n_classes', 2, 'Number of classes in dataset')
 flags.DEFINE_list('class_names', ['not_industrial', 'industrial'],
                   'class names in data set')
-flags.DEFINE_integer('n_train_samps', None, 'number of samples in training set')
-flags.DEFINE_integer('n_val_samps', None, 'number of samples in validation set')
+flags.DEFINE_integer('n_train_samps', 400, 'number of samples in training set')
+flags.DEFINE_integer('n_val_samps', 100, 'number of samples in validation set')
 flags.DEFINE_list('x_feature_shape', [-1, 256, 256, 3], 'x feature shape')
 flags.DEFINE_string('x_feature_name', 'input_1', 'layer name')
 
