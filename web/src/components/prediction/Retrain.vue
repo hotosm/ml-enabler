@@ -5,7 +5,12 @@
                 v-on:mode='mode = $event'
             />
         </div>
-        <template v-if='meta.environment !== "aws"'>
+        <template v-if='!prediction'>
+            <div class='flex-parent flex-parent--center-main w-full py24'>
+                <div class='flex-child loading py24'></div>
+            </div>
+        </template>
+        <template v-else-if='meta.environment !== "aws"'>
             <div class='flex-parent flex-parent--center-main pt36'>
                 <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
             </div>
@@ -32,7 +37,7 @@
                 </button>
             </div>
         </template>
-        <template v-if='!tilejson'>
+        <template v-else-if='!tilejson'>
             <div class='flex-parent flex-parent--center-main pt36'>
                 <svg class='flex-child icon w60 h60 color-gray'><use href='#icon-info'/></svg>
             </div>
