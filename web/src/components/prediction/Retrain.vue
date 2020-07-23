@@ -48,20 +48,32 @@
             </div>
         </template>
         <template v-else-if='!prediction.checkpointLink'>
+            <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                <h1 class='flex-child txt-h4 cursor-default align-center'>
+                    Checkpoint Upload
+                </h1>
+            </div>
+            <UploadPrediction
+                type='checkpoint'
+                :prediction='prediction'
+                v-on:close='$emit("refresh")'
+            />
         </template>
     </div>
 </template>
 
 <script>
 import PredictionHeader from './PredictionHeader.vue';
+import UploadPrediction from './UploadPrediction.vue';
 
 export default {
     name: 'Retrain',
-    props: ['meta', 'prediction'],
+    props: ['meta', 'prediction', 'tilejson'],
     data: function() {
         return { }
     },
     components: {
+        UploadPrediction,
         PredictionHeader
     },
     methods: {

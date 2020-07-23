@@ -23,6 +23,11 @@
                 <h1 class='flex-child txt-h4 cursor-default align-center'>Stacks can only be created when MLEnabler is running in an "aws" environment</h1>
             </div>
         </template>
+        <template v-else-if='!prediction || loading.stack || loading.imagery'>
+            <div class='flex-parent flex-parent--center-main w-full py24'>
+                <div class='flex-child loading py24'></div>
+            </div>
+        </template>
         <template v-else-if='!prediction.modelLink'>
             <div class='col col--12 py6'>
                 <div class='flex-parent flex-parent--center-main pt36'>
@@ -32,11 +37,6 @@
                 <div class='flex-parent flex-parent--center-main pt12 pb36'>
                     <h1 class='flex-child txt-h4 cursor-default'>A Model must be uploaded before a stack is created</h1>
                 </div>
-            </div>
-        </template>
-        <template v-else-if='loading.stack'>
-            <div class='flex-parent flex-parent--center-main w-full py24'>
-                <div class='flex-child loading py24'></div>
             </div>
         </template>
         <template v-else-if='!imagery || !imagery.length'>
@@ -200,7 +200,8 @@ export default {
             ],
             loading: {
                 stack: true,
-                queue: true
+                queue: true,
+                imagery: true
             },
             queue: {
                 queued: 0,
@@ -341,6 +342,7 @@ export default {
             });
         },
         getImagery: function() {
+            this.loading.imagery = true;
             fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
                 method: 'GET'
             }).then((res) => {
@@ -348,6 +350,7 @@ export default {
             }).then((res) => {
                 this.imagery = res;
 
+                this.loading.imagery = false;
                 if (this.imagery.length === 1) {
                     this.params.image = this.imagery[0];
                 }
