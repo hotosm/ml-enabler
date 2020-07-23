@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:2.1.0-gpu-py3
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.0.2-gpu-py36-cu100-ubuntu18.04
 
 ENV SHELL /bin/bash
 ENV HOME=/home/task
@@ -6,6 +6,11 @@ WORKDIR $HOME
 
 COPY ./ $HOME/retrain
 WORKDIR $HOME/retrain
+
+RUN mkdir /ml
+RUN mkdir /ml/models
+RUN mkdir /ml/data
+
 
 RUN apt-get update \
     && apt-get install -y git curl
