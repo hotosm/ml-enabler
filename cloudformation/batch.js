@@ -162,22 +162,13 @@ const stack = {
                 Parameters: { },
                 ContainerProperties: {
                     Command: ['./task.py'],
-                    Environment: [{
-                        Name: 'StackName' ,
-                        Value: cf.stackName
-                    },{
-                        Name: 'MACHINE_AUTH',
-                        Value: cf.ref('MachineAuth')
-                    },{
-                        Name: 'AWS_ACCOUNT_ID',
-                        Value: cf.accountId
-                    },{
-                        Name: 'AWS_REGION',
-                        Value: cf.region
-                    },{
-                        Name: 'API_URL',
-                        Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')])
-                    }],
+                    Environment: [
+                        { Name: 'StackName' , Value: cf.stackName },
+                        { Name: 'MACHINE_AUTH', Value: cf.ref('MachineAuth') },
+                        { Name: 'AWS_ACCOUNT_ID', Value: cf.accountId },
+                        { Name: 'AWS_REGION', Value: cf.region },
+                        { Name: 'API_URL', Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')]) }
+                    ],
                     Memory: 4000,
                     Privileged: true,
                     JobRoleArn: cf.getAtt('BatchJobRole', 'Arn'),
@@ -210,25 +201,13 @@ const stack = {
                 Parameters: { },
                 ContainerProperties: {
                     Command: ['./task.js'],
-                    Environment: [{
-                        Name: 'StackName' ,
-                        Value: cf.stackName
-                    },{
-                        Name: 'MACHINE_AUTH',
-                        Value: cf.ref('MachineAuth')
-                    },{
-                        Name: 'AWS_ACCOUNT_ID',
-                        Value: cf.accountId
-                    },{
-                        Name: 'AWS_REGION',
-                        Value: cf.region
-                    },{
-                        Name: 'BATCH_ECR' ,
-                        Value: cf.ref('BatchECR')
-                    },{
-                        Name: 'API_URL',
-                        Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')])
-                    }],
+                    Environment: [
+                        { Name: 'StackName' , Value: cf.stackName },
+                        { Name: 'MACHINE_AUTH', Value: cf.ref('MachineAuth') },
+                        { Name: 'AWS_ACCOUNT_ID', Value: cf.accountId },
+                        { Name: 'AWS_REGION', Value: cf.region },
+                        { Name: 'API_URL', Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')]) }
+                    ],
                     Memory: 4000,
                     Privileged: true,
                     JobRoleArn: cf.getAtt('BatchJobRole', 'Arn'),
