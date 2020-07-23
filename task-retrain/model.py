@@ -54,6 +54,7 @@ flags.DEFINE_string('tf_test_data_dir', None, 'Path to data dir')
 flags.DEFINE_string('tf_model_dir', '/ml/models/', 'Path or GCS directory to save models.')
 flags.DEFINE_string('tf_test_results_dir', None, 'Path to GCS to write results')
 flags.DEFINE_string('model_id', 'a', 'model id for saving')
+flags.DEFINE_string('retraining_weights', None, 'path to checkpoint to start retraining from')
 
 flags.DEFINE_string('tf_test_ckpt_path', None, 'Use to override training and run prediction on test data.')
 
@@ -102,7 +103,10 @@ def resnet50_estimator(params, model_dir, run_config):
     optimizer = get_optimizer(params['optimizer'], params['learning_rate'])
     model.compile(optimizer=optimizer,
                   loss=params['loss'], metrics=params['metrics'])
-
+    
+    if FLAGS.retraining_weights:
+        model.load_weights(FLAGS.retraining_weights)
+        
     # Return estimator
     m_e = model_to_estimator(keras_model=model, model_dir=model_dir + FLAGS.model_id,
                              config=run_config)
