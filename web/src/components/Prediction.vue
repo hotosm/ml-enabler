@@ -27,6 +27,14 @@
                         <div class='align-center'>TF Model</div>
                         <pre class='pre' v-text='"s3://" + prediction.modelLink'></pre>
                     </div>
+                    <div v-if='prediction.tfrecordLink' class='col col--12 py3'>
+                        <div class='align-center'>TF Records</div>
+                        <pre class='pre' v-text='"s3://" + prediction.tfrecordLink'></pre>
+                    </div>
+                    <div v-if='prediction.checkpointLink' class='col col--12 py3'>
+                        <div class='align-center'>TF Checkpoint</div>
+                        <pre class='pre' v-text='"s3://" + prediction.checkpointLink'></pre>
+                    </div>
                     <div v-if='prediction.saveLink' class='col col--12 py3'>
                         <div class='align-center'>TFServing Container</div>
                         <pre class='pre' v-text='"s3://" + prediction.saveLink'></pre>
