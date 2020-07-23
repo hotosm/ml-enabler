@@ -106,7 +106,7 @@ def resnet50_estimator(params, model_dir, run_config):
     
     if FLAGS.retraining_weights:
         model.load_weights(FLAGS.retraining_weights)
-        
+
     # Return estimator
     m_e = model_to_estimator(keras_model=model, model_dir=model_dir + FLAGS.model_id,
                              config=run_config)
@@ -387,6 +387,7 @@ def main(_):
     # Upload checkpoints, tf events, and model exported for evaluation to AWS
     ############################################################################
 
+    #TO-DO upload zip files to S3 bucket
     logging.info("zipping model export")
     d = '/ml/models/' + FLAGS.model_id + '/export/' + FLAGS.model_id + '/*'
     dir_name = glob.glob(d)[0]
@@ -394,9 +395,11 @@ def main(_):
     shutil.make_archive('/ml/models/model', 'zip', dir_name)
     logging.info('written export as zip file')
 
+    logging.info("zipping up best model checkpoint")
+    d = '/ml/models/' + FLAGS.model_id + '/keras/'
+    shutil.make_archive('/ml/models/checkpoint', 'zip', d)
+    logging.info('written checkpoint as zip file')
 
-
-#TO-DO
 
 
 if __name__ == '__main__':
