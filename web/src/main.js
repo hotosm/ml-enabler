@@ -13,6 +13,7 @@ import Assets from './components/prediction/Assets.vue';
 import Export  from './components/prediction/Export.vue';
 import Map  from './components/prediction/Map.vue';
 import Stack from './components/prediction/Stack.vue';
+import Retrain from './components/prediction/Retrain.vue';
 
 Vue.use(VueRouter);
 Vue.config.productionTip = false
@@ -40,6 +41,10 @@ const router = new VueRouter({
                 name: 'stack',
                 path: 'stack',
                 component: Stack
+            },{
+                name: 'retrain',
+                path: 'retrain',
+                component: Retrain
             },{
                 name: 'map',
                 path: 'map',

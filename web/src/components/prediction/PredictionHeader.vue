@@ -11,7 +11,10 @@
         }' class="btn btn--pill btn--s btn--pill-hc btn--pill-stroke round">Map</button>
         <button @click='$router.push({ name: "export" })' :class='{
             "btn--stroke": mode !== "export"
-        }' class="btn btn--pill btn--s btn--pill-hr btn--pill-stroke round">Export</button>
+        }' class="btn btn--pill btn--s btn--pill-hc btn--pill-stroke round">Export</button>
+        <button @click='$router.push({ name: "retrain" })' :class='{
+            "btn--stroke": mode !== "retrain"
+        }' class="btn btn--pill btn--s btn--pill-hr btn--pill-stroke round">Retrain</button>
     </div>
 </template>
 
