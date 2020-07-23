@@ -40,8 +40,6 @@ export default {
         };
     },
     mounted: function() {
-        if (!this.type) this.type = 'model';
-
         this.label = `Drop ${this.type}.zip here`;
     },
     methods: {

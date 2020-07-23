@@ -44,7 +44,11 @@
         <template v-else>
             <div class='align-center pb6'>Upload a model to get started</div>
 
-            <UploadPrediction :prediction='prediction' v-on:close='$router.push({ name: "model", params: { modelid: $route.params.modelid } })'/>
+            <UploadPrediction
+                type='model'
+                :prediction='prediction'
+                v-on:close='$router.push({ name: "model", params: { modelid: $route.params.modelid } })'
+            />
         </template>
     </div>
 </template>

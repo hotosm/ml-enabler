@@ -204,6 +204,7 @@ const stack = {
                     Command: ['./task.js'],
                     Environment: [
                         { Name: 'StackName' , Value: cf.stackName },
+                        { Name: 'BATCH_ECR' , Value: cf.ref('BatchECR') },
                         { Name: 'MACHINE_AUTH', Value: cf.ref('MachineAuth') },
                         { Name: 'AWS_ACCOUNT_ID', Value: cf.accountId },
                         { Name: 'AWS_REGION', Value: cf.region },
