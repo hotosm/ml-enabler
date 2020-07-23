@@ -149,7 +149,7 @@ export default {
             if (this.map) this.map.remove();
             if (this.tilejson) {
                 this.$nextTick(() => {
-                    //this.init();
+                    this.init();
                 });
             }
         },
@@ -176,7 +176,6 @@ export default {
 
         if (this.tilejson) {
             this.$nextTick(() => {
-                console.error('MOUNTED');
                 this.init();
             });
         }
