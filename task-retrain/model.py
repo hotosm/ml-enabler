@@ -11,7 +11,7 @@ import pandas as pd
 import tensorflow as tf
 
 from functools import partial
-from absl import app, flags, logging
+from absl import app, logging
 from tqdm import tqdm
 
 from tensorflow.keras.models import Model
@@ -25,15 +25,14 @@ from sklearn.metrics import precision_score, recall_score, fbeta_score
 from utils_metrics import FBetaScore, precision_m, recall_m, fbeta_m
 from utils_readtfrecords import parse_and_augment_fn, parse_fn, get_dataset_feeder
 from utils_loss import sigmoid_focal_crossentropy
-from utils_train import zip_model_export, zip_chekpoint, model_estimator, get_optimizer, resnet_serving_input_receiver_fn, 
+from utils_train import zip_model_export, zip_chekpoint, model_estimator, get_optimizer, resnet_serving_input_receiver_fn 
 
 
 
 ################
 # Modeling Code
 ###############
-def train(n_classes=2, 
-         class_names=['not_industrial', 'industrial'], 
+def train(n_classes=2, class_names=['not_industrial', 'industrial'], 
          n_train_samps=400, 
          n_val_samps=100, 
          x_feature_shape=[-1, 256, 256, 3], 
@@ -45,18 +44,19 @@ def train(n_classes=2,
          tf_val_data_dir='/ml/data',
          tf_model_dir = '/ml/models', 
          model_id ='a',
-         retraining_weights=None, 
          tf_steps_per_summary=10, 
          tf_steps_per_checkpoint=100,
          tf_batch_size=16, 
          tf_train_steps=200,
          tf_dense_size_a=256,
-         tf_dense_dropout_rate=0.3,
+         tf_dense_dropout_rate_a=0.3,
          tf_dense_size=128,
          tf_dense_dropout_rate=.35,
          tf_dense_activation='relu', 
          tf_learning_rate=0.001,
-         tf_optimizer='adam')
+         tf_optimizer='adam', 
+         retraining_weights=None): 
+
     """
     Function to run TF Estimator
     Note: set the `TF_CONFIG` environment variable according to:
@@ -116,7 +116,7 @@ def train(n_classes=2,
                 "n_val_samps": n_val_samps}
 
 
-    classifier = model_estimator(model_params, tf_model_dir, run_config)
+    classifier = model_estimator(model_params, tf_model_dir, run_config, retraining_weights, model_id)
     classifier = tf.estimator.add_metrics(classifier, fbeta_m)
     classifier = tf.estimator.add_metrics(classifier, precision_m)
     classifier = tf.estimator.add_metrics(classifier, recall_m)
@@ -183,8 +183,8 @@ def train(n_classes=2,
     logging.info("training done.")
 
     # Zip key exports 
-    zip_model_export(model_id=)
-    zip_chekpoint(model_id=)
+    zip_model_export(model_id=model_id)
+    zip_chekpoint(model_id=model_id)
     #TO-DO upload zip files to S3 bucket
 
 def test():
