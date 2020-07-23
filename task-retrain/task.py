@@ -1,7 +1,9 @@
 import os
 import requests
-from requests.auth import HTTPBasicAuth
 import boto3
+
+from requests.auth import HTTPBasicAuth
+from zipfile import ZipFile
 
 s3 = boto3.client('s3')
 
@@ -40,9 +42,18 @@ def get_asset(bucket, key):
         Key=key
     )
 
+    dirr =  parsed[len(parsed) - 1].replace('.zip', '')
+    with ZipFile('/tmp/' + parsed[len(parsed) - 1], 'r') as zipObj:
+       # Extract all the contents of zip file in different directory
+          zipObj.extractall('/tmp/' + dirr)
+
+    return '/tmp/' + dirr
 
 
 pred = get_pred(model_id, prediction_id)
 
-get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
-get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
+model = get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
+checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
+
+print(model)
+print(checkpoint)
