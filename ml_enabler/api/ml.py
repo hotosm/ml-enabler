@@ -1108,6 +1108,32 @@ class PredictionUploadAPI(Resource):
                     "error": "Failed to upload model to S3"
                 }, 500
 
+            if modeltype == "checkpoint":
+                try:
+                    PredictionService.patch(prediction_id, {
+                        "checkpointLink": CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
+                    })
+                except Exception as e:
+                    error_msg = f'SaveLink Error: {str(e)}'
+                    current_app.logger.error(error_msg)
+                    return {
+                        "status": 500,
+                        "error": "Failed to save checkpoint state to DB"
+                    }, 500
+
+            if modeltype == "tfrecord":
+                try:
+                    PredictionService.patch(prediction_id, {
+                        "tfrecordLink": CONFIG.EnvironmentConfig.ASSET_BUCKET + '/' + key
+                    })
+                except Exception as e:
+                    error_msg = f'SaveLink Error: {str(e)}'
+                    current_app.logger.error(error_msg)
+                    return {
+                        "status": 500,
+                        "error": "Failed to save checkpoint state to DB"
+                    }, 500
+
             if modeltype == "model":
                 # Save the model link to ensure UI shows upload success
                 try:

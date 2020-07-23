@@ -78,7 +78,7 @@ export default {
                 tileZoom: '18',
                 infList: '',
                 infType: 'classification',
-                infBinary: false, 
+                infBinary: false,
                 infSupertile: false
             }
         };
@@ -116,7 +116,7 @@ export default {
                         bbox: [-180.0, -90.0, 180.0, 90.0],
                         infList: this.prediction.infList,
                         infType: this.prediction.infType,
-                        infBinary: this.prediction.infBinary, 
+                        infBinary: this.prediction.infBinary,
                         infSupertile: this.prediction.infSupertile
                     })
                 });
