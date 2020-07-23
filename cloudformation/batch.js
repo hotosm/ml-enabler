@@ -167,7 +167,8 @@ const stack = {
                         { Name: 'MACHINE_AUTH', Value: cf.ref('MachineAuth') },
                         { Name: 'AWS_ACCOUNT_ID', Value: cf.accountId },
                         { Name: 'AWS_REGION', Value: cf.region },
-                        { Name: 'API_URL', Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')]) }
+                        { Name: 'API_URL', Value: cf.join(['http://', cf.getAtt('MLEnablerELB', 'DNSName')]) },
+                        { Name: 'ASSET_BUCKET', Value: cf.ref('MLEnablerBucket') }
                     ],
                     Memory: 4000,
                     Privileged: true,
