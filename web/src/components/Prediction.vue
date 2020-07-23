@@ -14,6 +14,7 @@
                 :meta='meta'
                 :prediction='prediction'
                 :tilejson='tilejson'
+                @refresh='refresh'
             />
         </div>
     </div>

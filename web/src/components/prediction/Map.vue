@@ -4,7 +4,7 @@
             <PredictionHeader/>
 
             <div class='fr'>
-                <button @click='refresh' class='mx3 btn btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl'><use href='#icon-refresh'/></svg></button>
+                <button @click='$emit("refresh")' class='mx3 btn btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl'><use href='#icon-refresh'/></svg></button>
             </div>
         </div>
 
@@ -103,25 +103,26 @@
 
                     <div id="map" class='w-full h-full'></div>
                 </div>
-            </template>
-            <template v-else>
-                <div class='col col--12 py6'>
-                    <div class='flex-parent flex-parent--center-main pt36'>
-                        <svg class='flex-child icon w60 h60 color-gray'><use href='#icon-info'/></svg>
-                    </div>
-
-                    <div class='flex-parent flex-parent--center-main pt12 pb36'>
-                        <h1 class='flex-child txt-h4 cursor-default'>No Inferences Uploaded</h1>
-                    </div>
+            </div>
+        </template>
+        <template v-else>
+            <div class='col col--12 py6'>
+                <div class='flex-parent flex-parent--center-main pt36'>
+                    <svg class='flex-child icon w60 h60 color-gray'><use href='#icon-info'/></svg>
                 </div>
-            </template>
-        <div>
+
+                <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                    <h1 class='flex-child txt-h4 cursor-default'>No Inferences Uploaded</h1>
+                </div>
+            </div>
+        </template>
     </div>
 </template>
 
 <script>
 import buffer from '../../../node_modules/@turf/buffer/index.js';
 import bboxPolygon from '../../../node_modules/@turf/bbox-polygon/index.js';
+import PredictionHeader from './PredictionHeader.vue';
 
 export default {
     name: 'Map',
@@ -145,8 +146,12 @@ export default {
             this.layers();
         },
         tilejson: function() {
-            this.map.remove();
-            this.init();
+            if (this.map) this.map.remove();
+            if (this.tilejson) {
+                this.$nextTick(() => {
+                    //this.init();
+                });
+            }
         },
         opacity: function() {
             for (const inf of this.tilejson.inferences) {
@@ -169,9 +174,12 @@ export default {
     mounted: function() {
         this.getImagery();
 
-        this.$nextTick(() => {
-            this.init();
-        });
+        if (this.tilejson) {
+            this.$nextTick(() => {
+                console.error('MOUNTED');
+                this.init();
+            });
+        }
     },
     methods: {
         infValidity: function(id, valid) {
@@ -413,6 +421,9 @@ export default {
                 alert(err);
             });
         },
+    },
+    components: {
+        PredictionHeader
     }
 }
 </script>
