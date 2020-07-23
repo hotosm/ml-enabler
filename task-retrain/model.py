@@ -9,6 +9,7 @@ import json
 import numpy as np
 import pandas as pd
 import shutil
+import glob
 
 from functools import partial
 
@@ -383,8 +384,11 @@ def main(_):
     ############################################################################
 
     logging.info("zipping model export")
-
-    #shutil.make_archive('/ml/models/model.zip', 'zip', dir_name)
+    d = '/ml/models/' + FLAGS.model_id + '/export/' + FLAGS.model_id + '/*'
+    dir_name = glob.glob(d)[0]
+    logging.info(dir_name)
+    shutil.make_archive('/ml/models/model', 'zip', dir_name)
+    logging.info('written export as zip file')
 
 
 
