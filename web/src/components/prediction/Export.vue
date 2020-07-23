@@ -1,10 +1,7 @@
 <template>
     <div class='col col--12 relative'>
         <div class='col col--12 border-b border--gray-light clearfix mb6'>
-            <PredictionHeader
-                mode='export'
-                v-on:mode='$emit("mode", $event)'
-            />
+            <PredictionHeader/>
         </div>
 
         <template v-if='tilejson'>
@@ -65,7 +62,7 @@
 </template>
 
 <script>
-import PredictionHeader from './../PredictionHeader.vue';
+import PredictionHeader from './PredictionHeader.vue';
 
 export default {
     name: 'Export',

@@ -1,10 +1,7 @@
 <template>
     <div class='col col--12'>
         <div class='col col--12 border-b border--gray-light clearfix mb6'>
-            <PredictionHeader
-                mode='stack'
-                v-on:mode='emitmode($event)'
-            />
+            <PredictionHeader/>
 
             <div v-if='prediction.modelLink' class='fr'>
                 <button @click='refresh' class='btn fr round btn--stroke btn--gray'>
@@ -189,7 +186,7 @@
 
 <script>
 import TileMap from './TileMap.vue';
-import PredictionHeader from './../PredictionHeader.vue';
+import PredictionHeader from './PredictionHeader.vue';
 
 export default {
     name: 'Stack',

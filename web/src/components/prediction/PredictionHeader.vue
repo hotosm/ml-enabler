@@ -1,15 +1,15 @@
 <template>
     <div class="flex-parent-inline py3">
-        <button @click='emit("assets")' :class='{
+        <button @click='$router.push({ name: "assets" })' :class='{
             "btn--stroke": mode !== "assets"
         }' class="btn btn--pill btn--pill-stroke btn--s btn--pill-hl round">Assets</button>
-        <button @click='emit("stack")' :class='{
+        <button @click='$router.push({ name: "stack" })' :class='{
             "btn--stroke": mode !== "stack"
         }' class="btn btn--pill btn--s btn--pill-hc btn--pill-stroke round">Stack</button>
-        <button @click='emit("map")' :class='{
+        <button @click='$router.push({ name: "map" })' :class='{
             "btn--stroke": mode !== "map"
         }' class="btn btn--pill btn--s btn--pill-hc btn--pill-stroke round">Map</button>
-        <button @click='emit("export")' :class='{
+        <button @click='$router.push({ name: "export" })' :class='{
             "btn--stroke": mode !== "export"
         }' class="btn btn--pill btn--s btn--pill-hr btn--pill-stroke round">Export</button>
     </div>
@@ -18,11 +18,14 @@
 <script>
 export default {
     name: 'PredictionHeader',
-    props: ['mode'],
-    methods: {
-        emit: function(mode) {
-            this.$emit('mode', mode);
-        }
+    props: [],
+    data: function() {
+        return {
+            mode: false
+        };
+    },
+    mounted: function() {
+        this.mode = this.$route.path.split('/')[this.$route.path.split('/').length - 1]
     }
 }
 </script>
