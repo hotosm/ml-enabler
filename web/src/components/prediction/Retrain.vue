@@ -5,7 +5,7 @@
                 v-on:mode='mode = $event'
             />
         </div>
-        <template v-if='!prediction'>
+        <template v-if='!prediction || loading.imagery'>
             <div class='flex-parent flex-parent--center-main w-full py24'>
                 <div class='flex-child loading py24'></div>
             </div>
@@ -64,6 +64,22 @@
                 v-on:close='$emit("refresh")'
             />
         </template>
+        <template v-else-if='!imagery || !imagery.length'>
+            <div class='flex-parent flex-parent--center-main py12'>
+                No imagery sources found to create a stack with
+            </div>
+        </template>
+        <template v-else>
+            <div class='col col--12'>
+                <label>Imagery Source:</label>
+                <div class='border border--gray-light round my12'>
+                    <div @click='params.image = img' :key='img.id' v-for='img in imagery' class='col col--12 cursor-pointer bg-darken10-on-hover'>
+                        <h3 v-if='params.image.id === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
+                        <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 </template>
 
@@ -75,26 +91,46 @@ export default {
     name: 'Retrain',
     props: ['meta', 'prediction', 'tilejson'],
     data: function() {
-        return { }
+        return {
+            imagery: [],
+            params: {
+                image: false,
+            },
+            loading: {
+                imagery: true
+            }
+        }
     },
     components: {
         UploadPrediction,
         PredictionHeader
     },
+    mounted: function() {
+        this.getImagery();
+    },
     methods: {
-        ecrLink(ecr) {
-            const url = `https://console.aws.amazon.com/ecr/repositories/${ecr.split(':')[0]}/`;
-            this.external(url);
-        },
-        logLink: function(stream) {
-            const url = `https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/%252Faws%252Fbatch%252Fjob/log-events/${encodeURIComponent(stream)}`
-            this.external(url);
-        },
         external: function(url) {
             if (!url) return;
 
             window.open(url, "_blank")
-        }
+        },
+        getImagery: function() {
+            this.loading.imagery = true;
+            fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
+                method: 'GET'
+            }).then((res) => {
+                return res.json();
+            }).then((res) => {
+                this.imagery = res;
+
+                this.loading.imagery = false;
+                if (this.imagery.length === 1) {
+                    this.params.image = this.imagery[0];
+                }
+            }).catch((err) => {
+                alert(err);
+            });
+        },
     }
 }
 </script>

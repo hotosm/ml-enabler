@@ -57,9 +57,6 @@
                         </div>
                     </div>
                 </div>
-
-
-
                 <template v-if='!advanced'>
                     <div class='col col--12'>
                         <button @click='advanced = !advanced' class='btn btn--white color-gray px0'><svg class='icon fl my6'><use xlink:href='#icon-chevron-right'/></svg><span class='fl pl6'>Advanced Options</span></button>
