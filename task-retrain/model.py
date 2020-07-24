@@ -128,7 +128,8 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
     # Create training dataset function
     fpath_train = op.join(tf_train_data_dir, 'train_*.tfrecords')
     map_func = partial(parse_and_augment_fn, n_chan=3,
-                       n_classes=model_params['n_classes'])
+                       n_classes=model_params['n_classes'], 
+                       shp=x_feature_shape[1:3])
 
     dataset_train_fn = partial(get_dataset_feeder,
                                fpath=fpath_train,
@@ -142,8 +143,9 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
 
     # Create validation dataset function
     fpath_validate = op.join(tf_val_data_dir, 'val_*.tfrecords')
-    map_func = partial(parse_fn, n_chan=3,
-                       n_classes=model_params['n_classes'])
+    map_func = partial(parse_and_augment_fn, n_chan=3,
+                       n_classes=model_params['n_classes'], 
+                       shp=x_feature_shape[1:3])
 
     dataset_validate_fn = partial(get_dataset_feeder,
                                   fpath=fpath_validate,
@@ -187,7 +189,33 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
     zip_chekpoint(model_id=model_id)
     #TO-DO upload zip files to S3 bucket
 
-def test():
+def test(n_classes=2, class_names=['not_industrial', 'industrial'], 
+         n_train_samps=400, 
+         n_val_samps=100, 
+         x_feature_shape=[-1, 256, 256, 3], 
+         cycle_length=1, 
+         n_map_threads=4, 
+         shuffle_buffer_size=400, 
+         prefetch_buffer_size=1, 
+         tf_train_data_dir='/ml/data',
+         tf_val_data_dir='/ml/data',
+         tf_test_data_dir='/ml/data',
+         tf_model_dir = '/ml/models', 
+         tf_test_results_dir = '/ml/models',
+         tf_test_ckpt_path ='/ml/models',
+         model_id ='a',
+         tf_steps_per_summary=10, 
+         tf_steps_per_checkpoint=100,
+         tf_batch_size=16, 
+         tf_train_steps=200,
+         tf_dense_size_a=256,
+         tf_dense_dropout_rate_a=0.3,
+         tf_dense_size=128,
+         tf_dense_dropout_rate=.35,
+         tf_dense_activation='relu', 
+         tf_learning_rate=0.001,
+         tf_optimizer='adam', 
+         retraining_weights=None):
     ###################################
     # Set parameters/config
     ###################################
@@ -240,7 +268,7 @@ def test():
                 "n_train_samps": n_train_samps,
                 "n_val_samps": n_val_samps}
 
-    classifier = model_estimator(model_params, tf_model_dir, run_config)
+    classifier = model_estimator(model_params, tf_model_dir, run_config, retraining_weights, model_id)
     classifier = tf.estimator.add_metrics(classifier, fbeta_m)
     classifier = tf.estimator.add_metrics(classifier, precision_m)
     classifier = tf.estimator.add_metrics(classifier, recall_m)
@@ -251,8 +279,9 @@ def test():
     logging.info('Beginning test for model')
     # Create test data function, get `y_true`
     fpath_test = op.join(tf_test_data_dir, 'test.tfrecords')
-    map_func = partial(parse_fn, n_chan=3,
-                        n_classes=model_params['n_classes'])
+    map_func = partial(parse_and_augment_fn, n_chan=3,
+                        n_classes=model_params['n_classes'], 
+                        shp=x_feature_shape[1:3])
     dataset_test = get_dataset_feeder(fpath=fpath_test,
                                         data_map_func=map_func,
                                         shuffle_buffer_size=None,

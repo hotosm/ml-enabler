@@ -13,7 +13,7 @@ def _augment_helper(image):
     return image
 
 
-def _parse_helper(example, n_chan, n_classes):
+def _parse_helper(example, n_chan, n_classes, shp):
     """"Parse TFExample record containing image and label."""""
 
     example_fmt = {"image": tf.io.FixedLenFeature([], tf.string),
@@ -27,7 +27,7 @@ def _parse_helper(example, n_chan, n_classes):
 
     # Get image string, decode
     image = tf.image.decode_image(parsed['image'])
-    image = tf.reshape(image, [256, 256, 3])
+    image = tf.reshape(image, shp)
 
     # change dtype to float32
     image = tf.cast(image, tf.float32)
@@ -38,17 +38,16 @@ def _parse_helper(example, n_chan, n_classes):
     return image, label
 
 
-def parse_and_augment_fn(example, n_chan=3, n_classes=11):
+def parse_and_augment_fn(example, n_chan=3, n_classes=11, shp=[256,256,3]):
     """Parse TFExample record containing image and label and then augment image."""
-    image, label = _parse_helper(example, n_chan, n_classes)
-    #image = preproc(_augment_helper(image))
+    image, label = _parse_helper(example, n_chan, n_classes, shp)
+    image = _augment_helper(image)
     return image, label
 
 
-def parse_fn(example, n_chan=3, n_classes=11):
+def parse_fn(example, n_chan=3, n_classes=11, shp=[256,256,3]):
     """Parse TFExample record containing image and label."""
-    image, label = _parse_helper(example, n_chan, n_classes)
-    #image = preproc(image)
+    image, label = _parse_helper(example, n_chan, n_classes, shp)
     return image, label
 
 
