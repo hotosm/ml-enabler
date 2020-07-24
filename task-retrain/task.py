@@ -6,6 +6,7 @@ from requests.auth import HTTPBasicAuth
 from zipfile import ZipFile
 
 from model import train
+from generate_tfrecords import create_tfr
 
 s3 = boto3.client('s3')
 
@@ -60,4 +61,13 @@ checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
 print(model)
 print(checkpoint)
 
+#download image tiles that match validated labels.npz file 
+
+
+#create data.npz file that matchs up images and labels 
+
+#convert data.npz into tf-records 
+create_tfr(npz_path='/tmp/data.npz', city='city_1') #replace city with input from UI 
+
+#conduct re-training 
 train(tf_train_steps=20)
