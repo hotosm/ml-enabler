@@ -5,6 +5,8 @@ import boto3
 from requests.auth import HTTPBasicAuth
 from zipfile import ZipFile
 
+from model import train
+
 s3 = boto3.client('s3')
 
 auth = os.getenv('MACHINE_AUTH')
@@ -57,3 +59,5 @@ checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
 
 print(model)
 print(checkpoint)
+
+train(tf_train_steps=20)
