@@ -279,7 +279,7 @@ def test(n_classes=2, class_names=['not_industrial', 'industrial'],
     logging.info('Beginning test for model')
     # Create test data function, get `y_true`
     fpath_test = op.join(tf_test_data_dir, 'test.tfrecords')
-    map_func = partial(parse_and_augment_fn, n_chan=3,
+    map_func = partial(parse_fn, n_chan=3,
                         n_classes=model_params['n_classes'], 
                         shp=x_feature_shape[1:3])
     dataset_test = get_dataset_feeder(fpath=fpath_test,
