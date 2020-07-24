@@ -4,3 +4,6 @@ boto3==1.14.20
 pandas==1.0.5
 scikit-learn==0.23.0
 tqdm==4.48.0
+mercantile == 1.1.5
+pillow
+rasterio == 1.1.5
