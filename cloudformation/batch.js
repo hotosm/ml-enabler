@@ -161,7 +161,7 @@ const stack = {
                 },
                 Parameters: { },
                 ContainerProperties: {
-                    Command: ['./task.py'],
+                    Command: ['python', './task.py'],
                     Environment: [
                         { Name: 'StackName' , Value: cf.stackName },
                         { Name: 'MACHINE_AUTH', Value: cf.ref('MachineAuth') },

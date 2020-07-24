@@ -94,7 +94,7 @@
                     <div class='w-full align-center py12'>No Advanced Options Yet</div>
                 </template>
                 <div class='col col--12 clearfix py12'>
-                    <button @click='createStack' class='fr btn btn--stroke color-gray color-green-on-hover round'>Retrain</button>
+                    <button @click='createRetrain' class='fr btn btn--stroke color-gray color-green-on-hover round'>Retrain</button>
                 </div>
             </div>
         </template>
@@ -133,22 +133,50 @@ export default {
 
             window.open(url, "_blank")
         },
-        getImagery: function() {
+        createRetrain: async function() {
+            if (!this.params.image) return;
+
+            try {
+                let res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/retrain`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        imagery: this.params.image.url
+                    })
+                });
+
+                if (!res.ok) {
+                    let res = await res.json();
+                    throw new Error(res.message)
+                }
+            } catch (err) {
+                console.error(err)
+                this.$emit('err', err);
+            }
+        },
+        getImagery: async function() {
             this.loading.imagery = true;
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.imagery = res;
+
+            try {
+                let res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
+                    method: 'GET'
+                });
+
+                let body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+
+                this.imagery = body;
 
                 this.loading.imagery = false;
+
                 if (this.imagery.length === 1) {
                     this.params.image = this.imagery[0];
                 }
-            }).catch((err) => {
-                alert(err);
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
     }
 }

@@ -15,6 +15,7 @@
                 :prediction='prediction'
                 :tilejson='tilejson'
                 @refresh='refresh'
+                @err='$emit("err", $event)'
             />
         </div>
     </div>
