@@ -71,12 +71,30 @@
         </template>
         <template v-else>
             <div class='col col--12'>
+                <h2 class='w-full align-center txt-h4 py12'>Model Retraining</h2>
+
                 <label>Imagery Source:</label>
                 <div class='border border--gray-light round my12'>
                     <div @click='params.image = img' :key='img.id' v-for='img in imagery' class='col col--12 cursor-pointer bg-darken10-on-hover'>
                         <h3 v-if='params.image.id === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
                         <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
                     </div>
+                </div>
+                <template v-if='!advanced'>
+                    <div class='col col--12'>
+                        <button @click='advanced = !advanced' class='btn btn--white color-gray px0'><svg class='icon fl my6'><use xlink:href='#icon-chevron-right'/></svg><span class='fl pl6'>Advanced Options</span></button>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class='col col--12 border-b border--gray-light mb12'>
+                        <button @click='advanced = !advanced' class='btn btn--white color-gray px0'><svg class='icon fl my6'><use xlink:href='#icon-chevron-down'/></svg><span class='fl pl6'>Advanced Options</span></button>
+                    </div>
+                </template>
+                <template v-if='advanced'>
+                    <div class='w-full align-center py12'>No Advanced Options Yet</div>
+                </template>
+                <div class='col col--12 clearfix py12'>
+                    <button @click='createStack' class='fr btn btn--stroke color-gray color-green-on-hover round'>Retrain</button>
                 </div>
             </div>
         </template>
@@ -92,6 +110,7 @@ export default {
     props: ['meta', 'prediction', 'tilejson'],
     data: function() {
         return {
+            advanced: false,
             imagery: [],
             params: {
                 image: false,
