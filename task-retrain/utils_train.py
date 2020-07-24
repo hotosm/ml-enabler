@@ -42,7 +42,7 @@ def zip_chekpoint(model_id, zip_dir='/ml/models/checkpoint'):
     logging.info('written checkpoint as zip file')
 
 # Modeling Functions 
-def model_estimator(params, model_dir, run_config):
+def model_estimator(params, model_dir, run_config, retraining_weights, model_id):
     """Get a model as a tf.estimator object"""
 
     # Get the original resnet model pre-initialized weights
@@ -71,11 +71,11 @@ def model_estimator(params, model_dir, run_config):
     model.compile(optimizer=optimizer,
                   loss=params['loss'], metrics=params['metrics'])
     
-    if FLAGS.retraining_weights:
-        model.load_weights(FLAGS.retraining_weights)
+    if retraining_weights:
+        model.load_weights(retraining_weights)
 
     # Return estimator
-    m_e = model_to_estimator(keras_model=model, model_dir=model_dir + FLAGS.model_id,
+    m_e = model_to_estimator(keras_model=model, model_dir=model_dir + model_id,
                              config=run_config)
     return m_e
 
@@ -91,14 +91,14 @@ def get_optimizer(opt_name, lr, momentum=0.9):
     raise ValueError('`opt_name`: {} not understood.'.format(opt_name))
 
 
-def resnet_serving_input_receiver_fn():
+def resnet_serving_input_receiver_fn(x_feature_shape, x_feature_name):
     """Convert b64 string encoded images into a tensor for production"""
     def decode_and_resize(image_str_tensor):
         """Decodes image string, resizes it and returns a uint8 tensor."""
         image = tf.image.decode_image(image_str_tensor,
                                       channels=3,
                                       dtype=tf.uint8)
-        image = tf.reshape(image, FLAGS.x_feature_shape[1:])
+        image = tf.reshape(image, x_feature_shape[1:])
         return image
     # Run processing for batch prediction.
     input_ph = tf.compat.v1.placeholder(tf.string, shape=[None], name='image_binary')
@@ -110,5 +110,5 @@ def resnet_serving_input_receiver_fn():
     images_tensor = tf.divide(images_tensor, 255)
 
     return tf.estimator.export.ServingInputReceiver(
-        {FLAGS.x_feature_name: images_tensor},
+        {x_feature_name: images_tensor},
         {'image_bytes': input_ph})
