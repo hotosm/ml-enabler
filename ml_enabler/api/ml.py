@@ -754,10 +754,10 @@ class PredictionRetrain(Resource):
                 jobQueue=CONFIG.EnvironmentConfig.STACK + '-gpu-queue',
                 jobDefinition=CONFIG.EnvironmentConfig.STACK + '-gpu-job',
                 containerOverrides={
-                    'environment': [{
-                        'name': 'HERE',
-                        'value': 'HERE'
-                    }]
+                    'environment': [
+                        { 'name': 'MODEL_ID', 'value': model_id },
+                        { 'name': 'PREDICTION_ID', 'value': prediction_id }
+                    ]
                 }
             )
         except Exception as e:
