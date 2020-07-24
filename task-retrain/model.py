@@ -42,7 +42,7 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
          prefetch_buffer_size=1, 
          tf_train_data_dir='/ml/data',
          tf_val_data_dir='/ml/data',
-         tf_model_dir = '/ml/models', 
+         tf_model_dir = '/ml/models/', 
          model_id ='a',
          tf_steps_per_summary=10, 
          tf_steps_per_checkpoint=100,
@@ -200,7 +200,7 @@ def test(n_classes=2, class_names=['not_industrial', 'industrial'],
          tf_train_data_dir='/ml/data',
          tf_val_data_dir='/ml/data',
          tf_test_data_dir='/ml/data',
-         tf_model_dir = '/ml/models', 
+         tf_model_dir = '/ml/models/', 
          tf_test_results_dir = '/ml/models',
          tf_test_ckpt_path ='/ml/models',
          model_id ='a',
@@ -319,7 +319,7 @@ def test(n_classes=2, class_names=['not_industrial', 'industrial'],
                 "true-label": y_true}
 
     df_pred = pd.DataFrame.from_dict(output_d)
-    df_pred.to_csv(tf_test_results_dir + 'preds.csv') #make into flag
+    df_pred.to_csv(tf_test_results_dir + 'preds.csv') 
     print('preds csv written')
     recall_lst = []
     for i in np.arange(0, n_classes):
@@ -340,7 +340,7 @@ def test(n_classes=2, class_names=['not_industrial', 'industrial'],
 
     df = pd.DataFrame.from_dict(d)
     df['Classes'] = model_params['class_names']
-    df.to_csv(tf_test_results_dir + 'test_stats.csv') #make into flag
+    df.to_csv(tf_test_results_dir + 'test_stats.csv') 
     print("test stats written")
     return d 
 
