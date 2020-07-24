@@ -6,6 +6,7 @@ from requests.auth import HTTPBasicAuth
 from zipfile import ZipFile
 
 from model import train
+from generate_datanpz import download_img_match_labels, make_datanpz
 from generate_tfrecords import create_tfr
 
 s3 = boto3.client('s3')
@@ -63,8 +64,15 @@ print(checkpoint)
 
 #download image tiles that match validated labels.npz file 
 
+# TO-DO:fix arguments to pull from ml-enabler db
+#download_img_match_labels(labels_folder, tile, imagery, folder, supertile=False)
+
 
 #create data.npz file that matchs up images and labels 
+
+# TO-DO:fix arguments to pull from ml-enabler db
+#make_datanpz()
+
 
 #convert data.npz into tf-records 
 create_tfr(npz_path='/tmp/data.npz', city='city_1') #replace city with input from UI 
