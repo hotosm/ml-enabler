@@ -16,10 +16,19 @@
 </template>
 
 <script>
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+
+import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
+
 import bboxPolygon from '../../../node_modules/@turf/bbox-polygon/index.js';
 
 export default {
-    name: 'TileMap',
+    name: 'StackMap',
     props: ['tilejson'],
     data: function() {
         return {
@@ -79,6 +88,12 @@ export default {
                 style: 'mapbox://styles/mapbox/satellite-streets-v11'
             });
 
+            this.map.addControl(new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl
+            }));
+
+            this.map.addControl(new MapboxDraw(), 'top-left');
             this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
             this.map.on('load', () => {

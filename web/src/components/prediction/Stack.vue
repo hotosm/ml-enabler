@@ -170,7 +170,7 @@
                     Imagery Chip Submission
                 </div>
                 <div class='col col--12'>
-                    <TileMap
+                    <StackMap
                         v-on:queue='postQueue($event)'
                     />
                 </div>
@@ -188,7 +188,7 @@
 </template>
 
 <script>
-import TileMap from './TileMap.vue';
+import StackMap from './StackMap.vue';
 import PredictionHeader from './../PredictionHeader.vue';
 
 export default {
@@ -395,7 +395,7 @@ export default {
     },
     components: {
         PredictionHeader,
-        TileMap
+        StackMap
     }
 }
 </script>

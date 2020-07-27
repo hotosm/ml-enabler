@@ -8,11 +8,16 @@
         "lint": "vue-cli-service lint"
     },
     "dependencies": {
+        "@mapbox/": "mapbox/mapbox-gl-draw",
+        "@mapbox/assembly": "^0.24.1-0",
+        "@mapbox/mapbox-gl-draw": "^1.2.0",
+        "@mapbox/mapbox-gl-geocoder": "^4.6.0",
         "@turf/bbox-polygon": "^6.0.1",
         "@turf/buffer": "^5.1.5",
         "core-js": "^3.6.4",
         "filepond": "^4.11.0",
         "filepond-plugin-file-validate-type": "^1.2.4",
+        "mapbox-gl": "^1.11.1",
         "semver-sort": "^0.0.4",
         "vue": "^2.6.11",
         "vue-filepond": "^6.0.2",
