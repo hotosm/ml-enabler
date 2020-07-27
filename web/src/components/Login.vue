@@ -58,7 +58,7 @@ export default {
             if (!this.password.length) return;
             this.loading = true;
 
-            fetch(window.location.origin + `/v1/user/login`, {
+            fetch(window.api + `/v1/user/login`, {
                 method: 'post',
                 headers: {
                     'Content-Type': 'application/json'
