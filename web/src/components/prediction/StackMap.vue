@@ -25,7 +25,10 @@ import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 
+import DrawRectangle from 'mapbox-gl-draw-rectangle-mode';
+
 import bboxPolygon from '../../../node_modules/@turf/bbox-polygon/index.js';
+import bbox from '../../../node_modules/@turf/bbox/index.js'
 
 export default {
     name: 'StackMap',
@@ -93,7 +96,22 @@ export default {
                 mapboxgl: mapboxgl
             }));
 
-            this.map.addControl(new MapboxDraw(), 'top-left');
+            const modes = MapboxDraw.modes;
+            modes.draw_rectangle = DrawRectangle;
+
+            const draw = new MapboxDraw({
+                displayControlsDefault: false,
+                modes: modes
+            });
+
+            this.map.addControl(draw, 'top-left');
+            draw.changeMode('draw_rectangle');
+
+            this.map.on('draw.create', (f) => {
+                this.bounds = bbox(f.features[0]).join(',');
+                draw.deleteAll();
+            });
+
             this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
             this.map.on('load', () => {
