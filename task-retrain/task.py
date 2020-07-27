@@ -17,12 +17,14 @@ model_id = os.getenv('MODEL_ID')
 prediction_id = os.getenv('PREDICTION_ID')
 bucket = os.getenv('ASSET_BUCKET')
 api = os.getenv('API_URL')
+imagery = os.getenv('TILE_ENDPOINT')
 
 assert(stack)
 assert(auth)
 assert(model_id)
 assert(prediction_id)
 assert(api)
+assert(imagery)
 
 def get_pred(model_id, prediction_id):
     r = requests.get(api + '/v1/model/' + model_id + '/prediction/' + prediction_id, auth=HTTPBasicAuth('machine', auth))

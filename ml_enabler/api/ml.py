@@ -741,6 +741,14 @@ class PredictionRetrain(Resource):
         #if CONFIG.EnvironmentConfig.ASSET_BUCKET is None:
         #    return err(501, "Not Configured"), 501
 
+        payload = request.get_json()
+        
+        if payload.get("imagery") is None:
+            return {
+                "status": 400,
+                "error": "imagery key required in body"
+            }, 400
+
         try:
             batch = boto3.client(
                 service_name='batch',
@@ -756,7 +764,8 @@ class PredictionRetrain(Resource):
                 containerOverrides={
                     'environment': [
                         { 'name': 'MODEL_ID', 'value': model_id },
-                        { 'name': 'PREDICTION_ID', 'value': prediction_id }
+                        { 'name': 'PREDICTION_ID', 'value': prediction_id }, 
+                        { 'name': 'TILE_ENDPOINT', 'value': payload.get("imagery") },
                     ]
                 }
             )
