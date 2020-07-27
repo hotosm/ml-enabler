@@ -36,6 +36,7 @@ export default {
     data: function() {
         return {
             map: false,
+            draw: false,
             token: false,
             bounds: '',
             poly: {
@@ -60,6 +61,14 @@ export default {
     },
     watch: {
         bounds: function() {
+            if (this.bounds.trim().length === 0) {
+                this.map.getSource('bounds').setData({
+                    type: 'FeatureCollection',
+                    features: []
+                });
+                return;
+            }
+
             const bounds = this.bounds.split(',');
 
             try {
@@ -79,6 +88,8 @@ export default {
                 // TODO make input bar red?
                 console.error(err);
             }
+
+            this.draw.changeMode('draw_rectangle');
         }
     },
     methods: {
@@ -99,17 +110,17 @@ export default {
             const modes = MapboxDraw.modes;
             modes.draw_rectangle = DrawRectangle;
 
-            const draw = new MapboxDraw({
+            this.draw = new MapboxDraw({
                 displayControlsDefault: false,
                 modes: modes
             });
 
-            this.map.addControl(draw, 'top-left');
-            draw.changeMode('draw_rectangle');
+            this.map.addControl(this.draw, 'top-left');
+            this.draw.changeMode('draw_rectangle');
 
             this.map.on('draw.create', (f) => {
                 this.bounds = bbox(f.features[0]).join(',');
-                draw.deleteAll();
+                this.draw.deleteAll();
             });
 
             this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');

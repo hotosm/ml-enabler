@@ -37,7 +37,7 @@
                 </div>
             </div>
         </template>
-        <template v-else-if='loading.stack'>
+        <template v-else-if='loading.stack || loading.imagery'>
             <div class='flex-parent flex-parent--center-main w-full py24'>
                 <div class='flex-child loading py24'></div>
             </div>
@@ -203,7 +203,8 @@ export default {
             ],
             loading: {
                 stack: true,
-                queue: true
+                queue: true,
+                imagery: true
             },
             queue: {
                 queued: 0,
@@ -344,6 +345,8 @@ export default {
             });
         },
         getImagery: function() {
+            this.loading.imagery = true;
+
             fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
                 method: 'GET'
             }).then((res) => {
@@ -351,6 +354,7 @@ export default {
             }).then((res) => {
                 this.imagery = res;
 
+                this.loading.imagery = false;
                 if (this.imagery.length === 1) {
                     this.params.image = this.imagery[0];
                 }
