@@ -30,7 +30,7 @@
             </template>
             <template v-else>
                 <div @click='$router.push({ name: "model", params: { modelid: model.modelId } })' :key='model.modelId' v-for='model in models'>
-                    <template v-if='!model.archived || archived'>
+                    <template v-if='(archived && model.archived) || (!archived && !model.archived)'>
                         <div class='cursor-pointer bg-darken10-on-hover col col--12 py12'>
                             <div class='col col--12 grid py6 px12'>
                                 <div class='col col--6'>
