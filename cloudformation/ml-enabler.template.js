@@ -347,6 +347,7 @@ const Resources = {
                     },{
                         Effect: 'Allow',
                         Action: [
+                            'batch:CancelJob',
                             'batch:DescribeJobs'
                         ],
                         Resource: [ '*' ]
