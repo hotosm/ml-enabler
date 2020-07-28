@@ -21,8 +21,13 @@
                 </div>
                 <div :key='task.id' v-for='task in tasks' class='col col--12 grid py6 bg-gray-light-on-hover round'>
                     <div class='col col--2 px6' v-text='task.type'></div>
-                    <div class='col col--2 px6' v-text='task.status'></div>
-                    <div class='col col--6 px6' v-text='task.statusReason'></div>
+                    <template v-if='task._loading'>
+                        <div class='col col--8 loading loading--s h24'></div>
+                    </template>
+                    <template v-else>
+                        <div class='col col--2 px6' v-text='task.status'></div>
+                        <div class='col col--6 px6' v-text='task.statusReason'></div>
+                    </template>
                     <div class='col col--2 px6 clearfix'>
                         <button @click='deleteTask(task.id)' class='btn fr round btn--stroke btn--gray color-red-on-hover'>
                             <svg class='icon'><use href='#icon-trash'/></svg>
@@ -173,8 +178,32 @@ export default {
                 let body = await res.json();
                 if (!res.ok) throw new Error(body.message)
 
-                this.tasks = body.tasks;
+                this.tasks = body.tasks.map((task) => {
+                    task._loading = true;
+                    return task;
+                });
+                this.tasks.forEach(task => this.getTask(task.id));
                 this.loading.tasks = false;
+            } catch (err) {
+                console.error(err)
+                this.$emit('err', err);
+            }
+        },
+        getTask: async function(task_id) {
+            try {
+                let res = await fetch(window.api + `/v1/task/${task_id}`, {
+                    method: 'GET'
+                });
+
+                let body = await res.json();
+                if (!res.ok) throw new Error(body.message)
+
+                for (const task of this.tasks) {
+                    if (task.id !== body.id) continue;
+                    task.status = body.status;
+                    task.statusReason = body.statusReason;
+                    task._loading = false;
+                }
             } catch (err) {
                 console.error(err)
                 this.$emit('err', err);
