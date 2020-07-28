@@ -2,7 +2,7 @@ from flask import Blueprint, session
 from flask_login import current_user, login_required, logout_user, login_user
 from flask_restful import request, current_app
 from ml_enabler.models.ml_model import User
-from . import login_manager
+from ml_enabler import login_manager
 import base64
 
 auth_bp = Blueprint(

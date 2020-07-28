@@ -12,6 +12,7 @@ from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.services.imagery_service import ImageryService
+from ml_enabler.services.task_service import TaskService
 from ml_enabler.utils import err
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
     PredictionsNotFound, ImageryNotFound
@@ -697,7 +698,7 @@ class PredictionRetrain(Resource):
             )
 
             # Submit to AWS Batch to convert to ECR image
-            batch.submit_job(
+            job = batch.submit_job(
                 jobName=CONFIG.EnvironmentConfig.STACK + '-retrain',
                 jobQueue=CONFIG.EnvironmentConfig.STACK + '-gpu-queue',
                 jobDefinition=CONFIG.EnvironmentConfig.STACK + '-gpu-job',
@@ -709,6 +710,12 @@ class PredictionRetrain(Resource):
                     ]
                 }
             )
+
+            TaskService.create({
+                'pred_id': prediction_id,
+                'type': 'retrain',
+                'batch_id': job.get('jobId')
+            })
         except Exception as e:
             error_msg = f'Batch GPU Error: {str(e)}'
             current_app.logger.error(error_msg)
