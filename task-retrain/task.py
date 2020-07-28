@@ -60,32 +60,31 @@ def get_label_npz(model_id, prediction_id):
     r = requests.get(api + '/v1/model/' + model_id + '/prediction/' + prediction_id + '/export', params=payload,
                     auth=HTTPBasicAuth('machine', auth))
     r.raise_for_status()  
-    with open('/tmp/labels.npz', 'wb') as f:
+    with open('/Users/marthamorrissey/Documents/mle/labels.npz', 'wb') as f:
         f.write(r.content)
     return f
 
 
 pred = get_pred(model_id, prediction_id)
+#print(pred)
 zoom = pred['tileZoom']
 supertile = pred['infSupertile']
 
-get_label_npz(model_id, prediction_id)
+#get_label_npz(model_id, prediction_id)
 
-model = get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
-checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
+#model = get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
+#checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
 
-print(model)
-print(checkpoint)
+#print(model)
+#print(checkpoint)
 
 #download image tiles that match validated labels.npz file 
-download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/data', zoom=zoom, supertile=supertile)
-
+#download_img_match_labels(labels_folder='/Users/marthamorrissey/Documents/mle', imagery=imagery, folder='/Users/marthamorrissey/Documents/mle/tiles', zoom=zoom, supertile=supertile)
 
 #create data.npz file that matchs up images and labels 
 
 # TO-DO:fix arguments to pull from ml-enabler db
-#make_datanpz()
-
+make_datanpz(dest_folder='/Users/marthamorrissey/Documents/mle', imagery=imagery)
 
 #convert data.npz into tf-records 
 #create_tfr(npz_path='/tmp/data.npz', city='city_1') #replace city with input from UI 

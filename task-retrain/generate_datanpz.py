@@ -87,7 +87,7 @@ def download_img_match_labels(labels_folder, imagery, folder, zoom, supertile=Fa
         
 
 # package up the images + labels into one data.npz file 
-def make_datanpz(dest_folder, classes, imagery, 
+def make_datanpz(dest_folder, imagery, 
                     seed=False, 
                     split_names=('train', 'val', 'test'), 
                     split_vals=(0.7, .2, .1)):
@@ -96,12 +96,6 @@ def make_datanpz(dest_folder, classes, imagery,
     ------------
     dest_folder: str
         Folder to save labels, tiles, and final numpy arrays into
-    classes: list
-        A list of classes for machine learning training. Each class is defined
-        as a dict with two required properties:
-            - name: class name
-            - filter: A Mapbox GL Filter.
-        See the README for more details
     imagery: str
         Imagery template to download satellite images from.
         Ex: http://a.tiles.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.jpg?access_token=ACCESS_TOKEN
@@ -135,15 +129,18 @@ def make_datanpz(dest_folder, classes, imagery,
 
     # open the images and load those plus the labels into the final arrays
     image_format = get_image_format(imagery)
+    print(image_format)
 
     x_vals = []
     y_vals = []
 
-    for tile in tiles:
+    for tile in tiles[0:4]:
         image_file = op.join(dest_folder, 'tiles', '{}{}'.format(tile, image_format))
+        print(image_file)
         try:
             img = Image.open(image_file)
         except FileNotFoundError:
+            print('except')
             # we often don't download images for each label (e.g. background tiles)
             continue
         except OSError:
@@ -154,6 +151,7 @@ def make_datanpz(dest_folder, classes, imagery,
         img.close()
 
         #focusing just on classification
+        x_vals.append(np_image)
         y_vals.append(labels[tile])
 
     # Convert lists to numpy arrays
