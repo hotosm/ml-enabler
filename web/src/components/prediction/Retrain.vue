@@ -18,6 +18,14 @@
                     <div class='col col--2'>Type</div>
                     <div class='col col--2'>Status</div>
                     <div class='col col--6'>Note</div>
+                    <div class='col col--2 clearfix pr6'>
+                        <button @click='tasks = []' class='btn btn--s fr round btn--stroke btn--gray color-green-on-hover'>
+                            <svg class='icon'><use href='#icon-plus'/></svg>
+                        </button>
+                        <button @click='getTasks' class='mr6 btn btn--s fr round btn--stroke btn--gray color-green-on-hover'>
+                            <svg class='icon'><use href='#icon-refresh'/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div :key='task.id' v-for='task in tasks' class='col col--12 grid py6 bg-gray-light-on-hover round'>
                     <div class='col col--2 px6' v-text='task.type'></div>
@@ -29,7 +37,7 @@
                         <div class='col col--6 px6' v-text='task.statusReason'></div>
                     </template>
                     <div class='col col--2 px6 clearfix'>
-                        <button @click='deleteTask(task.id)' class='btn fr round btn--stroke btn--gray color-red-on-hover'>
+                        <button @click='deleteTask(task.id)' class='btn fr round btn--stroke btn--s btn--gray color-red-on-hover'>
                             <svg class='icon'><use href='#icon-trash'/></svg>
                         </button>
                     </div>
@@ -97,7 +105,7 @@
         </template>
         <template v-else>
             <div class='col col--12'>
-                <h2 class='w-full align-center txt-h4 py12'>Model Retraining</h2>
+                <h2 class='w-full align-center txt-h4 py12'>New Model Retraining</h2>
 
                 <label>Imagery Source:</label>
                 <div class='border border--gray-light round my12'>
