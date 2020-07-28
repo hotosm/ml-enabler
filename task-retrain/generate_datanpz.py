@@ -29,7 +29,7 @@ def url(tile, imagery):
     return imagery.replace('{x}', tile[0]).replace('{y}', tile[1]).replace('{z}', tile[2])
 
 
-def download_tile_tms(tile, imagery, folder, supertile=False):
+def download_tile_tms(tile, imagery, folder, zoom, supertile=False):
     """Download a satellite image tile from a tms endpoint"""
 
     image_format = get_image_format(imagery)
@@ -44,11 +44,11 @@ def download_tile_tms(tile, imagery, folder, supertile=False):
         child_tiles = children(int(tile[0]), int(tile[1]), int(tile[2]), zoom=new_zoom)
         child_tiles.sort()
 
-        new_dim = 256 * (2 * over_zoom)
+        new_dim = 256 * (2 * zoom)
 
         w_lst = []
-        for i in range (2 * over_zoom):
-            for j in range(2 * over_zoom):
+        for i in range (2 * zoom):
+            for j in range(2 * zoom):
                 window = Window(i * 256, j * 256, 256, 256)
                 w_lst.append(window)
 
@@ -72,18 +72,18 @@ def download_tile_tms(tile, imagery, folder, supertile=False):
             w.write(r.content)
     return tile_img
 
-def download_img_match_labels(labels_folder, tile, imagery, folder, supertile=False):
+def download_img_match_labels(labels_folder, imagery, folder, zoom, supertile=False):
     #open the labels file and read the key (so we only download the images we have labels for)
     labels_file = op.join(labels_folder, 'labels.npz')
     tiles = np.load(labels_file)
     # create tiles directory
-    tiles_dir = op.join(dest_folder, 'tiles')
+    tiles_dir = op.join(folder, 'tiles')
     if not op.isdir(tiles_dir):
-        makedirs(tiles_dir)
+        os.makedirs(tiles_dir)
     class_tiles = [tile for tile in tiles.files]
     #download images
-    for tile in tiles:
-        download_tile_tms(tile, imagery, folder, supertile=False)
+    for tile in class_tiles:
+        download_tile_tms(tile, imagery, folder, zoom, supertile=False)
         
 
 # package up the images + labels into one data.npz file 

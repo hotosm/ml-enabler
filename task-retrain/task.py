@@ -55,8 +55,12 @@ def get_asset(bucket, key):
 
     return '/tmp/' + dirr
 
+#def get_label_npz
+
 
 pred = get_pred(model_id, prediction_id)
+zoom = pred['tileZoom']
+supertile = pred['infSupertile']
 
 model = get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
 checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
@@ -67,7 +71,7 @@ print(checkpoint)
 #download image tiles that match validated labels.npz file 
 
 # TO-DO:fix arguments to pull from ml-enabler db
-#download_img_match_labels(labels_folder, tile, imagery, folder, supertile=False)
+#download_img_match_labels(labels_folder, imagery, 'tmp/data', zoom, supertile=supertile)
 
 
 #create data.npz file that matchs up images and labels 
@@ -77,7 +81,7 @@ print(checkpoint)
 
 
 #convert data.npz into tf-records 
-create_tfr(npz_path='/tmp/data.npz', city='city_1') #replace city with input from UI 
+#create_tfr(npz_path='/tmp/data.npz', city='city_1') #replace city with input from UI 
 
 #conduct re-training 
-train(tf_train_steps=20)
+#train(tf_train_steps=20)
