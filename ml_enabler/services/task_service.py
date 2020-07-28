@@ -19,8 +19,8 @@ class TaskService():
         task = Task.get(task_id)
         task.delete()
 
-    def list(pred_id: int):
-        rawtasks = Task.list(pred_id)
+    def list(pred_id: int, task_type: str):
+        rawtasks = Task.list(pred_id, task_type)
 
         tasks = []
         if (rawtasks):
@@ -34,6 +34,6 @@ class TaskService():
         else:
             return {
                 'pred_id': pred_id,
-            'tasks': []
-        }
+                'tasks': []
+            }
 

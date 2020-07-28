@@ -10,11 +10,12 @@ task_bp = Blueprint(
 @task_bp.route('/v1/task', methods=['GET'])
 def list():
     pred_id = request.args.get('pred_id')
+    task_type = request.args.get('type')
 
     if pred_id is None:
         return err(400, 'pred_id param must be specified'), 400
     else:
         pred_id = int(pred_id)
 
-    return TaskService.list(pred_id)
+    return TaskService.list(pred_id, task_type)
 

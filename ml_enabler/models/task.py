@@ -34,26 +34,17 @@ class Task(db.Model):
         db.session.commit()
 
     def get(task_id: int):
-        query = db.session.query(
-            Task.id,
-            Task.pred_id,
-            Task.type,
-            Task.created,
-            Task.batch_id
-        ).filter(Task.id == task_id)
-
         return Task.query.get(task_id)
 
-    def list(pred_id: int):
-        query = db.session.query(
-            Task.id,
-            Task.pred_id,
-            Task.type,
-            Task.created,
-            Task.batch_id
-        ).filter(Task.pred_id == pred_id)
+    def list(pred_id: int, task_type: str):
+        filters = []
 
-        return Task.query.all()
+        if pred_id is not None:
+            filters.append(Task.pred_id == pred_id)
+        if type is not None:
+            filters.append(Task.type == task_type)
+
+        return Task.query.filter(*filters)
 
     def as_dto(self):
         task_dto = TaskDTO()
