@@ -134,7 +134,7 @@ def make_datanpz(dest_folder, imagery,
     x_vals = []
     y_vals = []
 
-    for tile in tiles[0:4]:
+    for tile in tiles:
         image_file = op.join(dest_folder, 'tiles', '{}{}'.format(tile, image_format))
         print(image_file)
         try:
