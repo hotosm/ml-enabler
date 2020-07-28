@@ -136,11 +136,9 @@ def make_datanpz(dest_folder, imagery,
 
     for tile in tiles:
         image_file = op.join(dest_folder, 'tiles', '{}{}'.format(tile, image_format))
-        print(image_file)
         try:
             img = Image.open(image_file)
         except FileNotFoundError:
-            print('except')
             # we often don't download images for each label (e.g. background tiles)
             continue
         except OSError:

@@ -82,11 +82,11 @@ def create_tfr(npz_path, city, dest_folder='temp/tfrecords/', n_imgs_shard=800):
                 writer.write(tf_example.SerializeToString())
             print('TFrecords created for test.')
 
-    val_shp = npz['y_validation'].shape[0]
+    val_shp = npz['y_val'].shape[0]
     if val_shp > n_imgs_shard:
         val_shards_num = round(val_shp / n_imgs_shard)
-        val_split_x = np.array_split(npz['x_validation'], val_shards_num)
-        val_split_y = np.array_split(npz['y_validation'], val_shards_num)
+        val_split_x = np.array_split(npz['x_val'], val_shards_num)
+        val_split_y = np.array_split(npz['y_val'], val_shards_num)
 
         for i in np.arange(0, val_shards_num):
             path = dest_folder + 'val_{}_{}.tfrecords'.format(city, i)
@@ -99,7 +99,7 @@ def create_tfr(npz_path, city, dest_folder='temp/tfrecords/', n_imgs_shard=800):
     else:
         path = dest_folder + 'val_{}.tfrecords'.format(city)
         with tf.io.TFRecordWriter(path) as writer:
-            z = zip(npz['x_validation'], npz['y_validation'])
+            z = zip(npz['x_val'], npz['y_val'])
             for img, label in z:
                 tf_example = gen_tf_image_example(img, label)
                 writer.write(tf_example.SerializeToString())
