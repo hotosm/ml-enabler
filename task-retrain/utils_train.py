@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import shutil
 import glob
+import zipfile
 
 from functools import partial
 
@@ -41,6 +42,7 @@ def zip_chekpoint(model_id, zip_dir='/ml/models/checkpoint'):
     shutil.make_archive('/ml/models/checkpoint', 'zip', d)
     logging.info('written checkpoint as zip file')
 
+
 # Modeling Functions 
 def model_estimator(params, model_dir, run_config, retraining_weights, model_id):
     """Get a model as a tf.estimator object"""
@@ -72,7 +74,10 @@ def model_estimator(params, model_dir, run_config, retraining_weights, model_id)
                   loss=params['loss'], metrics=params['metrics'])
     
     if retraining_weights:
-        model.load_weights(retraining_weights)
+        with zipfile.ZipFile(retraining_weights, "r") as zip_ref:
+            zip_ref.extractall("/ml/models")
+            retraining_weights_ckpt = '/ml/models/keras_model.ckpt'
+        model.load_weights(retraining_weights_ckpt)
 
     model_id = model_id
 

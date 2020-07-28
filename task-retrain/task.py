@@ -91,4 +91,4 @@ create_tfr(npz_path='/tmp/data.npz',
              dest_folder='/tmp/', city='city') #replace city with input from UI 
 
 #conduct re-training 
-#train(tf_train_steps=20)
+train(tf_train_steps=20, retraining_weights='/tmp/checkpoint')
