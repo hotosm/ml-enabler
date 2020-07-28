@@ -3,6 +3,12 @@ from ml_enabler import db
 from ml_enabler.models.utils import NotFound
 import boto3
 
+batch = boto3.client(
+    service_name='batch',
+    region_name='us-east-1',
+    endpoint_url='https://batch.us-east-1.amazonaws.com'
+)
+
 class TaskService():
     @staticmethod
     def create(payload: dict) -> int:
@@ -21,6 +27,16 @@ class TaskService():
         task = Task.get(task_id)
         if task:
             task.delete()
+
+            if task.batch_id:
+                batch.cancel_job(
+                    jobId=task.batch_id,
+                    reason='User Requested'
+                )
+
+            return {
+                'status': 'deleted'
+            }
         else:
             raise NotFound
 
@@ -56,12 +72,6 @@ class TaskService():
         task = task.as_dto().to_primitive()
 
         if task.get('batch_id') is not None:
-            batch = boto3.client(
-                service_name='batch',
-                region_name='us-east-1',
-                endpoint_url='https://batch.us-east-1.amazonaws.com'
-            )
-
             desc = batch.describe_jobs(
                 jobs = [ task.get('batch_id') ]
             )

@@ -37,3 +37,14 @@ def get(task_id):
         error_msg = f'Unhandled error: {str(e)}'
         current_app.logger.error(error_msg)
         return err(500, error_msg), 500
+
+@task_bp.route('/v1/task/<int:task_id>', methods=['DELETE'])
+def delete(task_id):
+    try:
+        return TaskService.delete(task_id)
+    except NotFound:
+        return err(404, "task not found"), 404
+    except Exception as e:
+        error_msg = f'Unhandled error: {str(e)}'
+        current_app.logger.error(error_msg)
+        return err(500, error_msg), 500
