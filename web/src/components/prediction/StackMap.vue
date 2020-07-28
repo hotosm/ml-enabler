@@ -16,14 +16,27 @@
 </template>
 
 <script>
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+
+import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
+
+import DrawRectangle from 'mapbox-gl-draw-rectangle-mode';
+
 import bboxPolygon from '../../../node_modules/@turf/bbox-polygon/index.js';
+import bbox from '../../../node_modules/@turf/bbox/index.js'
 
 export default {
-    name: 'TileMap',
+    name: 'StackMap',
     props: ['tilejson'],
     data: function() {
         return {
             map: false,
+            draw: false,
             token: false,
             bounds: '',
             poly: {
@@ -48,6 +61,14 @@ export default {
     },
     watch: {
         bounds: function() {
+            if (this.bounds.trim().length === 0) {
+                this.map.getSource('bounds').setData({
+                    type: 'FeatureCollection',
+                    features: []
+                });
+                return;
+            }
+
             const bounds = this.bounds.split(',');
 
             try {
@@ -67,6 +88,8 @@ export default {
                 // TODO make input bar red?
                 console.error(err);
             }
+
+            this.draw.changeMode('draw_rectangle');
         }
     },
     methods: {
@@ -77,6 +100,27 @@ export default {
                 container: 'map',
                 zoom: 1,
                 style: 'mapbox://styles/mapbox/satellite-streets-v11'
+            });
+
+            this.map.addControl(new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl
+            }));
+
+            const modes = MapboxDraw.modes;
+            modes.draw_rectangle = DrawRectangle;
+
+            this.draw = new MapboxDraw({
+                displayControlsDefault: false,
+                modes: modes
+            });
+
+            this.map.addControl(this.draw, 'top-left');
+            this.draw.changeMode('draw_rectangle');
+
+            this.map.on('draw.create', (f) => {
+                this.bounds = bbox(f.features[0]).join(',');
+                this.draw.deleteAll();
             });
 
             this.map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');

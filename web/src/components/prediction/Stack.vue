@@ -164,7 +164,7 @@
                     Imagery Chip Submission
                 </div>
                 <div class='col col--12'>
-                    <TileMap
+                    <StackMap
                         v-on:queue='postQueue($event)'
                     />
                 </div>
@@ -182,8 +182,8 @@
 </template>
 
 <script>
-import TileMap from './TileMap.vue';
 import PredictionHeader from './PredictionHeader.vue';
+import StackMap from './StackMap.vue';
 
 export default {
     name: 'Stack',
@@ -340,6 +340,7 @@ export default {
         },
         getImagery: function() {
             this.loading.imagery = true;
+
             fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
                 method: 'GET'
             }).then((res) => {
@@ -392,7 +393,7 @@ export default {
     },
     components: {
         PredictionHeader,
-        TileMap
+        StackMap
     }
 }
 </script>

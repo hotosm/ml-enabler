@@ -120,6 +120,8 @@
 </template>
 
 <script>
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import buffer from '../../../node_modules/@turf/buffer/index.js';
 import bboxPolygon from '../../../node_modules/@turf/bbox-polygon/index.js';
 import PredictionHeader from './PredictionHeader.vue';
