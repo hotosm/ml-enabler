@@ -1,5 +1,6 @@
 from ml_enabler.models.utils import timestamp
 from ml_enabler import db
+from ml_enabler.models.dtos.ml_model_dto import TaskDTO
 import sqlalchemy
 
 class Task(db.Model):
@@ -41,4 +42,25 @@ class Task(db.Model):
             Task.batch_id
         ).filter(Task.id == task_id)
 
-        return Imagery.query.get(task_id)
+        return Task.query.get(task_id)
+
+    def list(pred_id: int):
+        query = db.session.query(
+            Task.id,
+            Task.pred_id,
+            Task.type,
+            Task.created,
+            Task.batch_id
+        ).filter(Task.pred_id == pred_id)
+
+        return Task.query.all()
+
+    def as_dto(self):
+        task_dto = TaskDTO()
+        task_dto.id = self.id
+        task_dto.pred_id = self.pred_id
+        task_dto.type = self.type
+        task_dto.created = self.created
+        task_dto.batch_id = self.batch_id
+
+        return task_dto

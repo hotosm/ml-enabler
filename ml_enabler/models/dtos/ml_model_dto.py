@@ -1,6 +1,14 @@
 from schematics import Model
 from schematics.types import StringType, IntType, DateTimeType, ListType, FloatType, BooleanType
 
+class TaskDTO(Model):
+    """ Describes JSON of an Task """
+
+    id = IntType()
+    pred_id = IntType(required=True)
+    type = StringType(required=True)
+    created = DateTimeType()
+    batch_id = IntType()
 
 class MLModelDTO(Model):
     """ Describes JSON of an ML Model """
