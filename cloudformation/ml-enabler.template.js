@@ -347,6 +347,12 @@ const Resources = {
                     },{
                         Effect: 'Allow',
                         Action: [
+                            'batch:DescribeJobs'
+                        ],
+                        Resource: [ '*' ]
+                    },{
+                        Effect: 'Allow',
+                        Action: [
                             's3:GetObject',
                             's3:DeleteObject',
                             's3:AbortMultipartUpload',
