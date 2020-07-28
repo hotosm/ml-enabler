@@ -703,8 +703,8 @@ class PredictionRetrain(Resource):
                 jobDefinition=CONFIG.EnvironmentConfig.STACK + '-gpu-job',
                 containerOverrides={
                     'environment': [
-                        { 'name': 'MODEL_ID', 'value': model_id },
-                        { 'name': 'PREDICTION_ID', 'value': prediction_id },
+                        { 'name': 'MODEL_ID', 'value': str(model_id) },
+                        { 'name': 'PREDICTION_ID', 'value': str(prediction_id) },
                         { 'name': 'TILE_ENDPOINT', 'value': payload.get("imagery") },
                     ]
                 }
