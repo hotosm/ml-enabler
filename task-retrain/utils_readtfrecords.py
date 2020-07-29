@@ -7,13 +7,11 @@ FLAGS = flags.FLAGS
 def _augment_helper(image):
     """Augment an image with flipping/brightness changes"""
     image = tf.image.random_flip_left_right(image)
-    image = tf.image.random_flip_up_down(image)
-    image = tf.image.random_brightness(image, max_delta=0.05)
-    image = tf.image.random_contrast(image, 0, 1)
+    image= tf.image.rot90(image, tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
     return image
 
 
-def _parse_helper(example, n_chan, n_classes, shp):
+def _parse_helper(example, n_chan, n_classes, shp=[256, 256, 3]):
     """"Parse TFExample record containing image and label."""""
 
     example_fmt = {"image": tf.io.FixedLenFeature([], tf.string),
@@ -22,12 +20,18 @@ def _parse_helper(example, n_chan, n_classes, shp):
 
     # Get label, decode
     label = tf.io.parse_tensor(parsed['label'], tf.uint8)
-
     label = tf.reshape(label, [-1])
 
     # Get image string, decode
     image = tf.image.decode_image(parsed['image'])
     image = tf.reshape(image, shp)
+
+    # convert image from RGB to grayscale to reduce the feature complexity
+    image = tf.image.rgb_to_grayscale(image)
+    
+    # restore to 3 channel dimensions as required by the net 
+    # by stacking the grayscale channel x3
+    image = tf.image.grayscale_to_rgb(image)
 
     # change dtype to float32
     image = tf.cast(image, tf.float32)
@@ -38,7 +42,7 @@ def _parse_helper(example, n_chan, n_classes, shp):
     return image, label
 
 
-def parse_and_augment_fn(example, n_chan=3, n_classes=11, shp=[256,256,3]):
+def parse_and_augment_fn(example, n_chan=3, n_classes=11, shp=[256, 256, 3]):
     """Parse TFExample record containing image and label and then augment image."""
     image, label = _parse_helper(example, n_chan, n_classes, shp)
     image = _augment_helper(image)

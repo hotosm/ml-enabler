@@ -88,7 +88,7 @@ make_datanpz(dest_folder='/tmp', imagery=imagery)
 
 #convert data.npz into tf-records 
 create_tfr(npz_path='/tmp/data.npz', 
-             dest_folder='/tmp/', city='city') #replace city with input from UI 
+            dest_folder='/tmp/', city='city') #replace city with input from UI 
 
 #conduct re-training 
-train(tf_train_steps=20, retraining_weights='/tmp/checkpoint')
+train(tf_train_steps=10, tf_train_data_dir='/tmp', tf_val_data_dir='/tmp')

@@ -129,7 +129,7 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
     fpath_train = op.join(tf_train_data_dir, 'train_*.tfrecords')
     map_func = partial(parse_and_augment_fn, n_chan=3,
                        n_classes=model_params['n_classes'], 
-                       shp=x_feature_shape[1:3])
+                       shp=x_feature_shape[1:])
 
     dataset_train_fn = partial(get_dataset_feeder,
                                fpath=fpath_train,
@@ -145,7 +145,7 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
     fpath_validate = op.join(tf_val_data_dir, 'val_*.tfrecords')
     map_func = partial(parse_and_augment_fn, n_chan=3,
                        n_classes=model_params['n_classes'], 
-                       shp=x_feature_shape[1:3])
+                       shp=x_feature_shape[1:])
 
     dataset_validate_fn = partial(get_dataset_feeder,
                                   fpath=fpath_validate,
@@ -281,7 +281,7 @@ def test(n_classes=2, class_names=['not_industrial', 'industrial'],
     fpath_test = op.join(tf_test_data_dir, 'test.tfrecords')
     map_func = partial(parse_fn, n_chan=3,
                         n_classes=model_params['n_classes'], 
-                        shp=x_feature_shape[1:3])
+                        shp=x_feature_shape[1:])
     dataset_test = get_dataset_feeder(fpath=fpath_test,
                                         data_map_func=map_func,
                                         shuffle_buffer_size=None,
