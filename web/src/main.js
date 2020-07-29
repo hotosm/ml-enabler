@@ -58,7 +58,7 @@ const router = new VueRouter({
     ]
 });
 
-window.api = window.location.href.replace(/#.*/, '');
+window.api = window.location.href.replace(/\/#.*/, '');
 
 new Vue({
     router,
