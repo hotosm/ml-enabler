@@ -79,7 +79,7 @@ export default {
     },
     methods: {
         getExport: function() {
-            const url = new URL(`${window.location.origin}${window.api}/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/export`);
+            const url = new URL(`${window.api}/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/export`);
 
             url.searchParams.set('format', this.params.format);
             url.searchParams.set('inferences', this.params.inferences);
