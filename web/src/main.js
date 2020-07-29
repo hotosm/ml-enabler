@@ -58,7 +58,7 @@ const router = new VueRouter({
     ]
 });
 
-window.api = window.location.pathname.replace(/\/admin\/.*/, '');
+window.api = window.location.href.replace(/#.*/, '');
 
 new Vue({
     router,
