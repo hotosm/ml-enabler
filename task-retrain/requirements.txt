@@ -7,3 +7,4 @@ tqdm==4.48.0
 mercantile==1.1.5
 pillow
 rasterio==1.1.5
+semver==2.10.2

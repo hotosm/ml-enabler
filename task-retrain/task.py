@@ -1,6 +1,7 @@
 import os
 import requests
 import boto3
+import semver
 
 from requests.auth import HTTPBasicAuth
 from zipfile import ZipFile
@@ -64,11 +65,27 @@ def get_label_npz(model_id, prediction_id):
         f.write(r.content)
     return f
 
+def increment_versions(version):
+    v = semver.VersionInfo.parse(version)
+    return v.bump_minor()
+
+def post_pred(model_id, prediction_id, version):
+    data =  {'modelId': pred['modelId'],
+                        'version': pred['version'],
+                        'tileZoom': pred['tileZoom'],
+                        'bbox': pred['bbox'],
+                        'infList': pred['infList'],
+                        'infType':  pred['infType'],
+                        'infBinary':  pred['infBinary'],
+                        'infSupertile': pred['infSupertile']}
+    r = requests.post(api + '/v1/model/' + model_id + '/prediction/' + prediction_id, auth=HTTPBasicAuth('machine', auth), 
+            data = data)
 
 pred = get_pred(model_id, prediction_id)
 #print(pred)
 zoom = pred['tileZoom']
 supertile = pred['infSupertile']
+version = pred['version']
 
 model = get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
 checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
@@ -92,3 +109,10 @@ create_tfr(npz_path='/tmp/data.npz',
 
 #conduct re-training 
 train(tf_train_steps=10, tf_train_data_dir='/tmp', tf_val_data_dir='/tmp')
+
+#increpment model version 
+updated_version = increment_versions(version=version)
+
+
+#post new pred
+#post_pred(model_id, prediction_id, updated_version)
