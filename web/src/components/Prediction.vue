@@ -75,7 +75,7 @@ export default {
                     this.tilejson = false;
                 } else {
                     res.json().then((tilejson) => {
-                        tilejson.tiles[0] = window.location.origin + window.api + tilejson.tiles[0];
+                        tilejson.tiles[0] = window.api + tilejson.tiles[0];
 
                         this.tilejson = tilejson;
                     })
