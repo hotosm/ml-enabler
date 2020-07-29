@@ -92,7 +92,7 @@ export default {
         },
         getMeta: function() {
             this.loading.meta = true;
-            fetch(window.api + '/v1/', {
+            fetch(window.api + '/v1/meta', {
                 method: 'GET'
             }).then((res) => {
                 return res.json();
