@@ -2,8 +2,10 @@ import os
 import requests
 import boto3
 import semver
+import json
 
 from requests.auth import HTTPBasicAuth
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 from zipfile import ZipFile
 
 from model import train
@@ -28,16 +30,10 @@ assert(api)
 assert(imagery)
 
 def get_pred(model_id, prediction_id):
-    r = requests.get(api + '/v1/model/' + model_id + '/prediction/' + prediction_id, auth=HTTPBasicAuth('machine', auth))
+    r = requests.get(api + '/v1/model/' + str(model_id) + '/prediction/' + str(prediction_id), auth=HTTPBasicAuth('machine', auth))
     r.raise_for_status()
 
     pred = r.json()
-
-    if pred['modelLink'] is None:
-        raise Exception("Cannot retrain without modelLink")
-    if pred['checkpointLink'] is None:
-        raise Exception("Cannot retrain without checkpointLink")
-
     return pred
 
 def get_asset(bucket, key):
@@ -81,7 +77,7 @@ def get_versions(model_id):
     return version_highest
 
 def post_pred(pred, version):
-    data = {
+    data_pred = {
         'modelId': pred['modelId'],
         'version': version,
         'tileZoom': pred['tileZoom'],
@@ -91,15 +87,31 @@ def post_pred(pred, version):
         'infSupertile': pred['infSupertile']
     }
 
-    r = requests.post(api + '/v1/model/' + model_id + '/prediction/' + prediction_id, auth=HTTPBasicAuth('machine', auth), data = data)
+    r = requests.post(api + '/v1/model/' + model_id + '/prediction',  json=data_pred, auth=HTTPBasicAuth('machine', auth))
+
+    pred = r.json()
+    return pred['prediction_id']
+
+def update_link(pred, link_type, zip_path='/Users/marthamorrissey/Documents/mle/models.zip'):
+    payload = {'type': link_type}
+    model_id = pred['modelId']
+    prediction_id = pred['predictionsId']
+    encoder = MultipartEncoder({'file': ('filename', open(zip_path, 'rb'), 'application/zip')})
+
+    r = requests.post(api + '/v1/model/' + str(model_id) + '/prediction/' + str(prediction_id) + '/upload', params=payload,  
+                        data = encoder, auth=HTTPBasicAuth('machine', auth))
 
 pred = get_pred(model_id, prediction_id)
+if pred['modelLink'] is None:
+    raise Exception("Cannot retrain without modelLink")
+if pred['checkpointLink'] is None:
+    raise Exception("Cannot retrain without checkpointLink")
+
 zoom = pred['tileZoom']
 supertile = pred['infSupertile']
 version = pred['version']
 
 v = get_versions(model_id)
-print(v)
 
 model = get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
 checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
@@ -113,21 +125,30 @@ get_label_npz(model_id, prediction_id)
 download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/tiles', zoom=zoom, supertile=supertile)
 
 #create data.npz file that matchs up images and labels
-
 # TO-DO:fix arguments to pull from ml-enabler db
 make_datanpz(dest_folder='/tmp', imagery=imagery)
 
 #convert data.npz into tf-records
-create_tfr(npz_path='/tmp/data.npz',
-            dest_folder='/tmp/', city='city') #replace city with input from UI
+create_tfr(npz_path='/tmp/data.npz', city='city') #replace city with input from UI #/tmp/new_tfrecords 
 
 #conduct re-training
 train(tf_train_steps=10, tf_train_data_dir='/tmp', tf_val_data_dir='/tmp')
 
 #increpment model version
-updated_version = increment_versions(version=v)
+updated_version = str(increment_versions(version=v))
 print(updated_version)
 
 
 #post new pred
-post_pred(pred=pred, version=updated_version)
+newpred_id = post_pred(pred=pred, version=updated_version)
+
+newpred = get_pred(model_id, newpred_id)
+
+#update tf-records zip
+update_link(newpred, link_type='tfrecords', zip_path='/tmp/tfrecords.zip')
+
+#update model link
+update_link(newpred, link_type='model', zip_path='/ml/models.zip') 
+
+#update checkpoint
+update_link(newpred, link_type='checkpoint', zip_path='/ml/checkpoint.zip')
