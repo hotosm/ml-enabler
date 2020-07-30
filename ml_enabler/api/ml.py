@@ -1133,7 +1133,10 @@ class PredictionSingleAPI(Resource):
                 "saveLink": prediction.save_link,
                 "infSupertile": prediction.inf_supertile,
                 "tfrecordLink": prediction.tfrecord_link,
-                "checkpointLink": prediction.checkpoint_link
+                "checkpointLink": prediction.checkpoint_link, 
+                "infList": prediction.inf_list, 
+                "infBinary": prediction.inf_binary, 
+                "infType": prediction.inf_type
             }
 
             return pred, 200

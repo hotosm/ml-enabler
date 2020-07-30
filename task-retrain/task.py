@@ -69,10 +69,10 @@ def increment_versions(version):
     v = semver.VersionInfo.parse(version)
     return v.bump_minor()
 
-def post_pred(model_id, prediction_id, version):
+def post_pred(pred, version):
     data = {
         'modelId': pred['modelId'],
-        'version': pred['version'],
+        'version': version,
         'tileZoom': pred['tileZoom'],
         'infList': pred['infList'],
         'infType':  pred['infType'],
@@ -84,36 +84,37 @@ def post_pred(model_id, prediction_id, version):
 
 pred = get_pred(model_id, prediction_id)
 #print(pred)
+print(pred.keys())
 zoom = pred['tileZoom']
 supertile = pred['infSupertile']
 version = pred['version']
 
-model = get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
-checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
+#odel = get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
+#checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
 
-print(model)
-print(checkpoint)
+#print(model)
+#print(checkpoint)
 
-get_label_npz(model_id, prediction_id)
+#get_label_npz(model_id, prediction_id)
 
 #download image tiles that match validated labels.npz file
-download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/tiles', zoom=zoom, supertile=supertile)
+#download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/tiles', zoom=zoom, supertile=supertile)
 
 #create data.npz file that matchs up images and labels
 
 # TO-DO:fix arguments to pull from ml-enabler db
-make_datanpz(dest_folder='/tmp', imagery=imagery)
+#make_datanpz(dest_folder='/tmp', imagery=imagery)
 
 #convert data.npz into tf-records
-create_tfr(npz_path='/tmp/data.npz',
-            dest_folder='/tmp/', city='city') #replace city with input from UI
+# create_tfr(npz_path='/tmp/data.npz',
+#             dest_folder='/tmp/', city='city') #replace city with input from UI
 
 #conduct re-training
-train(tf_train_steps=10, tf_train_data_dir='/tmp', tf_val_data_dir='/tmp')
+#train(tf_train_steps=10, tf_train_data_dir='/tmp', tf_val_data_dir='/tmp')
 
 #increpment model version
 updated_version = increment_versions(version=version)
 
 
 #post new pred
-#post_pred(model_id, prediction_id, updated_version)
+post_pred(pred=pred, version=updated_version)
