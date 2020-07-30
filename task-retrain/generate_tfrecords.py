@@ -1,4 +1,5 @@
 import tensorflow as tf
+import shutil
 import numpy as np
 
 def _bytes_feature(value):
@@ -104,3 +105,6 @@ def create_tfr(npz_path, city, dest_folder='temp/tfrecords/', n_imgs_shard=800):
                 tf_example = gen_tf_image_example(img, label)
                 writer.write(tf_example.SerializeToString())
         print('TFrecords created for val.')
+
+    #zip up tf-records 
+    shutil.make_archive(dest_folder, 'zip', dest_folder)
