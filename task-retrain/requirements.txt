@@ -7,4 +7,5 @@ tqdm==4.48.0
 mercantile==1.1.5
 pillow
 rasterio==1.1.5
+requests-toolbelt==0.9.1
 semver==2.10.2
