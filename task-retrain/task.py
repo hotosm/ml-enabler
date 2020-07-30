@@ -60,7 +60,7 @@ def get_label_npz(model_id, prediction_id):
     payload = {'format':'npz', 'inferences':'all', 'threshold': 0}
     r = requests.get(api + '/v1/model/' + model_id + '/prediction/' + prediction_id + '/export', params=payload,
                     auth=HTTPBasicAuth('machine', auth))
-    r.raise_for_status()  
+    r.raise_for_status()
     with open('/tmp/labels.npz', 'wb') as f:
         f.write(r.content)
     return f
@@ -70,16 +70,17 @@ def increment_versions(version):
     return v.bump_minor()
 
 def post_pred(model_id, prediction_id, version):
-    data =  {'modelId': pred['modelId'],
-                        'version': pred['version'],
-                        'tileZoom': pred['tileZoom'],
-                        'bbox': pred['bbox'],
-                        'infList': pred['infList'],
-                        'infType':  pred['infType'],
-                        'infBinary':  pred['infBinary'],
-                        'infSupertile': pred['infSupertile']}
-    r = requests.post(api + '/v1/model/' + model_id + '/prediction/' + prediction_id, auth=HTTPBasicAuth('machine', auth), 
-            data = data)
+    data = {
+        'modelId': pred['modelId'],
+        'version': pred['version'],
+        'tileZoom': pred['tileZoom'],
+        'infList': pred['infList'],
+        'infType':  pred['infType'],
+        'infBinary':  pred['infBinary'],
+        'infSupertile': pred['infSupertile']
+    }
+
+    r = requests.post(api + '/v1/model/' + model_id + '/prediction/' + prediction_id, auth=HTTPBasicAuth('machine', auth), data = data)
 
 pred = get_pred(model_id, prediction_id)
 #print(pred)
@@ -95,22 +96,22 @@ print(checkpoint)
 
 get_label_npz(model_id, prediction_id)
 
-#download image tiles that match validated labels.npz file 
+#download image tiles that match validated labels.npz file
 download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/tiles', zoom=zoom, supertile=supertile)
 
-#create data.npz file that matchs up images and labels 
+#create data.npz file that matchs up images and labels
 
 # TO-DO:fix arguments to pull from ml-enabler db
 make_datanpz(dest_folder='/tmp', imagery=imagery)
 
-#convert data.npz into tf-records 
-create_tfr(npz_path='/tmp/data.npz', 
-            dest_folder='/tmp/', city='city') #replace city with input from UI 
+#convert data.npz into tf-records
+create_tfr(npz_path='/tmp/data.npz',
+            dest_folder='/tmp/', city='city') #replace city with input from UI
 
-#conduct re-training 
+#conduct re-training
 train(tf_train_steps=10, tf_train_data_dir='/tmp', tf_val_data_dir='/tmp')
 
-#increpment model version 
+#increpment model version
 updated_version = increment_versions(version=version)
 
 

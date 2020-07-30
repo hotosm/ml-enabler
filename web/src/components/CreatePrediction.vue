@@ -113,7 +113,6 @@ export default {
                         modelId: this.prediction.modelId,
                         version: this.prediction.version,
                         tileZoom: this.prediction.tileZoom,
-                        bbox: [-180.0, -90.0, 180.0, 90.0],
                         infList: this.prediction.infList,
                         infType: this.prediction.infType,
                         infBinary: this.prediction.infBinary,
