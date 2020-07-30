@@ -69,6 +69,17 @@ def increment_versions(version):
     v = semver.VersionInfo.parse(version)
     return v.bump_minor()
 
+def get_versions(model_id):
+    r = requests.get(api + '/v1/model/' + model_id + '/prediction/all', auth=HTTPBasicAuth('machine', auth))
+    r.raise_for_status()
+    preds = r.json()
+    version_lst = []
+    for pred_dict in preds: 
+        version_lst.append(pred_dict['version'])
+    version_highest = str(max(map(semver.VersionInfo.parse, version_lst)))
+    #print(versions)
+    return version_highest
+
 def post_pred(pred, version):
     data = {
         'modelId': pred['modelId'],
@@ -83,11 +94,12 @@ def post_pred(pred, version):
     r = requests.post(api + '/v1/model/' + model_id + '/prediction/' + prediction_id, auth=HTTPBasicAuth('machine', auth), data = data)
 
 pred = get_pred(model_id, prediction_id)
-#print(pred)
-print(pred.keys())
 zoom = pred['tileZoom']
 supertile = pred['infSupertile']
 version = pred['version']
+
+v = get_versions(model_id)
+print(v)
 
 model = get_asset(bucket, pred['modelLink'].replace(bucket + '/', ''))
 checkpoint = get_asset(bucket, pred['checkpointLink'].replace(bucket + '/', ''))
@@ -97,7 +109,7 @@ print(checkpoint)
 
 get_label_npz(model_id, prediction_id)
 
-#download image tiles that match validated labels.npz file
+# #download image tiles that match validated labels.npz file
 download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/tiles', zoom=zoom, supertile=supertile)
 
 #create data.npz file that matchs up images and labels
@@ -113,7 +125,8 @@ create_tfr(npz_path='/tmp/data.npz',
 train(tf_train_steps=10, tf_train_data_dir='/tmp', tf_val_data_dir='/tmp')
 
 #increpment model version
-updated_version = increment_versions(version=version)
+updated_version = increment_versions(version=v)
+print(updated_version)
 
 
 #post new pred
