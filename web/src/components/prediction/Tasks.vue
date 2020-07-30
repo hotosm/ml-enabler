@@ -1,7 +1,17 @@
 <template>
     <div class='col col--12'>
         <template v-if='log'>
-            <h2 class='w-full align-center txt-h5 py12'>Task #<span v-text='log'/> Logs</h2>
+            <div class='col col--12 grid py12'>
+                <div class='col col--2 pb6'>
+                    <button @click='closelogs' class='btn btn--s round btn--stroke btn--gray'>
+                        <svg class='icon'><use href='#icon-arrow-left'/></svg>
+                    </button>
+                </div>
+                <div class='col col--8'>
+                    <h2 class='w-full align-center txt-h5'>Task #<span v-text='log'/> Logs</h2>
+                </div>
+            </div>
+
             <template v-if='loading.logs'>
                 <div class='flex-parent flex-parent--center-main w-full pt24'>
                     <div class='flex-child loading py24'></div>
@@ -89,6 +99,10 @@ export default {
         this.refresh();
     },
     methods: {
+        closelogs: function() {
+            this.logs = [];
+            this.log = false;
+        },
         loop: function() {
             setTimeout(() => {
                 this.getTasks(true);
