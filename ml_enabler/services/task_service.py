@@ -9,6 +9,8 @@ batch = boto3.client(
     endpoint_url='https://batch.us-east-1.amazonaws.com'
 )
 
+cwl = boto3.client('logs')
+
 class TaskService():
     @staticmethod
     def create(payload: dict) -> int:
@@ -79,8 +81,46 @@ class TaskService():
             if len(desc.get('jobs')) == 1:
                 task['status'] = desc['jobs'][0].get('status')
                 task['statusReason'] = desc['jobs'][0].get('statusReason')
+                if task['status'] == 'RUNNING' or task['status'] == 'FAILED' or task['status'] == 'SUCCEEDED':
+                    task['logs'] = desc['jobs'][0]['attempts'][0]['container']['logStreamName']
+                else:
+                    task['logs'] = False
             else:
                 task['status'] = 'UNKNOWN'
                 task['statusReason'] = 'AWS does not report this task'
+                task['logs'] = False
 
         return task
+
+    @staticmethod
+    def logs(task_id: int):
+        task = TaskService.get(task_id)
+
+        if not task:
+            raise NotFound
+
+        logs = []
+        if task['logs'] is False:
+            logs.append({
+                'id': 1,
+                'message': 'No Logs in LogStream'
+            })
+        else:
+            rawlogs = cwl.get_log_events(
+                logGroupName = '/aws/batch/job',
+                logStreamName = task['logs']
+            )
+
+            line = 0;
+            for event in rawlogs['events']:
+                logs.append({
+                    'id': line,
+                    'timestamp': event['timestamp'],
+                    'message': event['message']
+                })
+
+                line = line + 1
+
+        return {
+            'logs': logs
+        }
