@@ -5,44 +5,16 @@
                 v-on:mode='mode = $event'
             />
         </div>
-        <template v-if='!prediction || loading.imagery || loading.tasks'>
+        <template v-if='!prediction'>
             <div class='flex-parent flex-parent--center-main w-full py24'>
                 <div class='flex-child loading py24'></div>
             </div>
         </template>
-        <template v-else-if='tasks.length > 0'>
-            <div class='col col--12'>
-                <h2 class='w-full align-center txt-h4 py12'>Retraining Tasks</h2>
-
-                <div class='col col--12 grid border-b border--gray-light'>
-                    <div class='col col--2'>Type</div>
-                    <div class='col col--2'>Status</div>
-                    <div class='col col--6'>Note</div>
-                    <div class='col col--2 clearfix pr6'>
-                        <button @click='tasks = []' class='btn btn--s fr round btn--stroke btn--gray color-green-on-hover'>
-                            <svg class='icon'><use href='#icon-plus'/></svg>
-                        </button>
-                        <button @click='getTasks' class='mr6 btn btn--s fr round btn--stroke btn--gray color-green-on-hover'>
-                            <svg class='icon'><use href='#icon-refresh'/></svg>
-                        </button>
-                    </div>
-                </div>
-                <div :key='task.id' v-for='task in tasks' class='col col--12 grid py6 bg-gray-light-on-hover round'>
-                    <div class='col col--2 px6' v-text='task.type'></div>
-                    <template v-if='task._loading'>
-                        <div class='col col--8 loading loading--s h24'></div>
-                    </template>
-                    <template v-else>
-                        <div class='col col--2 px6' v-text='task.status'></div>
-                        <div class='col col--6 px6' v-text='task.statusReason'></div>
-                    </template>
-                    <div class='col col--2 px6 clearfix'>
-                        <button @click='deleteTask(task.id)' class='btn fr round btn--stroke btn--s btn--gray color-red-on-hover'>
-                            <svg class='icon'><use href='#icon-trash'/></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <template v-if='!create'>
+            <Tasks
+                @create='create = true'
+                :prediction='prediction'
+            />
         </template>
         <template v-else-if='meta.environment !== "aws"'>
             <div class='flex-parent flex-parent--center-main pt36'>
@@ -136,6 +108,7 @@
 </template>
 
 <script>
+import Tasks from './Tasks.vue';
 import PredictionHeader from './PredictionHeader.vue';
 import UploadPrediction from './UploadPrediction.vue';
 
@@ -145,20 +118,20 @@ export default {
     data: function() {
         return {
             advanced: false,
-            tasks: [],
+            create: false,
             imagery: [],
             looping: false,
             params: {
                 image: false,
             },
             loading: {
-                tasks: true,
                 retrain: true,
                 imagery: true
             }
         }
     },
     components: {
+        Tasks,
         UploadPrediction,
         PredictionHeader
     },
@@ -167,70 +140,12 @@ export default {
     },
     methods: {
         refresh: function() {
-            this.getTasks();
             this.getImagery();
         },
         external: function(url) {
             if (!url) return;
 
             window.open(url, "_blank")
-        },
-        getTasks: async function() {
-            this.loading.tasks = true;
-
-            try {
-                let res = await fetch(window.api + `/v1/task?pred_id=${this.$route.params.predid}&type=retrain`, {
-                    method: 'GET'
-                });
-
-                let body = await res.json();
-                if (!res.ok) throw new Error(body.message)
-
-                this.tasks = body.tasks.map((task) => {
-                    task._loading = true;
-                    return task;
-                });
-                this.tasks.forEach(task => this.getTask(task.id));
-                this.loading.tasks = false;
-            } catch (err) {
-                console.error(err)
-                this.$emit('err', err);
-            }
-        },
-        getTask: async function(task_id) {
-            try {
-                let res = await fetch(window.api + `/v1/task/${task_id}`, {
-                    method: 'GET'
-                });
-
-                let body = await res.json();
-                if (!res.ok) throw new Error(body.message)
-
-                for (const task of this.tasks) {
-                    if (task.id !== body.id) continue;
-                    task.status = body.status;
-                    task.statusReason = body.statusReason;
-                    task._loading = false;
-                }
-            } catch (err) {
-                console.error(err)
-                this.$emit('err', err);
-            }
-        },
-        deleteTask: async function(task_id) {
-            try {
-                let res = await fetch(window.api + `/v1/task/${task_id}`, {
-                    method: 'DELETE'
-                });
-
-                let body = await res.json();
-                if (!res.ok) throw new Error(body.message)
-
-                this.getTasks()
-            } catch (err) {
-                console.error(err)
-                this.$emit('err', err);
-            }
         },
         createRetrain: async function() {
             if (!this.params.image) return;
@@ -251,7 +166,7 @@ export default {
                     throw new Error(res.message)
                 }
 
-                this.getTasks();
+                this.create = false;
             } catch (err) {
                 console.error(err)
                 this.$emit('err', err);

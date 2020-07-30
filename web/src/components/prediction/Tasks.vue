@@ -1,0 +1,147 @@
+<template>
+    <div class='col col--12'>
+        <h2 class='w-full align-center txt-h4 py12'>Tasks</h2>
+
+        <div class='col col--12 grid border-b border--gray-light'>
+            <div class='col col--2'>Type</div>
+            <div class='col col--2'>Status</div>
+            <div class='col col--6'>Note</div>
+            <div class='col col--2 clearfix pr6'>
+                <button @click='$emit("create")' class='btn btn--s fr round btn--stroke btn--gray color-green-on-hover'>
+                    <svg class='icon'><use href='#icon-plus'/></svg>
+                </button>
+                <button @click='getTasks' class='mr6 btn btn--s fr round btn--stroke btn--gray color-green-on-hover'>
+                    <svg class='icon'><use href='#icon-refresh'/></svg>
+                </button>
+
+                <span v-if='loading.tasks' class='loading loading--s'/>
+            </div>
+        </div>
+        <template v-if='loading.init'>
+            <div class='flex-parent flex-parent--center-main w-full pt24'>
+                <div class='flex-child loading py24'></div>
+            </div>
+            <div class='flex-parent flex-parent--center-main w-full pb24'>
+                <div class='flex-child py24'>Loading Tasks</div>
+            </div>
+        </template>
+        <template v-else>
+            <div :key='task.id' v-for='task in tasks' class='col col--12 grid py6 bg-gray-light-on-hover round'>
+                <div class='col col--2 px6' v-text='task.type'></div>
+                <template v-if='task._loading'>
+                    <div class='col col--8 loading loading--s h24'></div>
+                </template>
+                <template v-else>
+                    <div class='col col--2 px6' v-text='task.status'></div>
+                    <div class='col col--6 px6' v-text='task.statusReason'></div>
+                </template>
+                <div class='col col--2 px6 clearfix'>
+                    <button @click='deleteTask(task.id)' class='btn fr round btn--stroke btn--s btn--gray color-red-on-hover'>
+                        <svg class='icon'><use href='#icon-trash'/></svg>
+                    </button>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>
+
+<script>
+export default {
+    name: 'Tasks',
+    props: ['prediction'],
+    data: function() {
+        return {
+            init: true,
+            tasks: [],
+            looping: false,
+            loading: {
+                init: true,
+                tasks: true
+            }
+        }
+    },
+    mounted: function() {
+        this.refresh();
+    },
+    methods: {
+        loop: function() {
+            setTimeout(() => {
+                this.getTasks();
+            }, 10000);
+        },
+        refresh: function() {
+            this.getTasks();
+        },
+        external: function(url) {
+            if (!url) return;
+
+            window.open(url, "_blank")
+        },
+        getTasks: async function() {
+            if (this.init) {
+                this.init = false;
+                this.loading.init = true;
+            } else {
+                this.loading.tasks = true;
+            }
+
+            try {
+                let res = await fetch(window.api + `/v1/task?pred_id=${this.$route.params.predid}&type=retrain`, {
+                    method: 'GET'
+                });
+
+                let body = await res.json();
+                if (!res.ok) throw new Error(body.message)
+
+                this.tasks = body.tasks.map((task) => {
+                    task._loading = true;
+                    return task;
+                });
+                this.tasks.forEach(task => this.getTask(task.id));
+
+                this.loading.init = false;
+                this.loading.tasks = false;
+                this.loop();
+            } catch (err) {
+                console.error(err)
+                this.$emit('err', err);
+            }
+        },
+        getTask: async function(task_id) {
+            try {
+                let res = await fetch(window.api + `/v1/task/${task_id}`, {
+                    method: 'GET'
+                });
+
+                let body = await res.json();
+                if (!res.ok) throw new Error(body.message)
+
+                for (const task of this.tasks) {
+                    if (task.id !== body.id) continue;
+                    task.status = body.status;
+                    task.statusReason = body.statusReason;
+                    task._loading = false;
+                }
+            } catch (err) {
+                console.error(err)
+                this.$emit('err', err);
+            }
+        },
+        deleteTask: async function(task_id) {
+            try {
+                let res = await fetch(window.api + `/v1/task/${task_id}`, {
+                    method: 'DELETE'
+                });
+
+                let body = await res.json();
+                if (!res.ok) throw new Error(body.message)
+
+                this.getTasks()
+            } catch (err) {
+                console.error(err)
+                this.$emit('err', err);
+            }
+        },
+    }
+}
+</script>
