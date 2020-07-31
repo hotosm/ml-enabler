@@ -132,7 +132,7 @@ make_datanpz(dest_folder='/tmp', imagery=imagery)
 create_tfr(npz_path='/tmp/data.npz', city='city') #replace city with input from UI #/tmp/new_tfrecords 
 
 #conduct re-training
-train(tf_train_steps=10, tf_dir='/tmp/tfrecords.zip')
+train(tf_train_steps=10, tf_dir='/tmp/tfrecords.zip',
         retraining_weights='/tmp/checkpoint.zip')
 
 #increpment model version
