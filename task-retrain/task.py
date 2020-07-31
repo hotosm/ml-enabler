@@ -14,20 +14,20 @@ from generate_tfrecords import create_tfr
 
 s3 = boto3.client('s3')
 
-# auth = os.getenv('MACHINE_AUTH')
-# stack = os.getenv('StackName')
-# model_id = os.getenv('MODEL_ID')
-# prediction_id = os.getenv('PREDICTION_ID')
-# bucket = os.getenv('ASSET_BUCKET')
-# api = os.getenv('API_URL')
-# imagery = os.getenv('TILE_ENDPOINT')
+auth = os.getenv('MACHINE_AUTH')
+stack = os.getenv('StackName')
+model_id = os.getenv('MODEL_ID')
+prediction_id = os.getenv('PREDICTION_ID')
+bucket = os.getenv('ASSET_BUCKET')
+api = os.getenv('API_URL')
+imagery = os.getenv('TILE_ENDPOINT')
 
-# assert(stack)
-# assert(auth)
-# assert(model_id)
-# assert(prediction_id)
-# assert(api)
-# assert(imagery)
+assert(stack)
+assert(auth)
+assert(model_id)
+assert(prediction_id)
+assert(api)
+assert(imagery)
 
 def get_pred(model_id, prediction_id):
     r = requests.get(api + '/v1/model/' + str(model_id) + '/prediction/' + str(prediction_id), auth=HTTPBasicAuth('machine', auth))
@@ -132,8 +132,7 @@ make_datanpz(dest_folder='/tmp', imagery=imagery)
 create_tfr(npz_path='/tmp/data.npz', city='city') #replace city with input from UI #/tmp/new_tfrecords 
 
 #conduct re-training
-train(tf_train_steps=10, tf_dir='/tmp/tfrecords.zip',
-        retraining_weights='/tmp/checkpoint.zip')
+train(tf_train_steps=10, tf_dir='/tmp/tfrecords.zip')
 
 #increpment model version
 updated_version = str(increment_versions(version=v))
