@@ -9,6 +9,7 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import zipfile
 
 from functools import partial
 from absl import app, logging
@@ -40,8 +41,7 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
          n_map_threads=4, 
          shuffle_buffer_size=400, 
          prefetch_buffer_size=1, 
-         tf_train_data_dir='/ml/data',
-         tf_val_data_dir='/ml/data',
+         tf_dir='/ml/data',
          tf_model_dir = '/ml/models/', 
          model_id ='a',
          tf_steps_per_summary=10, 
@@ -125,8 +125,14 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
     # Create data feeder functions
     ##############################
 
+    #unzip tf-records dir 
+    with zipfile.ZipFile(tf_dir, "r") as zip_ref:
+        zip_ref.extractall('/tmp/tfrecords')
+        tf_dir =  '/tmp/tfrecords/'
+
     # Create training dataset function
-    fpath_train = op.join(tf_train_data_dir, 'train_*.tfrecords')
+    fpath_train = op.join(tf_dir, 'train_*.tfrecords')
+    print(fpath_train)
     map_func = partial(parse_and_augment_fn, n_chan=3,
                        n_classes=model_params['n_classes'], 
                        shp=x_feature_shape[1:])
@@ -142,7 +148,8 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
                                prefetch_buffer_size=prefetch_buffer_size)
 
     # Create validation dataset function
-    fpath_validate = op.join(tf_val_data_dir, 'val_*.tfrecords')
+    fpath_validate = op.join(tf_dir, 'val_*.tfrecords')
+    print(fpath_validate)
     map_func = partial(parse_and_augment_fn, n_chan=3,
                        n_classes=model_params['n_classes'], 
                        shp=x_feature_shape[1:])
