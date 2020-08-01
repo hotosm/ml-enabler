@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:2.0.0-py3
+FROM tensorflow/tensorflow:2.1.0-gpu-py3
 
 ENV SHELL /bin/bash
 ENV HOME=/home/task
