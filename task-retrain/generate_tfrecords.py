@@ -29,7 +29,7 @@ def gen_tf_image_example(img, label):
     return tf.train.Example(features=tf.train.Features(feature=feature))
 
 
-def create_tfr(npz_path, city, dest_folder='tmp/tfrecords/', n_imgs_shard=800):
+def create_tfr(npz_path, city, dest_folder='/tmp/tfrecords/', n_imgs_shard=800):
     """
     Converts a data.npz file with keys train, test, and val into a 3 tf records files (train, test, and val).
    """
@@ -50,7 +50,9 @@ def create_tfr(npz_path, city, dest_folder='tmp/tfrecords/', n_imgs_shard=800):
                     writer.write(tf_example.SerializeToString())
         print('TFrecords created for train.')
     else:
+        print(dest_folder)
         path = dest_folder + 'train_{}.tfrecords'.format(city)
+        print(path)
         with tf.io.TFRecordWriter(path) as writer:
             z = zip(npz['x_train'], npz['y_train'])
             for img, label in z:
