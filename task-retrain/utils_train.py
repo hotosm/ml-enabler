@@ -74,6 +74,7 @@ def model_estimator(params, model_dir, run_config, retraining_weights, model_id)
                   loss=params['loss'], metrics=params['metrics'])
     
     if retraining_weights:
+        print('in retraining weights')
         with zipfile.ZipFile(retraining_weights, "r") as zip_ref:
             zip_ref.extractall('/ml/checkpoint')
             retraining_weights_ckpt = '/ml/checkpoint/'  + 'keras_model.ckpt'

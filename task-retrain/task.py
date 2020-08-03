@@ -138,7 +138,7 @@ make_datanpz(dest_folder='/tmp', imagery=imagery)
 create_tfr(npz_path='/tmp/data.npz', city='city') #replace city with input from UI #/tmp/new_tfrecords
 
 # conduct re-training
-train(tf_train_steps=40, tf_dir='/tmp/tfrecords.zip')
+train(tf_train_steps=200, tf_dir='/tmp/tfrecords.zip')
 
 # increment model version
 updated_version = str(increment_versions(version=v))
@@ -153,14 +153,11 @@ newpred = get_pred(model_id, newpred_id)
 # update tf-records zip
 update_link(newpred, link_type='tfrecord', zip_path = '/tmp/tfrecords.zip')
 print("tfrecords link updated")
-print(newpred)
 
 # update model link
 update_link(newpred, link_type='model', zip_path ='/ml/models.zip') 
 print("models link updated")
-print(newpred)
 
 # update checkpoint
 update_link(newpred, link_type='checkpoint', zip_path = '/ml/checkpoint_new.zip')
 print("checkpoint link updated")
-print(newpred)
