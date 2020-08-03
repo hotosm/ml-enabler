@@ -137,7 +137,7 @@ make_datanpz(dest_folder='/tmp', imagery=imagery)
 #convert data.npz into tf-records
 create_tfr(npz_path='/tmp/data.npz', city='city') #replace city with input from UI #/tmp/new_tfrecords
 
-conduct re-training
+# conduct re-training
 train(tf_train_steps=40, tf_dir='/tmp/tfrecords.zip')
 
 # increment model version
@@ -155,7 +155,6 @@ update_link(newpred, link_type='tfrecord', zip_path = '/tmp/tfrecords.zip')
 print("tfrecords link updated")
 print(newpred)
 
-<<<<<<< HEAD
 # update model link
 update_link(newpred, link_type='model', zip_path ='/ml/models.zip') 
 print("models link updated")
