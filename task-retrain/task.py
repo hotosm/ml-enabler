@@ -6,6 +6,7 @@ import json
 
 from requests.auth import HTTPBasicAuth
 from requests_toolbelt.multipart.encoder import MultipartEncoder
+from requests_toolbelt.utils import dump
 from zipfile import ZipFile
 
 from model import train
@@ -73,7 +74,6 @@ def get_versions(model_id):
     for pred_dict in preds: 
         version_lst.append(pred_dict['version'])
     version_highest = str(max(map(semver.VersionInfo.parse, version_lst)))
-    #print(versions)
     return version_highest
 
 def post_pred(pred, version):
@@ -88,18 +88,24 @@ def post_pred(pred, version):
     }
 
     r = requests.post(api + '/v1/model/' + model_id + '/prediction',  json=data_pred, auth=HTTPBasicAuth('machine', auth))
-
+    r.raise_for_status()
+    print(r.status_code)
     pred = r.json()
     return pred['prediction_id']
 
-def update_link(pred, link_type, zip_path='/Users/marthamorrissey/Documents/mle/models.zip'):
+def update_link(pred, link_type, zip_path):
     payload = {'type': link_type}
+    print(payload)
     model_id = pred['modelId']
+    print(model_id)
     prediction_id = pred['predictionsId']
-    encoder = MultipartEncoder({'file': ('filename', open(zip_path, 'rb'), 'application/zip')})
+    print(prediction_id)
+    encoder = MultipartEncoder(fields={'file': ('filename', open(zip_path, 'rb'), 'application/zip')})
+    print('/v1/model/' + str(model_id) + '/prediction/' + str(prediction_id) + '/upload')
 
     r = requests.post(api + '/v1/model/' + str(model_id) + '/prediction/' + str(prediction_id) + '/upload', params=payload,  
-                        data = encoder, auth=HTTPBasicAuth('machine', auth))
+                        data = encoder, headers= {'Content-Type': encoder.content_type}, auth=HTTPBasicAuth('machine', auth))
+    r.raise_for_status()
 
 pred = get_pred(model_id, prediction_id)
 if pred['modelLink'] is None:
@@ -121,34 +127,40 @@ print(checkpoint)
 
 get_label_npz(model_id, prediction_id)
 
-# #download image tiles that match validated labels.npz file
+# download image tiles that match validated labels.npz file
 download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/tiles', zoom=zoom, supertile=supertile)
 
-#create data.npz file that matchs up images and labels
+# create data.npz file that matchs up images and labels
 # TO-DO:fix arguments to pull from ml-enabler db
 make_datanpz(dest_folder='/tmp', imagery=imagery)
 
 #convert data.npz into tf-records
 create_tfr(npz_path='/tmp/data.npz', city='city') #replace city with input from UI #/tmp/new_tfrecords 
 
-#conduct re-training
-train(tf_train_steps=10, tf_dir='/tmp/tfrecords.zip')
+conduct re-training
+train(tf_train_steps=40, tf_dir='/tmp/tfrecords.zip')
 
-#increpment model version
+# increment model version
 updated_version = str(increment_versions(version=v))
 print(updated_version)
 
 
-#post new pred
+# post new pred
 newpred_id = post_pred(pred=pred, version=updated_version)
 
 newpred = get_pred(model_id, newpred_id)
 
-#update tf-records zip
-update_link(newpred, link_type='tfrecords', zip_path='/tmp/tfrecords.zip')
+# update tf-records zip
+update_link(newpred, link_type='tfrecord', zip_path = '/tmp/tfrecords.zip')
+print("tfrecords link updated")
+print(newpred)
 
-#update model link
-update_link(newpred, link_type='model', zip_path='/ml/models.zip') 
+# update model link
+update_link(newpred, link_type='model', zip_path ='/ml/models.zip') 
+print("models link updated")
+print(newpred)
 
-#update checkpoint
-update_link(newpred, link_type='checkpoint', zip_path='/ml/checkpoint_new.zip')
+# update checkpoint
+update_link(newpred, link_type='checkpoint', zip_path = '/ml/checkpoint_new.zip')
+print("checkpoint link updated")
+print(newpred)
