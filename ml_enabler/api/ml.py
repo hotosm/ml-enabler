@@ -989,7 +989,7 @@ class PredictionUploadAPI(Resource):
             return err(501, "Not Configured"), 501
 
         modeltype = request.args.get('type', 'model')
-        if modeltype not in ["model", "tfrecords", "checkpoint"]:
+        if modeltype not in ["model", "tfrecord", "checkpoint"]:
             return err(400, "Unsupported type param"), 400
 
         key = "models/{0}/prediction/{1}/{2}.zip".format(
