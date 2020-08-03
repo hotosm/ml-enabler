@@ -71,7 +71,7 @@ def get_versions(model_id):
     r.raise_for_status()
     preds = r.json()
     version_lst = []
-    for pred_dict in preds: 
+    for pred_dict in preds:
         version_lst.append(pred_dict['version'])
     version_highest = str(max(map(semver.VersionInfo.parse, version_lst)))
     return version_highest
@@ -135,7 +135,7 @@ download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/ti
 make_datanpz(dest_folder='/tmp', imagery=imagery)
 
 #convert data.npz into tf-records
-create_tfr(npz_path='/tmp/data.npz', city='city') #replace city with input from UI #/tmp/new_tfrecords 
+create_tfr(npz_path='/tmp/data.npz', city='city') #replace city with input from UI #/tmp/new_tfrecords
 
 conduct re-training
 train(tf_train_steps=40, tf_dir='/tmp/tfrecords.zip')
@@ -155,6 +155,7 @@ update_link(newpred, link_type='tfrecord', zip_path = '/tmp/tfrecords.zip')
 print("tfrecords link updated")
 print(newpred)
 
+<<<<<<< HEAD
 # update model link
 update_link(newpred, link_type='model', zip_path ='/ml/models.zip') 
 print("models link updated")
