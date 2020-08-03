@@ -2,7 +2,7 @@ import ml_enabler.config as CONFIG
 import mercantile, semver
 from ml_enabler.models.ml_model import MLModel, Prediction, PredictionTile
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
-from ml_enabler.models.utils import PredictionsNotFound
+from ml_enabler.models.utils import PredictionsNotFound, NotFound
 from ml_enabler import db
 
 class PredictionService():
