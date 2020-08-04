@@ -10,12 +10,6 @@
                 <div class='flex-child loading py24'></div>
             </div>
         </template>
-        <template v-if='!create'>
-            <Tasks
-                @create='create = true'
-                :prediction='prediction'
-            />
-        </template>
         <template v-else-if='meta.environment !== "aws"'>
             <div class='flex-parent flex-parent--center-main pt36'>
                 <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
@@ -26,6 +20,12 @@
                     Retraining can only occur when MLEnabler is running in an "aws" environment
                 </h1>
             </div>
+        </template>
+        <template v-else-if='!create'>
+            <Tasks
+                @create='create = true'
+                :prediction='prediction'
+            />
         </template>
         <template v-else-if='!prediction.modelLink'>
             <div class='flex-parent flex-parent--center-main pt36'>
