@@ -241,46 +241,62 @@ export default {
     },
     methods: {
         refresh: function() {
-            this.getStatus();
-            this.getQueue();
+            if (meta.environment === 'aws') {
+                this.getStatus();
+                this.getQueue();
+            }
             this.getImagery();
         },
-        purgeQueue: function() {
+        purgeQueue: async function() {
             this.loading.queue = true;
 
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack/tiles`, {
-                method: 'DELETE'
-            }).then(() => {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack/tiles`, {
+                    method: 'DELETE'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
                 this.getQueue();
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
-        getQueue: function() {
+        getQueue: async function() {
             this.loading.queue = true;
 
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack/tiles`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.queue = res;
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack/tiles`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(res.message);
+                this.queue = body;
                 this.loading.queue = false;
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
-        postQueue: function(geojson) {
+        postQueue: async function(geojson) {
             this.loading.stack = true;
 
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack/tiles`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(geojson.geometry)
-            }).then((res) => {
-                return res.json();
-            }).then(() => {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack/tiles`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(geojson.geometry)
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
                 this.submit = true;
                 this.loading.stack = false;
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
         loop: function() {
             this.looping = true;
@@ -310,85 +326,100 @@ export default {
                 this.getStatus();
             }, 5000);
         },
-        getStatus: function() {
+        getStatus: async function() {
             this.loading.stack = true;
 
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((stack) => {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
                 this.stack = stack;
                 this.loading.stack = false;
 
                 if (!this.looping) this.loop();
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
-        deleteStack: function() {
+        deleteStack: async function() {
             this.loading.stack = true;
 
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack`, {
-                method: 'DELETE'
-            }).then((res) => {
-                return res.json();
-            }).then((stack) => {
-                this.stack = stack;
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack`, {
+                    method: 'DELETE'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.stack = body;
                 this.loading.stack = false;
 
                 if (!this.looping) this.loop();
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
-        getImagery: function() {
+        getImagery: async function() {
             this.loading.imagery = true;
 
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.imagery = res;
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+
+                if (!res.ok) throw new Error(body.message);
+                this.imagery = body;
 
                 this.loading.imagery = false;
                 if (this.imagery.length === 1) {
                     this.params.image = this.imagery[0];
                 }
-            }).catch((err) => {
-                alert(err);
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
         emitmode: function(mode) {
             this.$emit('mode', mode);
         },
-        createStack: function() {
+        createStack: async function() {
             if (!this.params.image) return;
             if (this.params.type === 'classification' && !this.params.inferences) return;
 
             this.loading.stack = true;
 
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    tags: this.params.tags.map((tag) => {
-                        return {
-                            Key: tag.Key,
-                            Value: tag.Value
-                        };
-                    }),
-                    imagery: this.params.image.url,
-                    maxSize: this.params.maxSize,
-                    maxConcurrency: this.params.maxConcurrency
-                })
-            }).then((res) => {
-                return res.json();
-            }).then((stack) => {
-                this.stack = stack;
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/stack`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tags: this.params.tags.map((tag) => {
+                            return {
+                                Key: tag.Key,
+                                Value: tag.Value
+                            };
+                        }),
+                        imagery: this.params.image.url,
+                        maxSize: this.params.maxSize,
+                        maxConcurrency: this.params.maxConcurrency
+                    })
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.stack = body;
                 this.loading.stack = false;
 
                 if (!this.looping) this.loop();
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         }
     },
     components: {

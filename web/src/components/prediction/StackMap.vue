@@ -49,15 +49,17 @@ export default {
             }
         };
     },
-    mounted: function() {
-        fetch(window.api + `/v1/mapbox`, {
-            method: 'GET'
-        }).then((res) => {
-            return res.json();
-        }).then((res) => {
-            this.token = res.token;
+    mounted: async function() {
+        try {
+            const res = await fetch(window.api + `/v1/mapbox`, {
+                method: 'GET'
+            });
+            const body = await res.json();
+            this.token = body.token;
             this.init();
-        });
+        } catch (err) {
+            this.$emit('err', err);
+        }
     },
     watch: {
         bounds: function() {

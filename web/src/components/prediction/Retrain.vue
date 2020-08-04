@@ -151,7 +151,7 @@ export default {
             if (!this.params.image) return;
 
             try {
-                let res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/retrain`, {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/retrain`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -161,14 +161,10 @@ export default {
                     })
                 });
 
-                if (!res.ok) {
-                    let res = await res.json();
-                    throw new Error(res.message)
-                }
-
+                const body = await res.json();
+                if (!res.ok) throw new Error(res.message)
                 this.create = false;
             } catch (err) {
-                console.error(err)
                 this.$emit('err', err);
             }
         },
@@ -176,11 +172,11 @@ export default {
             this.loading.imagery = true;
 
             try {
-                let res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
                     method: 'GET'
                 });
 
-                let body = await res.json();
+                const body = await res.json();
                 if (!res.ok) throw new Error(body.message);
 
                 this.imagery = body;
