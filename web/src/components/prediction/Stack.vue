@@ -241,7 +241,7 @@ export default {
     },
     methods: {
         refresh: function() {
-            if (meta.environment === 'aws') {
+            if (this.meta.environment === 'aws') {
                 this.getStatus();
                 this.getQueue();
             }
@@ -336,7 +336,7 @@ export default {
 
                 const body = await res.json();
                 if (!res.ok) throw new Error(body.message);
-                this.stack = stack;
+                this.stack = body;
                 this.loading.stack = false;
 
                 if (!this.looping) this.loop();

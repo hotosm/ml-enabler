@@ -162,7 +162,7 @@ export default {
                 });
 
                 const body = await res.json();
-                if (!res.ok) throw new Error(res.message)
+                if (!res.ok) throw new Error(body.message)
                 this.create = false;
             } catch (err) {
                 this.$emit('err', err);
