@@ -11,7 +11,6 @@
                     <button v-else @click='$router.push({ path: "/login" })' class='fr btn btn--stroke btn--s round color-gray-light color-gray-on-hover'>Login</button>
                 </div>
             </div>
-
             <template v-if='loading.meta || loading.user'>
                 <div class='flex-parent flex-parent--center-main w-full'>
                     <div class='flex-child loading py24'></div>
@@ -81,40 +80,43 @@ export default {
         this.refresh();
     },
     methods: {
-        refresh: function() {
-            this.getMeta();
+        refresh: async function() {
+            await this.getMeta();
+            await this.getUser();
             this.getStacks();
-            this.getUser();
         },
         external: function(url) {
             if (!url) return;
             window.open(url, "_blank")
         },
-        getMeta: function() {
-            this.loading.meta = true;
-            fetch(window.api + '/v1/meta', {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.meta = res;
+        getMeta: async function() {
+            try {
+                this.loading.meta = true;
+                const res = await fetch(window.api + '/v1/meta', {
+                    method: 'GET'
+                });
+                const body = await res.json();
                 this.loading.meta = false;
-            }).catch((err) => {
-                console.error(err);
-            });
+                if (!res.ok) throw new Error(body.message);
+                this.meta = body;
+            } catch (err) {
+                this.err = err;
+            }
         },
-        getUser: function() {
-            this.loading.user = true;
-            fetch(window.api + '/v1/user/self', {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.user = res;
+        getUser: async function() {
+            try {
+                this.loading.user = true;
+                let res = await fetch(window.api + '/v1/user/self', {
+                    method: 'GET'
+                });
+
                 this.loading.user = false;
-            }).catch((err) => {
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.user = body;
+            } catch (err) {
                 console.error(err);
-            });
+            }
         },
         getStacks: async function() {
             try {
@@ -122,13 +124,9 @@ export default {
                     method: 'GET'
                 });
 
-                if (res.ok) {
-                    res = await res.json();
-                    this.stacks = res;
-                } else {
-                    res = await res.json();
-                    throw new Error(res.error);
-                }
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.stacks = body;
             } catch(err) {
                 console.error(err);
             }
