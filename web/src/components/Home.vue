@@ -10,6 +10,9 @@
                     <div class='switch'></div>
                 </label>
 
+                <button @click='showSearch = !showSearch' class='btn round btn--stroke color-gray color-blue-on-hover mr12'>
+                    <svg class='icon'><use href='#icon-search'/></svg>
+                </button>
                 <button @click='refresh' class='btn round btn--stroke color-gray color-blue-on-hover mr12'>
                     <svg class='icon'><use href='#icon-refresh'/></svg>
                 </button>
@@ -19,13 +22,23 @@
             </div>
         </div>
         <div class='border border--gray-light round'>
+            <template v-if='showSearch'>
+                <div class='col col--12 px24 py6'>
+                    <div class='relative'>
+                        <div class='absolute flex-parent flex-parent--center-cross flex-parent--center-main w36 h36'>
+                            <svg class='icon'><use xlink:href='#icon-search'></use></svg>
+                        </div>
+                        <input ref='search' v-model='search' class='input pl36' placeholder='Model Name'>
+                    </div>
+                </div>
+            </template>
             <template v-if='models.length === 0'>
                 <div class='flex-parent flex-parent--center-main pt36'>
                     <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
                 </div>
 
                 <div class='flex-parent flex-parent--center-main pt12 pb36'>
-                    <h1 class='flex-child txt-h4 cursor-default'>Create a model to get started!</h1>
+                    <h1 class='flex-child txt-h4 cursor-default'>No Models Found</h1>
                 </div>
             </template>
             <template v-else>
@@ -69,12 +82,33 @@ export default {
     props: ['meta', 'stacks'],
     data: function() {
         return {
+            showSearch: false,
+            search: '',
             archived: false,
             models: []
         }
     },
     mounted: function() {
         this.refresh();
+
+        window.addEventListener('keydown', (e) => {
+            if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+                e.preventDefault();
+                this.showSearch = true;
+                this.$refs.search.focus();
+            }
+        })
+    },
+    watch: {
+        showSearch: function() {
+            this.$nextTick(() => {
+                console.error(this.$refs)
+                if (this.showSearch) this.$refs.search.focus()
+            });
+        },
+        search: function() {
+            this.refresh();
+        }
     },
     methods: {
         refresh: function() {
@@ -86,13 +120,22 @@ export default {
         },
         getModels: async function() {
             try {
-                const res = await fetch(window.api + '/v1/model/all', {
+                const url = new URL(window.api + '/v1/model/all');
+                url.searchParams.append('filter', this.search);
+
+                const res = await fetch(url, {
                     method: 'GET'
                 });
 
                 const body = await res.json();
-                if (!res.ok) throw new Error(body.message);
-                this.models = body;
+                console.error(res.status)
+                if (res.status === 404) {
+                    this.models = [];
+                } else if (!res.ok) {
+                    throw new Error(body.message);
+                } else {
+                    this.models = body;
+                }
             } catch (err) {
                 this.$emit('err', err);
             }
