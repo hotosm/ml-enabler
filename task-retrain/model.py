@@ -34,19 +34,21 @@ from utils_train import zip_model_export, zip_chekpoint, model_estimator, get_op
 # Modeling Code
 ###############
 def train(n_classes=2, class_names=['not_industrial', 'industrial'], 
-         n_train_samps=400, 
-         n_val_samps=100, 
+         n_train_samps=100, 
+         n_val_samps=20, 
          x_feature_shape=[-1, 256, 256, 3], 
          cycle_length=1, 
          n_map_threads=4, 
          shuffle_buffer_size=400, 
          prefetch_buffer_size=1, 
-         tf_dir='/ml/data',
-         tf_model_dir = '/ml/models/', 
+         #tf_dir='/ml/data',
+         tf_dir = '/Users/marthamorrissey/Documents/mle6',
+         #tf_model_dir = '/ml/models/', 
+         tf_model_dir = '/Users/marthamorrissey/Documents/mle6/',
          model_id ='a',
          tf_steps_per_summary=10, 
-         tf_steps_per_checkpoint=100,
-         tf_batch_size=16, 
+         tf_steps_per_checkpoint=50,
+         tf_batch_size=4, 
          tf_train_steps=200,
          tf_dense_size_a=256,
          tf_dense_dropout_rate_a=0.3,
@@ -125,10 +127,10 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
     # Create data feeder functions
     ##############################
 
-    #unzip tf-records dir 
+    #unzip tf-records dir #TO-DO FIX!!!!! 
     with zipfile.ZipFile(tf_dir, "r") as zip_ref:
-        zip_ref.extractall('/tmp/tfrecords')
-        tf_dir =  '/tmp/tfrecords/'
+        zip_ref.extractall('/Users/marthamorrissey/Documents/mle6/tfrecords')
+        tf_dir =  '/Users/marthamorrissey/Documents/mle6/tfrecords/'
 
     # Create training dataset function
     fpath_train = op.join(tf_dir, 'train_*.tfrecords')
@@ -163,7 +165,6 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
                                   batch_size=tf_batch_size,
                                   cycle_length=cycle_length,
                                   prefetch_buffer_size=prefetch_buffer_size)
-
     ###################################
     # Run train/val w/ estimator object
     ###################################
@@ -192,8 +193,8 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
     logging.info("training done.")
 
     # Zip key exports 
-    zip_model_export(model_id=model_id)
-    zip_chekpoint(model_id=model_id)
+    zip_model_export(model_id=model_id, zip_dir=tf_model_dir)
+    zip_chekpoint(model_id=model_id, zip_dir=tf_model_dir)
     #TO-DO upload zip files to S3 bucket
 
 def test(n_classes=2, class_names=['not_industrial', 'industrial'], 
@@ -210,10 +211,10 @@ def test(n_classes=2, class_names=['not_industrial', 'industrial'],
          tf_model_dir = '/ml/models/', 
          tf_test_results_dir = '/ml/models',
          tf_test_ckpt_path ='/ml/models',
-         model_id ='a',
-         tf_steps_per_summary=10, 
-         tf_steps_per_checkpoint=100,
-         tf_batch_size=16, 
+         model_id ='b',
+         tf_steps_per_summary=50, 
+         tf_steps_per_checkpoint=200,
+         tf_batch_size=8, 
          tf_train_steps=200,
          tf_dense_size_a=256,
          tf_dense_dropout_rate_a=0.3,
@@ -257,6 +258,9 @@ def test(n_classes=2, class_names=['not_industrial', 'industrial'],
                                     save_summary_steps=tf_steps_per_summary,
                                     save_checkpoints_steps=tf_steps_per_checkpoint,
                                     log_step_count_steps=tf_steps_per_summary)
+
+
+
 
     model_params = {"n_classes": n_classes,
                 "input_shape": x_feature_shape[1:4],

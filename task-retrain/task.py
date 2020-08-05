@@ -131,14 +131,16 @@ get_label_npz(model_id, prediction_id)
 download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/tiles', zoom=zoom, supertile=supertile)
 
 # create data.npz file that matchs up images and labels
-# TO-DO:fix arguments to pull from ml-enabler db
 make_datanpz(dest_folder='/tmp', imagery=imagery)
 
+
 #convert data.npz into tf-records
-create_tfr(npz_path='/tmp/data.npz', city='city') #replace city with input from UI #/tmp/new_tfrecords
+create_tfr(npz_path='/tmp/data.npz', city='city')
+
 
 # conduct re-training
-train(tf_train_steps=200, tf_dir='/tmp/tfrecords.zip')
+train(tf_train_steps=1000, tf_dir='/Users/marthamorrissey/Documents/mle7/tfrecords.zip', 
+       retraining_weights='/Users/marthamorrissey/Documents/mle7/checkpoint.zip')
 
 # increment model version
 updated_version = str(increment_versions(version=v))
