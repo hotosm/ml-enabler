@@ -36,9 +36,9 @@ def zip_model_export(model_id, zip_dir='/ml/models'):
     shutil.make_archive(zip_dir, 'zip', dir_name)
     logging.info('written export as zip file')
 
-def zip_chekpoint(model_id, zip_dir='/ml/checkpoint_new'):
+def zip_chekpoint(model_id, zip_dir='/ml/checkpoint'):
     logging.info("zipping up best model checkpoint")
-    d = '/ml/models/' + model_id + '/'
+    d = '/ml/models/' + model_id + '/keras/'
     shutil.make_archive(zip_dir, 'zip', d)
     logging.info('written checkpoint as zip file')
 

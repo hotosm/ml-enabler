@@ -193,4 +193,3 @@ def train(n_classes=2, class_names=['class0', 'class1'],
     # Zip key exports 
     zip_model_export(model_id=model_id, zip_dir=tf_model_dir)
     zip_chekpoint(model_id=model_id, zip_dir=tf_model_dir)
-    #TO-DO upload zip files to S3 bucket

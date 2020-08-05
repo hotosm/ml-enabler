@@ -168,5 +168,5 @@ update_link(newpred, link_type='model', zip_path ='/ml/models.zip')
 print("models link updated")
 
 # update checkpoint
-update_link(newpred, link_type='checkpoint', zip_path = '/ml/checkpoint_new.zip')
+update_link(newpred, link_type='checkpoint', zip_path = '/ml/checkpoint.zip')
 print("checkpoint link updated")
