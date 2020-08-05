@@ -194,12 +194,12 @@ export default {
                 sourceLayer: 'data'
             }, prop);
 
-            const body = {
+            const reqbody = {
                 id: id,
                 validity: {}
             };
 
-            body.validity[this.inf] = valid;
+            reqbody.validity[this.inf] = valid;
 
             try {
                 const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/validity`, {
@@ -207,7 +207,7 @@ export default {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(body)
+                    body: JSON.stringify(reqbody)
                 });
 
                 const body = await res.json();
