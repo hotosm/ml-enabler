@@ -42,12 +42,12 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
          shuffle_buffer_size=400, 
          prefetch_buffer_size=1, 
          #tf_dir='/ml/data',
-         tf_dir = '/Users/marthamorrissey/Documents/mle6',
+         tf_dir = '/Users/marthamorrissey/Documents/mle7',
          #tf_model_dir = '/ml/models/', 
-         tf_model_dir = '/Users/marthamorrissey/Documents/mle6/',
-         model_id ='a',
-         tf_steps_per_summary=10, 
-         tf_steps_per_checkpoint=50,
+         tf_model_dir = '/Users/marthamorrissey/Documents/mle7/',
+         model_id ='b',
+         tf_steps_per_summary=50, 
+         tf_steps_per_checkpoint=200,
          tf_batch_size=4, 
          tf_train_steps=200,
          tf_dense_size_a=256,
@@ -55,7 +55,7 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
          tf_dense_size=128,
          tf_dense_dropout_rate=.35,
          tf_dense_activation='relu', 
-         tf_learning_rate=0.001,
+         tf_learning_rate=0.00001,
          tf_optimizer='adam', 
          retraining_weights=None): 
 
@@ -129,8 +129,8 @@ def train(n_classes=2, class_names=['not_industrial', 'industrial'],
 
     #unzip tf-records dir #TO-DO FIX!!!!! 
     with zipfile.ZipFile(tf_dir, "r") as zip_ref:
-        zip_ref.extractall('/Users/marthamorrissey/Documents/mle6/tfrecords')
-        tf_dir =  '/Users/marthamorrissey/Documents/mle6/tfrecords/'
+        zip_ref.extractall('/tmp/tfrecords')
+        tf_dir = '/tmp/tfrecords/'
 
     # Create training dataset function
     fpath_train = op.join(tf_dir, 'train_*.tfrecords')
