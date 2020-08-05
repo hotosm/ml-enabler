@@ -33,7 +33,7 @@ from utils_train import zip_model_export, zip_chekpoint, model_estimator, get_op
 ################
 # Modeling Code
 ###############
-def train(n_classes=2, class_names=['not_industrial', 'industrial'], 
+def train(n_classes=2, class_names=['class0', 'class1'], 
          n_train_samps=100, 
          n_val_samps=20, 
          x_feature_shape=[-1, 256, 256, 3], 
