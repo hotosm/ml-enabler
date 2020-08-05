@@ -120,18 +120,11 @@ export default {
                     })
                 });
 
-                if (!res.ok) {
-                    res = await res.json();
-                    if (res.message) {
-                        return this.$emit('err', new Error(res.message));
-                    } else {
-                        return this.$emit('err', new Error('Failed to post prediction'));
-                    }
-                }
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
 
-                res = await res.json();
-                this.predictionId = res.prediction_id;
-                this.prediction.predictionsId = res.prediction_id;
+                this.predictionId = body.prediction_id;
+                this.prediction.predictionsId = body.prediction_id;
                 this.close();
             } catch(err) {
                 return this.$emit('err', err);

@@ -121,17 +121,16 @@ export default {
             this.log = task_id;
 
             try {
-                let res = await fetch(window.api + `/v1/task/${task_id}/logs`, {
+                const res = await fetch(window.api + `/v1/task/${task_id}/logs`, {
                     method: 'GET'
                 });
 
-                let body = await res.json();
+                const body = await res.json();
                 if (!res.ok) throw new Error(body.message)
 
                 this.logs = body.logs;
                 this.loading.logs = false;
             } catch (err) {
-                console.error(err)
                 this.$emit('err', err);
             }
         },
@@ -144,11 +143,11 @@ export default {
             }
 
             try {
-                let res = await fetch(window.api + `/v1/task?pred_id=${this.$route.params.predid}&type=retrain`, {
+                const res = await fetch(window.api + `/v1/task?pred_id=${this.$route.params.predid}&type=retrain`, {
                     method: 'GET'
                 });
 
-                let body = await res.json();
+                const body = await res.json();
                 if (!res.ok) throw new Error(body.message)
 
                 this.tasks = body.tasks.map((task) => {
@@ -167,11 +166,11 @@ export default {
         },
         getTask: async function(task_id) {
             try {
-                let res = await fetch(window.api + `/v1/task/${task_id}`, {
+                const res = await fetch(window.api + `/v1/task/${task_id}`, {
                     method: 'GET'
                 });
 
-                let body = await res.json();
+                const body = await res.json();
                 if (!res.ok) throw new Error(body.message)
 
                 for (const task of this.tasks) {

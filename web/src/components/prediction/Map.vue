@@ -183,7 +183,7 @@ export default {
         }
     },
     methods: {
-        infValidity: function(id, valid) {
+        infValidity: async function(id, valid) {
             this.popup.remove();
 
             const prop = {};
@@ -194,26 +194,27 @@ export default {
                 sourceLayer: 'data'
             }, prop);
 
-            const body = {
+            const reqbody = {
                 id: id,
                 validity: {}
             };
 
-            body.validity[this.inf] = valid;
+            reqbody.validity[this.inf] = valid;
 
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/validity`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            }).then((res) => {
-                return res.json();
-            }).then(() => {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/validity`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(reqbody)
+                });
 
-            }).catch((err) => {
-                alert(err);
-            });
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
         hide: function() {
             for (const inf of this.tilejson.inferences) {
@@ -411,16 +412,18 @@ export default {
                 document.exitFullscreen();
             }
         },
-        getImagery: function() {
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.imagery = res;
-            }).catch((err) => {
-                alert(err);
-            });
+        getImagery: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.imagery = body;
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
     },
     components: {

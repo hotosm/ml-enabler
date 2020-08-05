@@ -51,32 +51,36 @@ export default {
 
             window.open(url, "_blank")
         },
-        login: function() {
+        login: async function() {
             this.attempted = true;
 
             if (!this.username.length) return;
             if (!this.password.length) return;
             this.loading = true;
 
-            fetch(window.api + `/v1/user/login`, {
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    username: this.username,
-                    password: this.password
-                })
-            }).then((res) => {
+            try {
+                const res = await fetch(window.api + `/v1/user/login`, {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        username: this.username,
+                        password: this.password
+                    })
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+
                 this.loading = false;
-                if (!res.ok) throw new Error('Incorrect username or password');
 
                 this.$emit('auth');
                 this.$router.push('/')
-            }).catch((err) => {
+            } catch (err) {
                 this.$emit('err', err);
-            });
+            }
         }
     }
 }

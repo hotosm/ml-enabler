@@ -57,30 +57,35 @@ export default {
             this.getTilejson();
             this.getPrediction();
         },
-        getPrediction: function() {
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.prediction = res;
-            });
-        },
-        getTilejson: function() {
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/tiles`, {
-                method: 'GET',
-                credentials: 'same-origin'
-            }).then((res) => {
-                if (res.status === 404) {
-                    this.tilejson = false;
-                } else {
-                    res.json().then((tilejson) => {
-                        tilejson.tiles[0] = window.api + tilejson.tiles[0];
+        getPrediction: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}`, {
+                    method: 'GET'
+                });
 
-                        this.tilejson = tilejson;
-                    })
-                }
-            });
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.prediction = body;
+            } catch (err) {
+                this.$emit('err', err);
+            }
+        },
+        getTilejson: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/tiles`, {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                });
+
+                if (res.status === 404) return this.tilejson = false;
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                body.tiles[0] = window.api + body.tiles[0];
+                this.tilejson = body;
+            } catch (err) {
+                this.$emit('err', err);
+            }
         }
     }
 }

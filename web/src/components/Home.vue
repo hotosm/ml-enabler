@@ -84,20 +84,18 @@ export default {
             if (!url) return;
             window.open(url, "_blank")
         },
-        getModels: function() {
-            this.mode = 'models';
+        getModels: async function() {
+            try {
+                const res = await fetch(window.api + '/v1/model/all', {
+                    method: 'GET'
+                });
 
-            fetch(window.api + '/v1/model/all', {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                if (res.error && res.error === 'no models found') {
-                    this.models = [];
-                } else {
-                    this.models = res;
-                }
-            });
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.models = body;
+            } catch (err) {
+                this.$emit('err', err);
+            }
         }
     }
 }
