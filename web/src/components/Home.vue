@@ -128,12 +128,14 @@ export default {
                 });
 
                 const body = await res.json();
+                console.error(res.status)
                 if (res.status === 404) {
                     this.models = [];
                 } else if (!res.ok) {
                     throw new Error(body.message);
+                } else {
+                    this.models = body;
                 }
-                this.models = body;
             } catch (err) {
                 this.$emit('err', err);
             }
