@@ -28,7 +28,7 @@
                         <div class='absolute flex-parent flex-parent--center-cross flex-parent--center-main w36 h36'>
                             <svg class='icon'><use xlink:href='#icon-search'></use></svg>
                         </div>
-                        <input ref='search' class='input pl36' placeholder='Model Name'>
+                        <input ref='search' v-model='search' class='input pl36' placeholder='Model Name'>
                     </div>
                 </div>
             </template>
@@ -105,6 +105,9 @@ export default {
                 console.error(this.$refs)
                 if (this.showSearch) this.$refs.search.focus()
             });
+        },
+        search: function() {
+            this.refresh();
         }
     },
     methods: {
@@ -117,7 +120,10 @@ export default {
         },
         getModels: async function() {
             try {
-                const res = await fetch(window.api + '/v1/model/all', {
+                const url = new URL(window.api + '/v1/model/all');
+                url.searchParams.append('filter', this.search);
+
+                const res = await fetch(url, {
                     method: 'GET'
                 });
 
