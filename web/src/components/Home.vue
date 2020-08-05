@@ -38,7 +38,7 @@
                 </div>
 
                 <div class='flex-parent flex-parent--center-main pt12 pb36'>
-                    <h1 class='flex-child txt-h4 cursor-default'>Create a model to get started!</h1>
+                    <h1 class='flex-child txt-h4 cursor-default'>No Models Found</h1>
                 </div>
             </template>
             <template v-else>
@@ -128,7 +128,11 @@ export default {
                 });
 
                 const body = await res.json();
-                if (!res.ok) throw new Error(body.message);
+                if (res.status === 404) {
+                    this.models = [];
+                } else if (!res.ok) {
+                    throw new Error(body.message);
+                }
                 this.models = body;
             } catch (err) {
                 this.$emit('err', err);
