@@ -116,6 +116,8 @@ if pred['checkpointLink'] is None:
 zoom = pred['tileZoom']
 supertile = pred['infSupertile']
 version = pred['version']
+inflist = pred['infList'].split(',')
+
 
 v = get_versions(model_id)
 
@@ -139,8 +141,9 @@ create_tfr(npz_path='/tmp/data.npz', city='city')
 
 
 # conduct re-training
-train(tf_train_steps=1000, tf_dir='/Users/marthamorrissey/Documents/mle7/tfrecords.zip', 
-       retraining_weights='/Users/marthamorrissey/Documents/mle7/checkpoint.zip')
+train(tf_train_steps=1000, tf_dir='/tmp/tfrecords.zip', 
+       retraining_weights='/tmp/checkpoint.zip', 
+       n_classes=len(inflist), class_names=inflist)
 
 # increment model version
 updated_version = str(increment_versions(version=v))
