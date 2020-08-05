@@ -275,7 +275,7 @@ export default {
                 this.queue = body;
                 this.loading.queue = false;
             } catch (err) {
-                this.$emit('err', err);
+                //this.$emit('err', err);
             }
         },
         postQueue: async function(geojson) {
