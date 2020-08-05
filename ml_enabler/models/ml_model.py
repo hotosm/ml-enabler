@@ -447,11 +447,13 @@ class MLModel(db.Model):
         return MLModel.query.get(model_id)
 
     @staticmethod
-    def get_all():
+    def get_all(model_filter: str):
         """
         Get all models in the database
         """
-        return MLModel.query.all()
+        return MLModel.query.filter(
+            MLModel.name.ilike(model_filter + '%')
+        ).all()
 
     def delete(self):
         """ Deletes the current model from the DB """

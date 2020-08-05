@@ -235,8 +235,10 @@ class GetAllModels(Resource):
             500:
                 description: Internal Server Error
         """
+        model_filter = request.args.get('filter', '')
+
         try:
-            ml_models = MLModelService.get_all()
+            ml_models = MLModelService.get_all(model_filter)
             return ml_models, 200
         except NotFound:
             return err(404, "no models found"), 404
@@ -1133,9 +1135,9 @@ class PredictionSingleAPI(Resource):
                 "saveLink": prediction.save_link,
                 "infSupertile": prediction.inf_supertile,
                 "tfrecordLink": prediction.tfrecord_link,
-                "checkpointLink": prediction.checkpoint_link, 
-                "infList": prediction.inf_list, 
-                "infBinary": prediction.inf_binary, 
+                "checkpointLink": prediction.checkpoint_link,
+                "infList": prediction.inf_list,
+                "infBinary": prediction.inf_binary,
                 "infType": prediction.inf_type
             }
 
