@@ -118,6 +118,10 @@ supertile = pred['infSupertile']
 version = pred['version']
 inflist = pred['infList'].split(',')
 
+if supertile: 
+     x_feature_shape = [-1, 512, 512, 3]
+else: 
+    x_feature_shape = [-1, 256, 256, 3]
 
 v = get_versions(model_id)
 
@@ -143,7 +147,7 @@ create_tfr(npz_path='/tmp/data.npz', city='city')
 # conduct re-training
 train(tf_train_steps=1000, tf_dir='/tmp/tfrecords.zip', 
        retraining_weights='/tmp/checkpoint.zip', 
-       n_classes=len(inflist), class_names=inflist)
+       n_classes=len(inflist), class_names=inflist,  x_feature_shape=x_feature_shape)
 
 # increment model version
 updated_version = str(increment_versions(version=v))
