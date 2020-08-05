@@ -145,7 +145,7 @@ create_tfr(npz_path='/tmp/data.npz', city='city')
 
 
 # conduct re-training
-train(tf_train_steps=1000, tf_dir='/tmp/tfrecords.zip', 
+train(tf_train_steps=40, tf_dir='/tmp/tfrecords.zip', 
        retraining_weights='/tmp/checkpoint.zip', 
        n_classes=len(inflist), class_names=inflist,  x_feature_shape=x_feature_shape)
 

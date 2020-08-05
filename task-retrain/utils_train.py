@@ -38,7 +38,7 @@ def zip_model_export(model_id, zip_dir='/ml/models'):
 
 def zip_chekpoint(model_id, zip_dir='/ml/checkpoint_new'):
     logging.info("zipping up best model checkpoint")
-    d = '/ml/models/' + model_id + '/keras/'
+    d = '/ml/models/' + model_id + '/'
     shutil.make_archive(zip_dir, 'zip', d)
     logging.info('written checkpoint as zip file')
 
@@ -77,7 +77,8 @@ def model_estimator(params, model_dir, run_config, retraining_weights, model_id)
         print('in retraining weights')
         with zipfile.ZipFile(retraining_weights, "r") as zip_ref:
             zip_ref.extractall('/tmp/checkpoint')
-            retraining_weights_ckpt = '/tmp/checkpoint/'  + 'keras_model.ckpt'
+            retraining_weights_ckpt = '/tmp/checkpoint/keras/'  + 'keras_model.ckpt'
+            print(retraining_weights_ckpt)
         model.load_weights(retraining_weights_ckpt)
 
     model_id = model_id
