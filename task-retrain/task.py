@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import requests
 import boto3
 import semver
@@ -139,15 +140,20 @@ download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/ti
 # create data.npz file that matchs up images and labels
 make_datanpz(dest_folder='/tmp', imagery=imagery)
 
+#get train and val number of samples 
+data = np.load('/tmp/data.npz')
+n_train_samps = data['y_train'].shape[0]
+n_val_samps = data['y_val'].shape[0]
 
 #convert data.npz into tf-records
 create_tfr(npz_path='/tmp/data.npz', city='city')
 
 
 # conduct re-training
-train(tf_train_steps=10, tf_dir='/tmp/tfrecords.zip', 
+train(tf_train_steps=1000, tf_dir='/tmp/tfrecords.zip', 
        retraining_weights='/tmp/checkpoint.zip', 
-       n_classes=len(inflist), class_names=inflist,  x_feature_shape=x_feature_shape)
+       n_classes=len(inflist), class_names=inflist,  x_feature_shape=x_feature_shape, 
+       n_train_samps=n_train_samps, n_val_samps=n_val_samps)
 
 # increment model version
 updated_version = str(increment_versions(version=v))
