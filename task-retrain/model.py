@@ -191,5 +191,5 @@ def train(n_classes=2, class_names=['class0', 'class1'],
     logging.info("training done.")
 
     # Zip key exports 
-    zip_model_export(model_id=model_id, zip_dir=tf_model_dir)
-    zip_chekpoint(model_id=model_id, zip_dir=tf_model_dir)
+    zip_model_export(model_id=model_id, zip_dir='/ml/models')
+    zip_chekpoint(model_id=model_id, zip_dir='/ml/checkpoint')
