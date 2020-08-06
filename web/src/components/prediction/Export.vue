@@ -1,10 +1,7 @@
 <template>
     <div class='col col--12 relative'>
         <div class='col col--12 border-b border--gray-light clearfix mb6'>
-            <PredictionHeader
-                mode='export'
-                v-on:mode='$emit("mode", $event)'
-            />
+            <PredictionHeader/>
         </div>
 
         <template v-if='tilejson'>
@@ -65,7 +62,7 @@
 </template>
 
 <script>
-import PredictionHeader from './../PredictionHeader.vue';
+import PredictionHeader from './PredictionHeader.vue';
 
 export default {
     name: 'Export',
@@ -82,7 +79,7 @@ export default {
     },
     methods: {
         getExport: function() {
-            const url = new URL(`${window.location.origin}${window.api}/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/export`);
+            const url = new URL(`${window.api}/v1/model/${this.$route.params.modelid}/prediction/${this.$route.params.predid}/export`);
 
             url.searchParams.set('format', this.params.format);
             url.searchParams.set('inferences', this.params.inferences);

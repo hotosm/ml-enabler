@@ -65,47 +65,55 @@ export default {
         close: function() {
             this.$emit('close');
         },
-        getImagery: function() {
-            fetch(window.api + `/v1/model/${this.modelid}/imagery`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.imagery = res.filter((img) => {
+        getImagery: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.modelid}/imagery`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+
+                this.imagery = body.filter((img) => {
                     return img.id === this.imageryid;
                 })[0];
-            }).catch((err) => {
-                alert(err);
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
-        deleteImagery: function() {
-            fetch(window.api + `/v1/model/${this.modelid}/imagery/${this.imageryid}`, {
-                method: 'DELETE'
-            }).then(() => {
+        deleteImagery: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.modelid}/imagery/${this.imageryid}`, {
+                    method: 'DELETE'
+                });
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
                 this.close();
-            }).catch((err) => {
-                alert(err);
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
-        postImagery: function() {
-            fetch(window.api + `/v1/model/${this.modelid}/imagery${this.imageryid ? '/' + this.imageryid : ''}`, {
-                method: this.imageryid ? 'PATCH' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    modelId: this.imagery.modelId,
-                    name: this.imagery.name,
-                    url: this.imagery.url
-                })
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.imagery.imageryId = res.imageryId;
+        postImagery: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.modelid}/imagery${this.imageryid ? '/' + this.imageryid : ''}`, {
+                    method: this.imageryid ? 'PATCH' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        modelId: this.imagery.modelId,
+                        name: this.imagery.name,
+                        url: this.imagery.url
+                    })
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.imagery.imageryId = body.imageryId;
                 this.close();
-            }).catch((err) => {
-                alert(err);
-            });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         }
     }
 }

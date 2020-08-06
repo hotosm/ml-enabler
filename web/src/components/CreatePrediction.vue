@@ -78,7 +78,7 @@ export default {
                 tileZoom: '18',
                 infList: '',
                 infType: 'classification',
-                infBinary: false, 
+                infBinary: false,
                 infSupertile: false
             }
         };
@@ -113,26 +113,18 @@ export default {
                         modelId: this.prediction.modelId,
                         version: this.prediction.version,
                         tileZoom: this.prediction.tileZoom,
-                        bbox: [-180.0, -90.0, 180.0, 90.0],
                         infList: this.prediction.infList,
                         infType: this.prediction.infType,
-                        infBinary: this.prediction.infBinary, 
+                        infBinary: this.prediction.infBinary,
                         infSupertile: this.prediction.infSupertile
                     })
                 });
 
-                if (!res.ok) {
-                    res = await res.json();
-                    if (res.message) {
-                        return this.$emit('err', new Error(res.message));
-                    } else {
-                        return this.$emit('err', new Error('Failed to post prediction'));
-                    }
-                }
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
 
-                res = await res.json();
-                this.predictionId = res.prediction_id;
-                this.prediction.predictionsId = res.prediction_id;
+                this.predictionId = body.prediction_id;
+                this.prediction.predictionsId = body.prediction_id;
                 this.close();
             } catch(err) {
                 return this.$emit('err', err);

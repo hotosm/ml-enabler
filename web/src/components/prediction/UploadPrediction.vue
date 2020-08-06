@@ -4,12 +4,12 @@
             <file-pond
                 name='model-upload'
                 ref='pond'
-                label-idle='Drop model.zip here'
+                :label-idle='label'
                 v-bind:allow-multiple='false'
                 v-on:processfile='uploaded'
                 accepted-file-types='application/zip'
                 allowRevert='false'
-                :server='`/v1/model/${$route.params.modelid}/prediction/${$route.params.predid}/upload`'
+                :server='`/v1/model/${$route.params.modelid}/prediction/${$route.params.predid}/upload?type=${type}`'
                 v-bind:files='files'
             />
         </div>
@@ -28,15 +28,19 @@ const FilePond = vueFilePond(FilePondPluginFileValidateType);
 
 export default {
     name: 'UploadPrediction',
-    props: ['prediction'],
+    props: ['prediction', 'type'],
     components: {
         FilePond
     },
     data: function() {
         return {
             done: false,
-            files: []
+            files: [],
+            label: ''
         };
+    },
+    mounted: function() {
+        this.label = `Drop ${this.type}.zip here`;
     },
     methods: {
         uploaded: function(err) {

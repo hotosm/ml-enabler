@@ -10,7 +10,7 @@ login_manager = LoginManager()
 
 # import models
 from ml_enabler.models import * # noqa
-from ml_enabler import auth
+from ml_enabler.api import auth, task
 
 def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
     # create and configure the app
@@ -22,6 +22,7 @@ def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
     login_manager.init_app(app)
 
     app.register_blueprint(auth.auth_bp)
+    app.register_blueprint(task.task_bp)
 
     init_routes(app)
     return app
@@ -35,14 +36,14 @@ def init_routes(app):
     # import apis
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, \
         PredictionAPI, PredictionUploadAPI, PredictionTileAPI, \
-        GetAllPredictions, PredictionTileMVT, ImageryAPI, \
+        GetAllPredictions, PredictionTileMVT, ImageryAPI, PredictionRetrain, \
         PredictionStackAPI, PredictionStacksAPI, PredictionInfAPI, MapboxAPI, MetaAPI, \
         PredictionExport, PredictionSingleAPI, PredictionValidity
     from ml_enabler.api.swagger import SwaggerDocsAPI
 
-    api.add_resource(StatusCheckAPI,            '/')
+    api.add_resource(StatusCheckAPI,            '/v1/health')
 
-    api.add_resource(MetaAPI,                   '/v1', methods=['GET'])
+    api.add_resource(MetaAPI,                   '/v1/meta', methods=['GET'])
 
     api.add_resource(SwaggerDocsAPI,            '/v1/docs')
 
@@ -70,6 +71,8 @@ def init_routes(app):
     api.add_resource(PredictionValidity,        '/v1/model/<int:model_id>/prediction/<int:prediction_id>/validity', methods=['POST'])
 
     api.add_resource(PredictionExport,          '/v1/model/<int:model_id>/prediction/<int:prediction_id>/export', methods=['GET'])
+
+    api.add_resource(PredictionRetrain,         '/v1/model/<int:model_id>/prediction/<int:prediction_id>/retrain', methods=['POST'])
 
     api.add_resource(PredictionTileAPI,         '/v1/model/<int:model_id>/prediction/<int:prediction_id>/tiles', endpoint="get", methods=['GET'])
     api.add_resource(PredictionTileMVT,         '/v1/model/<int:model_id>/prediction/<int:prediction_id>/tiles/<int:z>/<int:x>/<int:y>.mvt', methods=['GET'])

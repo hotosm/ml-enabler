@@ -9,6 +9,12 @@ import Model from './components/Model.vue';
 import EditModel from './components/EditModel.vue';
 import Prediction from './components/Prediction.vue';
 
+import Assets from './components/prediction/Assets.vue';
+import Export  from './components/prediction/Export.vue';
+import Map  from './components/prediction/Map.vue';
+import Stack from './components/prediction/Stack.vue';
+import Retrain from './components/prediction/Retrain.vue';
+
 Vue.use(VueRouter);
 Vue.config.productionTip = false
 
@@ -22,11 +28,37 @@ const router = new VueRouter({
         { path: '/model/:modelid', name: 'model', component: Model },
         { path: '/model/:modelid/edit', name: 'editmodel', component: EditModel },
 
-        { path: '/model/:modelid/prediction/:predid', name: 'prediction', component: Prediction },
+        {
+            name: 'prediction',
+            path: '/model/:modelid/prediction/:predid',
+            redirect: '/model/:modelid/prediction/:predid/assets',
+            component: Prediction,
+            children: [{
+                name: 'assets',
+                path: 'assets',
+                component: Assets
+            },{
+                name: 'stack',
+                path: 'stack',
+                component: Stack
+            },{
+                name: 'retrain',
+                path: 'retrain',
+                component: Retrain
+            },{
+                name: 'map',
+                path: 'map',
+                component: Map
+            },{
+                name: 'export',
+                path: 'export',
+                component: Export
+            }]
+        },
     ]
 });
 
-window.api = window.location.pathname.replace(/\/admin\/.*/, '');
+window.api = window.location.href.replace(/\/#.*/, '');
 
 new Vue({
     router,

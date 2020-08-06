@@ -23,6 +23,7 @@ echo "
 
 echo "
     CREATE EXTENSION POSTGIS;
+    CREATE EXTENSION PGCrypto;
 " | psql -U postgres mlenabler
 
 pg_restore -U postgres -d mlenabler < /tmp/$1-out.sql

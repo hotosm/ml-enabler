@@ -344,6 +344,15 @@ const Resources = {
                             'batch:DescribeJobs'
                         ],
                         Resource: [ cf.join(['arn:aws:batch:', cf.region, ':', cf.accountId, ':*']) ]
+
+                    },{
+                        Effect: 'Allow',
+                        Action: [
+                            'logs:GetLogEvents',
+                            'batch:CancelJob',
+                            'batch:DescribeJobs'
+                        ],
+                        Resource: [ '*' ]
                     },{
                         Effect: 'Allow',
                         Action: [

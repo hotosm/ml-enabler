@@ -3,11 +3,8 @@
 <p align=center>A service that integrates ML models to applications like Tasking Manager.</p>
 
 ## Background
-Machine Learning has proven to be very successful to make mapping fast with high quality. With a diverse set of models and tools, it is hard to integrate them to existing tools like Tasking Manager and iD. HOT is developing ml-enabler to enable AI-assist to existing mapping tools.
 
-ml-enabler is two projects:
-1. ml-enabler-api (this repo) - Storage and API to hold tile level ML prediction data.
-2. ml-enabler-cli ([repo](https://github.com/hotosm/ml-enabler-cli)) - CLI for interacting with models and subscribe them to the ml-enabler-api
+Machine Learning has proven to be very successful to make mapping fast with high quality. With a diverse set of models and tools, it is hard to integrate them to existing tools like Tasking Manager and iD. HOT is developing ml-enabler to enable AI-assist to existing mapping tools.
 
 The API uses the following terms:
 * **Model** --

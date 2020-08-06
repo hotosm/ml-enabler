@@ -3,7 +3,8 @@
     "artifacts": {
         "docker": [
             "{{project}}:{{gitsha}}",
-            "{{project}}:task-{{gitsha}}"
+            "{{project}}:task-build-{{gitsha}}",
+            "{{project}}:task-retrain-{{gitsha}}"
         ],
         "lambda": [
             "devseed-artifacts/ml-enabler/lambda-{{gitsha}}.zip"

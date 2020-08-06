@@ -181,48 +181,52 @@ export default {
 
             this.mode = 'editImagery';
         },
-        getPredictions: function() {
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/all`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                if (res.error) {
-                    this.predictions = [];
-                } else {
-                    const vMap = {};
+        getPredictions: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/prediction/all`, {
+                    method: 'GET'
+                });
 
-                    for (const v of res) {
-                        vMap[v.version] = v;
-                    }
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                const vMap = {};
 
-                    this.predictions = vSort.desc(res.map(r => r.version)).map(r => {
-                        return vMap[r];
-                    });
+                for (const v of body) {
+                    vMap[v.version] = v;
                 }
-            });
+
+                this.predictions = vSort.desc(body.map(r => r.version)).map(r => {
+                    return vMap[r];
+                });
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
-        getModel: function() {
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                this.model = res;
-            });
+        getModel: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.model = body;
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
-        getImagery: function() {
-            fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
-                method: 'GET'
-            }).then((res) => {
-                return res.json();
-            }).then((res) => {
-                if (res.error) {
-                    this.imagery = [];
-                } else {
-                    this.imagery = res;
-                }
-            });
+        getImagery: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/imagery`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.imagery = body;
+            } catch (err) {
+                this.$emit('err', err);
+            }
         }
     }
 }

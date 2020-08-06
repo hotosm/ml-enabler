@@ -9,7 +9,7 @@ jobs:
             - uses: actions/checkout@v1
 
             - name: Docker Build Task
-              run: docker build -t task task/
+              run: docker build -t task-build task-build/
 
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v1
@@ -23,8 +23,8 @@ jobs:
               uses: aws-actions/amazon-ecr-login@v1
 
             - name: Docker Tag Task
-              run: docker tag task ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/ml-enabler:task-${GITHUB_SHA}
+              run: docker tag task-build ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/ml-enabler:task-build-${GITHUB_SHA}
 
             - name: Docker Push Task
-              run: docker push ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/ml-enabler:task-${GITHUB_SHA}
+              run: docker push ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.us-east-1.amazonaws.com/ml-enabler:task-build-${GITHUB_SHA}
 
