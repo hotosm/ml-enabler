@@ -141,16 +141,16 @@ download_img_match_labels(labels_folder='/tmp', imagery=imagery, folder='/tmp/ti
 make_datanpz(dest_folder='/tmp', imagery=imagery)
 
 #get train and val number of samples 
-data = np.load('/tmp/data.npz')
-n_train_samps = data['y_train'].shape[0]
-n_val_samps = data['y_val'].shape[0]
+d = np.load('/tmp/data.npz')
+n_train_samps = d['y_train'].shape[0]
+n_val_samps = d['y_val'].shape[0]
 
 #convert data.npz into tf-records
 create_tfr(npz_path='/tmp/data.npz', city='city')
 
 
 # conduct re-training
-train(tf_train_steps=1000, tf_dir='/tmp/tfrecords.zip', 
+train(tf_train_steps=200, tf_dir='/tmp/tfrecords.zip', 
        retraining_weights='/tmp/checkpoint.zip', 
        n_classes=len(inflist), class_names=inflist,  x_feature_shape=x_feature_shape, 
        n_train_samps=n_train_samps, n_val_samps=n_val_samps)
