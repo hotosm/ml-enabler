@@ -21,7 +21,7 @@
                 </button>
             </div>
         </div>
-        <div class='border border--gray-light round'>
+        <div class='border border--gray-light round mb60'>
             <template v-if='showSearch'>
                 <div class='col col--12 px24 py6'>
                     <div class='relative'>
@@ -71,12 +71,19 @@
                         </div>
                     </template>
                 </div>
+
+                <Pager total='123' perpage='10'/>
+                <Pager total='10' perpage='6'/>
+                <Pager total='3' perpage='1'/>
+                <Pager total='1' perpage='1'/>
             </template>
         </div>
     </div>
 </template>
 
 <script>
+import Pager from './util/Pager.vue';
+
 export default {
     name: 'Home',
     props: ['meta', 'stacks'],
@@ -140,6 +147,9 @@ export default {
                 this.$emit('err', err);
             }
         }
+    },
+    components: {
+        Pager
     }
 }
 </script>
