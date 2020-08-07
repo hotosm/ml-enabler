@@ -55,29 +55,25 @@ export default {
     name: 'Pager',
     props: [ 'total', 'perpage' ],
     data: function() {
-        const end = Math.ceil(this.total / this.perpage);
-        let spread; //Number of pages in between home button and last page
-        if (end <= 2) {
-            spread = 0;
-        } else if (end >= 7) {
-            spread = 5;
-        } else {
-            spread = end - 2;
-        }
-
-        // Array containing middle page number
-        let middleAr = new Array(spread).fill(1, 0, spread).map((ele, i) => {
-            return 1 + i;
-        });
-
-        return {
-            spread: spread,
-            middle: middleAr,
-            current: 0,
-            end: end
-        };
+        return this.create();
     },
     watch: {
+        total: function() {
+            const set = this.create();
+
+            this.spread = set.spread;
+            this.middle = set.middle;
+            this.current = set.current;
+            this.end = set.end;
+        },
+        perpage: function() {
+            const set = this.create();
+
+            this.spread = set.spread;
+            this.middle = set.middle;
+            this.current = set.current;
+            this.end = set.end;
+        },
         current: function() {
             if (this.end < 5) return; // All buttons are shown already
 
@@ -96,6 +92,29 @@ export default {
         }
     },
     methods: {
+        create: function() {
+            const end = Math.ceil(parseInt(this.total) / parseInt(this.perpage));
+            let spread; //Number of pages in between home button and last page
+            if (end <= 2) {
+                spread = 0;
+            } else if (end >= 7) {
+                spread = 5;
+            } else {
+                spread = end - 2;
+            }
+
+            // Array containing middle page number
+            let middleAr = new Array(spread).fill(1, 0, spread).map((ele, i) => {
+                return 1 + i;
+            });
+
+            return {
+                spread: spread,
+                middle: middleAr,
+                current: 0,
+                end: end
+            };
+        },
         page: function(page) {
             this.current = page;
             this.$emit('page', page);
