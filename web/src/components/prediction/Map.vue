@@ -131,6 +131,7 @@ export default {
     props: ['meta', 'prediction', 'tilejson'],
     data: function() {
         return {
+            clickListener: false,
             popup: false,
             popupid: false,
             bg: 'default',
@@ -350,54 +351,58 @@ export default {
 
                 this.filter(inf);
 
-                this.map.on('click', `inf-${inf}`, (e) => {
-                    if (
-                        e.features.length === 0
-                        || !e.features[0].properties[this.inf]
-                        || e.features[0].properties[this.inf] === 0
-                    ) return;
+                if (!this.clickListener) {
+                    this.clickListener = true;
 
-                    this.popupid = e.features[0].id;
+                    this.map.on('click', `inf-${inf}`, (e) => {
+                        if (
+                            e.features.length === 0
+                            || !e.features[0].properties[this.inf]
+                            || e.features[0].properties[this.inf] === 0
+                        ) return;
 
-                    this.popup = new mapboxgl.Popup({
-                        className: 'infpop'
-                    })
-                        .setLngLat(e.lngLat)
-                        .setHTML(`
-                            <div class='col col--12'>
-                                <h1 class="txt-h5 mb3 align-center">Inf Geom</h1>
-                                <button id="valid" class="w-full round btn btn--gray color-green-on-hover btn--s btn--stroke mb6">Valid</button>
-                                <button id="invalid" class="w-full round btn btn--gray color-red-on-hover btn--s btn--stroke">Invalid</button>
-                            </div>
-                        `)
-                        .setMaxWidth("200px")
-                        .addTo(this.map);
+                        this.popupid = e.features[0].id;
 
-                    this.$nextTick(() => {
-                        document.querySelector('#valid').addEventListener('click', () => {
-                            this.infValidity(this.popupid, true)
-                        });
-                        document.querySelector('#invalid').addEventListener('click', () => {
-                            this.infValidity(this.popupid, false)
+                        this.popup = new mapboxgl.Popup({
+                            className: 'infpop'
+                        })
+                            .setLngLat(e.lngLat)
+                            .setHTML(`
+                                <div class='col col--12'>
+                                    <h1 class="txt-h5 mb3 align-center">Inf Geom</h1>
+                                    <button id="valid" class="w-full round btn btn--gray color-green-on-hover btn--s btn--stroke mb6">Valid</button>
+                                    <button id="invalid" class="w-full round btn btn--gray color-red-on-hover btn--s btn--stroke">Invalid</button>
+                                </div>
+                            `)
+                            .setMaxWidth("200px")
+                            .addTo(this.map);
+
+                        this.$nextTick(() => {
+                            document.querySelector('#valid').addEventListener('click', () => {
+                                this.infValidity(this.popupid, true)
+                            });
+                            document.querySelector('#invalid').addEventListener('click', () => {
+                                this.infValidity(this.popupid, false)
+                            });
                         });
                     });
-                });
 
-                this.map.on('mousemove', `inf-${inf}`, (e) => {
-                    if (
-                        e.features.length === 0
-                        || !e.features[0].properties[this.inf]
-                        || e.features[0].properties[this.inf] === 0
-                    ) {
-                        this.map.getCanvas().style.cursor = '';
-                        this.inspect = false;
-                        return;
-                    }
+                    this.map.on('mousemove', `inf-${inf}`, (e) => {
+                        if (
+                            e.features.length === 0
+                            || !e.features[0].properties[this.inf]
+                            || e.features[0].properties[this.inf] === 0
+                        ) {
+                            this.map.getCanvas().style.cursor = '';
+                            this.inspect = false;
+                            return;
+                        }
 
-                    this.map.getCanvas().style.cursor = 'pointer';
+                        this.map.getCanvas().style.cursor = 'pointer';
 
-                    this.inspect = e.features[0].properties[this.inf];
-                });
+                        this.inspect = e.features[0].properties[this.inf];
+                    });
+                }
             }
 
             this.inf = this.tilejson.inferences[0];
