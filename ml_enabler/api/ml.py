@@ -21,6 +21,14 @@ from sqlalchemy.exc import IntegrityError
 from flask_login import login_required
 import numpy as np
 
+import logging
+from flask import Flask
+app = Flask(__name__)
+gunicorn_logger = logging.getLogger('gunicorn.error')
+app.logger.handlers = gunicorn_logger.handlers
+
+
+
 
 class MetaAPI(Resource):
 
@@ -377,7 +385,7 @@ class PredictionExport(Resource):
     def get(self, model_id, prediction_id):
         req_format = request.args.get('format', 'geojson')
         req_inferences = request.args.get('inferences', 'all')
-        req_threshold = request.args.get('threshold', '0')
+        req_threshold = request.args.get('threshold', '0.5')
 
         req_threshold = float(req_threshold)
         stream = PredictionService.export(prediction_id)
