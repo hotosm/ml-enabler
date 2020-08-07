@@ -40,10 +40,10 @@
                     <span class=''> ... </span>
                 </template>
                 <button
-                    @click='page(end)'
+                    @click='page(end - 1)'
                     class='btn btn--s btn--pill btn--pill-hr'
                     v-text='end'
-                    :class='{ "btn--stroke": current !== end }'
+                    :class='{ "btn--stroke": current !== end - 1 }'
                 ></button>
             </template>
         </div>

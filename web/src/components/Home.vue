@@ -42,7 +42,7 @@
                 </div>
             </template>
             <template v-else>
-                <div @click='$router.push({ name: "model", params: { modelid: model.modelId } })' :key='model.modelId' v-for='model in models'>
+                <div @click='$router.push({ name: "model", params: { modelid: model.modelId } })' :key='model.modelId' v-for='model in models.slice(page * 10, page * 10 + 10)'>
                     <div class='cursor-pointer bg-darken10-on-hover col col--12 py12'>
                         <div class='col col--12 grid py6 px12'>
                             <div class='col col--6'>
@@ -70,7 +70,11 @@
                     </div>
                 </div>
 
-                <Pager :total='models.length' perpage='10'/>
+                <Pager
+                    @page='page = $event'
+                    :total='models.length'
+                    perpage='10'
+                />
             </template>
         </div>
     </div>
@@ -84,6 +88,7 @@ export default {
     props: ['meta', 'stacks'],
     data: function() {
         return {
+            page: 0,
             showSearch: false,
             search: '',
             archived: false,
@@ -97,6 +102,7 @@ export default {
             if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
                 e.preventDefault();
                 this.showSearch = true;
+                this.$refs.search.focus()
             } else if (e.keyCode === 27) {
                 e.preventDefault();
                 this.showSearch = false;
@@ -120,6 +126,7 @@ export default {
     },
     methods: {
         refresh: function() {
+            this.page = 0;
             this.getModels();
         },
         external: function(url) {
