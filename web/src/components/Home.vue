@@ -32,7 +32,15 @@
                     </div>
                 </div>
             </template>
-            <template v-if='models.length === 0'>
+            <template v-if='loading.models'>
+                <div class='flex-parent flex-parent--center-main w-full'>
+                    <div class='flex-child loading py24'></div>
+                </div>
+                <div class='flex-parent flex-parent--center-main w-full'>
+                    <div class='flex-child py24'>Loading Models</div>
+                </div>
+            </template>
+            <template v-else-if='models.length === 0'>
                 <div class='flex-parent flex-parent--center-main pt36'>
                     <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
                 </div>
@@ -92,7 +100,10 @@ export default {
             showSearch: false,
             search: '',
             archived: false,
-            models: []
+            models: [],
+            loading: {
+                models: true
+            }
         }
     },
     mounted: function() {
@@ -134,6 +145,7 @@ export default {
             window.open(url, "_blank")
         },
         getModels: async function() {
+            this.loading.models = true;
             this.models = [];
             try {
                 const url = new URL(window.api + '/v1/model/all');
@@ -147,10 +159,12 @@ export default {
                 const body = await res.json();
                 if (res.status === 404) {
                     this.models = [];
+                    this.loading.models = false;
                 } else if (!res.ok) {
                     throw new Error(body.message);
                 } else {
                     this.models = body;
+                    this.loading.models = false;
                 }
             } catch (err) {
                 this.$emit('err', err);
