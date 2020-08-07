@@ -134,6 +134,7 @@ export default {
             window.open(url, "_blank")
         },
         getModels: async function() {
+            this.models = [];
             try {
                 const url = new URL(window.api + '/v1/model/all');
                 url.searchParams.append('filter', this.search);
