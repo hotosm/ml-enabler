@@ -109,7 +109,6 @@ export default {
     watch: {
         showSearch: function() {
             this.$nextTick(() => {
-                console.error(this.$refs)
                 if (this.showSearch) this.$refs.search.focus()
             });
         },
@@ -135,7 +134,6 @@ export default {
                 });
 
                 const body = await res.json();
-                console.error(res.status)
                 if (res.status === 404) {
                     this.models = [];
                 } else if (!res.ok) {
