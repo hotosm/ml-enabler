@@ -401,6 +401,7 @@ class PredictionExport(Resource):
 
         def generate_npz():
             labels_dict ={}
+            print(labels_dict)
             for row in stream:
                 if req_inferences != 'all' and row[3].get(req_inferences) is None:
                     continue
@@ -410,7 +411,9 @@ class PredictionExport(Resource):
                     i_lst = pred.inf_list.split(",")
 
                     #convert raw predictions into 0 or 1 based on threshold
-                    raw_pred = [row[3][i_lst[0]], row[3][i_lst[1]]]
+                    raw_pred = []
+                    for num, inference in enumerate(i_lst):
+                        raw_pred.append(row[3][inference])
                     l = [1 if score >= req_threshold else 0 for score in raw_pred]
 
                     #convert quadkey to x-y-z
@@ -437,7 +440,7 @@ class PredictionExport(Resource):
                                     l[i] = 1
                                 else:
                                     l[i] = 0
-                        labels_dict.update({t:l})
+                            labels_dict.update({t:l})
             if not labels_dict:
                 raise NoValid
 
