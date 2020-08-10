@@ -10,7 +10,7 @@ login_manager = LoginManager()
 
 # import models
 from ml_enabler.models import * # noqa
-from ml_enabler.api import auth, task, imagery
+from ml_enabler.api import auth, task, imagery, integration
 
 def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
     # create and configure the app
@@ -24,6 +24,7 @@ def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
     app.register_blueprint(auth.auth_bp)
     app.register_blueprint(task.task_bp)
     app.register_blueprint(imagery.imagery_bp)
+    app.register_blueprint(integration.integration_bp)
 
     init_routes(app)
     return app

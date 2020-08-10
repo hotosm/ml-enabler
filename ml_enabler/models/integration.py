@@ -69,8 +69,8 @@ class Integration(db.Model):
             integrations.append({
                 "id": integration[0],
                 "name": integration[1],
-                "url": integration[2]
-                "integration": integration[3],
+                "url": integration[2],
+                "integration": integration[3]
             })
 
         return integrations
