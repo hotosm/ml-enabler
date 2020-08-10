@@ -4,11 +4,13 @@ from ml_enabler.utils import err
 from ml_enabler.services.task_service import TaskService
 from ml_enabler.models.utils import NotFound
 import ml_enabler.config as CONFIG
+from flask_login import login_required
 
 task_bp = Blueprint(
     'task_bp', __name__
 )
 
+@login_required
 @task_bp.route('/v1/task', methods=['GET'])
 def list():
     if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
@@ -31,6 +33,7 @@ def list():
         current_app.logger.error(error_msg)
         return err(500, error_msg), 500
 
+@login_required
 @task_bp.route('/v1/task/<int:task_id>', methods=['GET'])
 def get(task_id):
     if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
@@ -45,6 +48,7 @@ def get(task_id):
         current_app.logger.error(error_msg)
         return err(500, error_msg), 500
 
+@login_required
 @task_bp.route('/v1/task/<int:task_id>/logs', methods=['GET'])
 def logs(task_id):
     if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":
@@ -59,6 +63,7 @@ def logs(task_id):
         current_app.logger.error(error_msg)
         return err(500, error_msg), 500
 
+@login_required
 @task_bp.route('/v1/task/<int:task_id>', methods=['DELETE'])
 def delete(task_id):
     if CONFIG.EnvironmentConfig.ENVIRONMENT != "aws":

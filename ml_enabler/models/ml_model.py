@@ -13,7 +13,7 @@ from sqlalchemy.sql.expression import cast
 import sqlalchemy
 from flask_login import UserMixin
 from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, \
-     PredictionDTO
+     PredictionDTO, ImageryDTO
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -64,6 +64,15 @@ class Imagery(db.Model):
         db.session.commit()
 
         return self
+
+    def as_dto(self):
+        imagery_dto = ImageryDTO()
+        imagery_dto.id = self.id
+        imagery_dto.model_id = self.model_id
+        imagery_dto.name = self.name
+        imagery_dto.url = self.url
+
+        return imagery_dto
 
     def get(imagery_id: int):
         query = db.session.query(

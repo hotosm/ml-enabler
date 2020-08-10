@@ -10,7 +10,7 @@ login_manager = LoginManager()
 
 # import models
 from ml_enabler.models import * # noqa
-from ml_enabler.api import auth, task
+from ml_enabler.api import auth, task, imagery
 
 def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
     # create and configure the app
@@ -23,6 +23,7 @@ def create_app(env=None, app_config='ml_enabler.config.EnvironmentConfig'):
 
     app.register_blueprint(auth.auth_bp)
     app.register_blueprint(task.task_bp)
+    app.register_blueprint(imagery.imagery_bp)
 
     init_routes(app)
     return app
@@ -36,7 +37,7 @@ def init_routes(app):
     # import apis
     from ml_enabler.api.ml import StatusCheckAPI, MLModelAPI, GetAllModels, \
         PredictionAPI, PredictionUploadAPI, PredictionTileAPI, \
-        GetAllPredictions, PredictionTileMVT, ImageryAPI, PredictionRetrain, \
+        GetAllPredictions, PredictionTileMVT, PredictionRetrain, \
         PredictionStackAPI, PredictionStacksAPI, PredictionInfAPI, MapboxAPI, MetaAPI, \
         PredictionExport, PredictionSingleAPI, PredictionValidity
     from ml_enabler.api.swagger import SwaggerDocsAPI
@@ -55,10 +56,6 @@ def init_routes(app):
     api.add_resource(MLModelAPI,                '/v1/model', endpoint="post", methods=['POST'])
 
     api.add_resource(MLModelAPI,                '/v1/model/<int:model_id>', methods=['DELETE', 'GET', 'PUT'])
-
-    api.add_resource(ImageryAPI,                '/v1/model/<int:model_id>/imagery', methods=['POST', 'GET'])
-    api.add_resource(ImageryAPI,                '/v1/model/<int:model_id>/imagery/<int:imagery_id>', endpoint="ImageryAPI.patch", methods=['PATCH'])
-    api.add_resource(ImageryAPI,                '/v1/model/<int:model_id>/imagery/<int:imagery_id>', endpoint="ImageryAPI.delete", methods=['DELETE'])
 
     api.add_resource(PredictionAPI,             '/v1/model/<int:model_id>/prediction', methods=['POST', 'GET'])
     api.add_resource(GetAllPredictions,         '/v1/model/<int:model_id>/prediction/all', methods=['GET'])
