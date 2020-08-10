@@ -1,4 +1,4 @@
-from ml_enabler.models.ml_model import Imagery
+from ml_enabler.models.imagery import Imagery
 from ml_enabler.models.utils import ImageryNotFound
 from ml_enabler import db
 

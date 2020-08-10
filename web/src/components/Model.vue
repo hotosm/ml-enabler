@@ -105,6 +105,34 @@
                         </div>
                     </template>
                 </div>
+                <div class='col col--12 border-b border--gray-light clearfix pt24'>
+                    <h3 class='fl mt6 cursor-default'>Integrations:</h3>
+
+                    <button @click='editImagery()' class='btn fr mb6 round btn--stroke color-gray color-green-on-hover'>
+                        <svg class='icon'><use href='#icon-plus'/></svg>
+                    </button>
+                </div>
+
+                <div class='grid grid--gut12'>
+                    <template v-if='imagery.length === 0'>
+                        <div class='col col--12 py6'>
+                            <div class='flex-parent flex-parent--center-main pt36'>
+                                <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+                            </div>
+
+                            <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                                <h1 class='flex-child txt-h4 cursor-default'>No Imagery Yet</h1>
+                            </div>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div :key='img.id' v-for='img in imagery' @click='editImagery(img.id)' class='cursor-pointer col col--12'>
+                            <div class='col col--12 grid py6 px12 bg-darken10-on-hover'>
+                                <h3 class='txt-h4 fl' v-text='img.name'></h3>
+                            </div>
+                        </div>
+                    </template>
+                </div>
             </template>
             <template v-else-if='mode === "editImagery"'>
                 <Imagery :modelid='model.modelId' :imageryid='imageryid' v-on:close='refresh'/>
@@ -163,6 +191,7 @@ export default {
             this.getPredictions();
             this.getModel();
             this.getImagery();
+            this.getIntegration();
         },
         close: function() {
             this.$emit('close');
@@ -224,6 +253,19 @@ export default {
                 const body = await res.json();
                 if (!res.ok) throw new Error(body.message);
                 this.imagery = body;
+            } catch (err) {
+                this.$emit('err', err);
+            }
+        },
+        getIntegration: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/integration`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.integration = body;
             } catch (err) {
                 this.$emit('err', err);
             }
