@@ -401,7 +401,6 @@ class PredictionExport(Resource):
 
         def generate_npz():
             labels_dict ={}
-            print(labels_dict)
             for row in stream:
                 if req_inferences != 'all' and row[3].get(req_inferences) is None:
                     continue
