@@ -16,7 +16,7 @@
                     <div class='flex-child loading py24'></div>
                 </div>
                 <div class='flex-parent flex-parent--center-main w-full'>
-                    <div class='flex-child py24'>Loading Models</div>
+                    <div class='flex-child py24'>Loading MLEnabler</div>
                 </div>
             </template>
             <template v-else-if='meta.security === "authenticated" && !user.name && $route.path !== "/login"'>

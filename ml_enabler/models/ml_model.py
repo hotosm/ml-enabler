@@ -447,12 +447,13 @@ class MLModel(db.Model):
         return MLModel.query.get(model_id)
 
     @staticmethod
-    def get_all(model_filter: str):
+    def get_all(model_filter: str, model_archived: bool):
         """
         Get all models in the database
         """
         return MLModel.query.filter(
-            MLModel.name.ilike(model_filter + '%')
+            MLModel.name.ilike(model_filter + '%'),
+            MLModel.archived == model_archived
         ).all()
 
     def delete(self):
