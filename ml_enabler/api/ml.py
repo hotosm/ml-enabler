@@ -385,7 +385,7 @@ class PredictionExport(Resource):
     def get(self, model_id, prediction_id):
         req_format = request.args.get('format', 'geojson')
         req_inferences = request.args.get('inferences', 'all')
-        req_threshold = request.args.get('threshold', '0.0')
+        req_threshold = request.args.get('threshold', '0')
 
         req_threshold = float(req_threshold)
         stream = PredictionService.export(prediction_id)
