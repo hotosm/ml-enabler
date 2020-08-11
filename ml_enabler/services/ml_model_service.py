@@ -59,7 +59,7 @@ class MLModelService():
             raise NotFound('Model does not exist')
 
     @staticmethod
-    def get_all(model_filter: str):
+    def get_all(model_filter: str, model_archived: bool):
         """
         Get all ML Models
 
@@ -67,7 +67,7 @@ class MLModelService():
         :returns array of ML Models
         """
 
-        ml_models = MLModel.get_all(model_filter)
+        ml_models = MLModel.get_all(model_filter, model_archived)
         if (ml_models):
             model_collection = []
             for model in ml_models:

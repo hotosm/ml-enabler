@@ -244,9 +244,17 @@ class GetAllModels(Resource):
                 description: Internal Server Error
         """
         model_filter = request.args.get('filter', '')
+        model_archived = request.args.get('archived', 'false')
+
+        if model_archived == 'false':
+            model_archived = False
+        elif model_archived == 'true':
+            model_archived = True
+        else:
+            return err(400, "archived param must be 'true' or 'false'"), 400
 
         try:
-            ml_models = MLModelService.get_all(model_filter)
+            ml_models = MLModelService.get_all(model_filter, model_archived)
             return ml_models, 200
         except NotFound:
             return err(404, "no models found"), 404
