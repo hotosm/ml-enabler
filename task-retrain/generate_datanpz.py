@@ -22,7 +22,7 @@ def get_image_format(imagery):
     #TO-DO fix for non-mapbox imagery 
     o = urlparse(imagery)
     _, image_format = op.splitext(o.path)
-    if not image_format: 
+    if not image_format in ['.png', '.jpg', '.jpeg']: 
         image_format =  '.png'
     return image_format
 
