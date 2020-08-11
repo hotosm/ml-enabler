@@ -21,6 +21,14 @@ from sqlalchemy.exc import IntegrityError
 from flask_login import login_required
 import numpy as np
 
+import logging
+from flask import Flask
+app = Flask(__name__)
+gunicorn_logger = logging.getLogger('gunicorn.error')
+app.logger.handlers = gunicorn_logger.handlers
+
+
+
 
 class MetaAPI(Resource):
 
@@ -402,7 +410,11 @@ class PredictionExport(Resource):
                     i_lst = pred.inf_list.split(",")
 
                     #convert raw predictions into 0 or 1 based on threshold
-                    raw_pred = [row[3][i_lst[0]], row[3][i_lst[1]]]
+                    raw_pred = []
+                    for num, inference in enumerate(i_lst):
+                        raw_pred.append(row[3][inference])
+                    if  req_inferences == 'all':
+                        req_threshold = request.args.get('threshold', '0.5')
                     l = [1 if score >= req_threshold else 0 for score in raw_pred]
 
                     #convert quadkey to x-y-z
@@ -429,7 +441,7 @@ class PredictionExport(Resource):
                                     l[i] = 1
                                 else:
                                     l[i] = 0
-                        labels_dict.update({t:l})
+                            labels_dict.update({t:l})
             if not labels_dict:
                 raise NoValid
 
