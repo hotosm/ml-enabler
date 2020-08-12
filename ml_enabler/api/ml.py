@@ -393,9 +393,9 @@ class PredictionExport(Resource):
     def get(self, model_id, prediction_id):
         req_format = request.args.get('format', 'geojson')
         req_inferences = request.args.get('inferences', 'all')
-        req_threshold = request.args.get('threshold', '0')
-
+        req_threshold = request.args.get('threshold', '0.0')
         req_threshold = float(req_threshold)
+
         stream = PredictionService.export(prediction_id)
 
         inferences = PredictionService.inferences(prediction_id)
@@ -409,6 +409,7 @@ class PredictionExport(Resource):
 
         def generate_npz():
             labels_dict ={}
+
             for row in stream:
                 if req_inferences != 'all' and row[3].get(req_inferences) is None:
                     continue
@@ -423,6 +424,7 @@ class PredictionExport(Resource):
                         raw_pred.append(row[3][inference])
                     if  req_inferences == 'all':
                         req_threshold = request.args.get('threshold', '0.5')
+                        req_threshold = float(req_threshold)
                     l = [1 if score >= req_threshold else 0 for score in raw_pred]
 
                     #convert quadkey to x-y-z
