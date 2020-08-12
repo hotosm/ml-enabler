@@ -398,9 +398,7 @@ class PredictionExport(Resource):
         req_threshold = float(req_threshold)
 
         stream = PredictionService.export(prediction_id)
-
         inferences = PredictionService.inferences(prediction_id)
-
         pred = PredictionService.get_prediction_by_id(prediction_id)
 
         first = False
@@ -411,11 +409,10 @@ class PredictionExport(Resource):
         def generate_npz():
             nonlocal req_threshold
             labels_dict ={}
-
             for row in stream:
                 if req_inferences != 'all' and row[3].get(req_inferences) is None:
                     continue
-
+                
                 if req_inferences != 'all' and row[3].get(req_inferences) <= req_threshold:
                     continue
                 if row[4]:
@@ -426,7 +423,6 @@ class PredictionExport(Resource):
                     for num, inference in enumerate(i_lst):
                         raw_pred.append(row[3][inference])
                     if  req_inferences == 'all':
-
                         req_threshold = request.args.get('threshold', '0.5')
                         req_threshold = float(req_threshold)
                     l = [1 if score >= req_threshold else 0 for score in raw_pred]
@@ -475,7 +471,6 @@ class PredictionExport(Resource):
                 yield output.getvalue()
 
             for row in stream:
-
                 if req_inferences != 'all' and row[3].get(req_inferences) is None:
                     continue
 
