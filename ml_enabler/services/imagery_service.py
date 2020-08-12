@@ -1,4 +1,4 @@
-from ml_enabler.models.ml_model import Imagery
+from ml_enabler.models.imagery import Imagery
 from ml_enabler.models.utils import ImageryNotFound
 from ml_enabler import db
 
@@ -63,4 +63,21 @@ class ImageryService():
         """
 
         return Imagery.list(model_id)
+
+    @staticmethod
+    def get(imagery_id: int):
+        """
+        Fetch imagery source for a given id
+        :params imagery_id
+
+        :raises ImagerysNotFound
+        :returns imagery
+        """
+
+        imagery = Imagery.get(imagery_id)
+
+        if (imagery):
+            return imagery.as_dto().to_primitive()
+        else:
+            raise ImageryNotFound('Imagery Not Found')
 

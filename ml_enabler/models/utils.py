@@ -12,6 +12,9 @@ class VersionNotFound(Exception):
 class ImageryNotFound(Exception):
     """ Custom exception to indicate that imagery was not found """
 
+class IntegrationNotFound(Exception):
+    """ Custom exception to indicate that imagery was not found """
+
 class PredictionsNotFound(Exception):
     """ Custom exception to indicate that no predictions were found """
 
