@@ -16,12 +16,23 @@
         </div>
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
             <div class='grid grid--gut12'>
-                <div class='col col--12 py6'>
+                <div class='col col--8'>
                     <label>Integration Name</label>
                     <input v-model='integration.name' class='input' placeholder='Integration Name'/>
                 </div>
 
-                <div class='col col--12 py6'>
+                <div class='col col--4'>
+                    <label>Integration Type:</label>
+                    <div class='select-container w-full'>
+                        <select v-model='integration.integration' class='select'>
+                            <option value='maproulette'>MapRoulette</option>
+                        </select>
+                        <div class='select-arrow'></div>
+                    </div>
+                </div>
+
+
+                <div class='col col--12 pt6'>
                     <label>Integration Url</label>
                     <input v-model='integration.url' class='input' placeholder='Integration Name'/>
                 </div>
@@ -55,6 +66,7 @@ export default {
         return {
             integration: {
                 integrationId: false,
+                integration: 'maproulette',
                 modelId: false,
                 name: '',
                 url: ''
@@ -83,7 +95,7 @@ export default {
         },
         deleteIntegration: async function() {
             try {
-                const res = await fetch(window.api + `/v1/model/${this.modelid}/imagery/${this.imageryid}`, {
+                const res = await fetch(window.api + `/v1/model/${this.modelid}/integration/${this.integrationid}`, {
                     method: 'DELETE'
                 });
                 const body = await res.json();
@@ -95,21 +107,22 @@ export default {
         },
         postIntegration: async function() {
             try {
-                const res = await fetch(window.api + `/v1/model/${this.modelid}/imagery${this.imageryid ? '/' + this.imageryid : ''}`, {
-                    method: this.imageryid ? 'PATCH' : 'POST',
+                const res = await fetch(window.api + `/v1/model/${this.modelid}/integration${this.integrationid ? '/' + this.integrationid : ''}`, {
+                    method: this.integrationid ? 'PATCH' : 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        modelId: this.imagery.modelId,
-                        name: this.imagery.name,
-                        url: this.imagery.url
+                        modelId: this.integration.modelId,
+                        integration: this.integration.integration,
+                        name: this.integration.name,
+                        url: this.integration.url
                     })
                 });
 
                 const body = await res.json();
                 if (!res.ok) throw new Error(body.message);
-                this.imagery.imageryId = body.imageryId;
+                this.integration.integrationId = body.integrationId;
                 this.close();
             } catch (err) {
                 this.$emit('err', err);
