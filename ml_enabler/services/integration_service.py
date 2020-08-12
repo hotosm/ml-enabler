@@ -31,7 +31,13 @@ class IntegrationService():
         """
 
         integration = Integration.get(integration_id)
-        integration.delete()
+
+        if (integration):
+            integration.delete()
+
+            return integration.id
+        else:
+            raise IntegrationNotFound('Integration Not Found')
 
     @staticmethod
     def patch(model_id: int, integration_id: int, update: dict) -> int:

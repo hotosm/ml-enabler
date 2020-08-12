@@ -135,13 +135,13 @@
                 </div>
             </template>
             <template v-else-if='mode === "editIntegration"'>
-                <Integration :modelid='model.modelId' :integrationid='integrationid' v-on:close='refresh'/>
+                <Integration @err='$emit("err", $event)' :modelid='model.modelId' :integrationid='integrationid' @close='refresh'/>
             </template>
             <template v-else-if='mode === "editImagery"'>
-                <Imagery :modelid='model.modelId' :imageryid='imageryid' v-on:close='refresh'/>
+                <Imagery @err='$emit("err", $event)' :modelid='model.modelId' :imageryid='imageryid' @close='refresh'/>
             </template>
             <template v-else-if='mode === "editPrediction"'>
-                <CreatePrediction @err='$emit("err", $event)' :modelid='model.modelId' v-on:close='refresh' />
+                <CreatePrediction @err='$emit("err", $event)' :modelid='model.modelId' @close='refresh' />
             </template>
         </div>
     </div>
@@ -219,9 +219,9 @@ export default {
         },
         editIntegration: function(intid) {
             if (intid) {
-                this.imageryid = intid;
+                this.integrationid = intid;
             } else {
-                this.imageryid = false;
+                this.integrationid = false;
             }
 
             this.mode = 'editIntegration';

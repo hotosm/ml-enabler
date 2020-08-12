@@ -53,7 +53,7 @@ def patch(model_id, integration_id):
 def delete(model_id, integration_id):
     IntegrationService.delete(model_id, integration_id)
 
-    return "deleted", 200
+    return { "status": "deleted" }, 200
 
 @login_required
 @integration_bp.route('/v1/model/<int:model_id>/integration', methods=['POST'])

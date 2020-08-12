@@ -31,7 +31,6 @@
                     </div>
                 </div>
 
-
                 <div class='col col--12 pt6'>
                     <label>Integration Url</label>
                     <input v-model='integration.url' class='input' placeholder='Integration Name'/>
@@ -65,7 +64,7 @@ export default {
     data: function() {
         return {
             integration: {
-                integrationId: false,
+                id: false,
                 integration: 'maproulette',
                 modelId: false,
                 name: '',
@@ -75,20 +74,20 @@ export default {
     },
     methods: {
         close: function() {
+            console.error('CLOSE');
             this.$emit('close');
         },
         getIntegration: async function() {
             try {
-                const res = await fetch(window.api + `/v1/model/${this.modelid}/integration`, {
+                const res = await fetch(window.api + `/v1/model/${this.modelid}/integration/${this.integrationid}`, {
                     method: 'GET'
                 });
 
                 const body = await res.json();
                 if (!res.ok) throw new Error(body.message);
 
-                this.integrationid = body.filter((img) => {
-                    return img.id === this.integrationId;
-                })[0];
+
+                this.integration = body;
             } catch (err) {
                 this.$emit('err', err);
             }
