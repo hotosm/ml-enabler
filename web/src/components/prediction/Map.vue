@@ -352,8 +352,6 @@ export default {
                 this.filter(inf);
 
                 if (!this.clickListener) {
-                    this.clickListener = true;
-
                     this.map.on('click', `inf-${inf}`, (e) => {
                         if (
                             e.features.length === 0
@@ -370,18 +368,18 @@ export default {
                             .setHTML(`
                                 <div class='col col--12'>
                                     <h1 class="txt-h5 mb3 align-center">Inf Geom</h1>
-                                    <button id="valid" class="w-full round btn btn--gray color-green-on-hover btn--s btn--stroke mb6">Valid</button>
-                                    <button id="invalid" class="w-full round btn btn--gray color-red-on-hover btn--s btn--stroke">Invalid</button>
+                                    <button id="${inf}-valid" class="w-full round btn btn--gray color-green-on-hover btn--s btn--stroke mb6">Valid</button>
+                                    <button id="${inf}-invalid" class="w-full round btn btn--gray color-red-on-hover btn--s btn--stroke">Invalid</button>
                                 </div>
                             `)
                             .setMaxWidth("200px")
                             .addTo(this.map);
 
                         this.$nextTick(() => {
-                            document.querySelector('#valid').addEventListener('click', () => {
+                            document.querySelector(`#${inf}-valid`).addEventListener('click', () => {
                                 this.infValidity(this.popupid, true)
                             });
-                            document.querySelector('#invalid').addEventListener('click', () => {
+                            document.querySelector(`#${inf}-invalid`).addEventListener('click', () => {
                                 this.infValidity(this.popupid, false)
                             });
                         });
@@ -404,6 +402,7 @@ export default {
                     });
                 }
             }
+            this.clickListener = true;
 
             this.inf = this.tilejson.inferences[0];
             this.hide();
