@@ -52,7 +52,7 @@
                     <div class='flex-child py24'>Loading Tasks</div>
                 </div>
             </template>
-            <template v-if='tasks.length === 0'>
+            <template v-else-if='tasks.length === 0'>
                 <div class='col col--12 py6'>
                     <div class='flex-parent flex-parent--center-main pt36'>
                         <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
