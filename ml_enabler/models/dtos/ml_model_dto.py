@@ -1,6 +1,23 @@
 from schematics import Model
 from schematics.types import StringType, IntType, DateTimeType, ListType, FloatType, BooleanType
 
+class IntegrationDTO(Model):
+    """ Describes JSON of an Integration Source """
+
+    id = IntType()
+    model_id = IntType(required=True)
+    integration = StringType(required=True)
+    name = StringType(required=True)
+    url = StringType(required=True)
+
+class ImageryDTO(Model):
+    """ Describes JSON of an Imagery Source """
+
+    id = IntType()
+    model_id = IntType(required=True)
+    name = StringType(required=True)
+    url = StringType(required=True)
+
 class TaskDTO(Model):
     """ Describes JSON of an Task """
 

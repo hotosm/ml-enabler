@@ -11,7 +11,6 @@ from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, PredictionDTO
 from schematics.exceptions import DataError
 from ml_enabler.services.ml_model_service import MLModelService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
-from ml_enabler.services.imagery_service import ImageryService
 from ml_enabler.services.task_service import TaskService
 from ml_enabler.utils import err
 from ml_enabler.models.utils import NotFound, VersionNotFound, \
@@ -26,6 +25,7 @@ from flask import Flask
 app = Flask(__name__)
 gunicorn_logger = logging.getLogger('gunicorn.error')
 app.logger.handlers = gunicorn_logger.handlers
+app.logger.setLevel(gunicorn_logger.level)
 
 
 
@@ -263,125 +263,6 @@ class GetAllModels(Resource):
             current_app.logger.error(error_msg)
             return err(500, error_msg), 500
 
-class ImageryAPI(Resource):
-    """ Upload imagery sources for a given model """
-
-    @login_required
-    def delete(self, model_id, imagery_id):
-        """
-        Delete an imagery source
-        ---
-        produces:
-            - application/json
-        parameters:
-            - in: path
-              name: model_id
-              description: ID of the Model
-              required: true
-              type: integer
-            - in: path
-              name: imagery_id
-              description: ID of the Imagery Source
-              required: true
-              type: integer
-        responses:
-            200:
-                description: ID of the imagery source
-        """
-
-        ImageryService.delete(model_id, imagery_id)
-
-        return "deleted", 200
-
-    @login_required
-    def patch(self, model_id, imagery_id):
-        """
-        Update an existing imagery source
-        ---
-        produces:
-            - application/json
-        parameters:
-            - in: path
-              name: model_id
-              description: ID of the Model
-              required: true
-            - in: path
-              name: imagery_id
-              description: ID of the Imagery Source
-              required: true
-              type: integer             type: integer
-        responses:
-            200:
-                description: ID of the imagery source
-        """
-        imagery = request.get_json();
-        imagery_id = ImageryService.patch(model_id, imagery_id, imagery)
-
-        return {
-            "model_id": model_id,
-            "imagery_id": imagery_id
-        }, 200
-
-
-    @login_required
-    def post(self, model_id):
-        """
-        Create a new imagery source
-        ---
-        produces:
-            - application/json
-        parameters:
-            - in: path
-              name: model_id
-              description: ID of the Model
-              required: true
-              type: integer
-        responses:
-            200:
-                description: ID of the imagery source
-        """
-        try:
-            imagery = request.get_json()
-            imagery_id = ImageryService.create(model_id, imagery)
-
-            return {
-                "model_id": model_id,
-                "imagery_id": imagery_id
-            }, 200
-        except Exception as e:
-            error_msg = f'Imagery Post: {str(e)}'
-            current_app.logger.error(error_msg)
-            return err(500, "Failed to save imagery source to DB"), 500
-
-    @login_required
-    def get(self, model_id):
-        """
-        Fetch all imagery for the given model
-        ---
-        produces:
-            - application/json
-        parameters:
-            - in: path
-              name: model_id
-              description: ID of the Model
-              required: true
-              type: integer
-        responses:
-            200:
-                description: All imagery for the given model
-            500:
-                description: Internal Server Error
-        """
-        try:
-            imagery = ImageryService.list(model_id)
-            return imagery, 200
-        except ImageryNotFound:
-            return err(404, "Imagery not found"), 404
-        except Exception as e:
-            error_msg = f'Unhandled error: {str(e)}'
-            current_app.logger.error(error_msg)
-            return err(500, error_msg), 500
-
 class PredictionExport(Resource):
     """ Export Prediction Inferences to common formats """
 
@@ -394,12 +275,10 @@ class PredictionExport(Resource):
         req_format = request.args.get('format', 'geojson')
         req_inferences = request.args.get('inferences', 'all')
         req_threshold = request.args.get('threshold', '0')
-
         req_threshold = float(req_threshold)
+
         stream = PredictionService.export(prediction_id)
-
         inferences = PredictionService.inferences(prediction_id)
-
         pred = PredictionService.get_prediction_by_id(prediction_id)
 
         first = False
@@ -408,10 +287,12 @@ class PredictionExport(Resource):
             inferences = [ req_inferences ]
 
         def generate_npz():
+            nonlocal req_threshold
             labels_dict ={}
             for row in stream:
                 if req_inferences != 'all' and row[3].get(req_inferences) is None:
                     continue
+                
                 if req_inferences != 'all' and row[3].get(req_inferences) <= req_threshold:
                     continue
                 if row[4]:
@@ -423,6 +304,7 @@ class PredictionExport(Resource):
                         raw_pred.append(row[3][inference])
                     if  req_inferences == 'all':
                         req_threshold = request.args.get('threshold', '0.5')
+                        req_threshold = float(req_threshold)
                     l = [1 if score >= req_threshold else 0 for score in raw_pred]
 
                     #convert quadkey to x-y-z

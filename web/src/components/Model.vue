@@ -105,12 +105,43 @@
                         </div>
                     </template>
                 </div>
+                <div class='col col--12 border-b border--gray-light clearfix pt24'>
+                    <h3 class='fl mt6 cursor-default'>Integrations:</h3>
+
+                    <button @click='editIntegration()' class='btn fr mb6 round btn--stroke color-gray color-green-on-hover'>
+                        <svg class='icon'><use href='#icon-plus'/></svg>
+                    </button>
+                </div>
+
+                <div class='grid grid--gut12'>
+                    <template v-if='integrations.length === 0'>
+                        <div class='col col--12 py6'>
+                            <div class='flex-parent flex-parent--center-main pt36'>
+                                <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+                            </div>
+
+                            <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                                <h1 class='flex-child txt-h4 cursor-default'>No Integrations Yet</h1>
+                            </div>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div :key='integration.id' v-for='integration in integrations' @click='editIntegration(integration.id)' class='cursor-pointer col col--12'>
+                            <div class='col col--12 grid py6 px12 bg-darken10-on-hover'>
+                                <h3 class='txt-h4 fl' v-text='integration.name'></h3>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+            <template v-else-if='mode === "editIntegration"'>
+                <Integration @err='$emit("err", $event)' :modelid='model.modelId' :integrationid='integrationid' @close='refresh'/>
             </template>
             <template v-else-if='mode === "editImagery"'>
-                <Imagery :modelid='model.modelId' :imageryid='imageryid' v-on:close='refresh'/>
+                <Imagery @err='$emit("err", $event)' :modelid='model.modelId' :imageryid='imageryid' @close='refresh'/>
             </template>
             <template v-else-if='mode === "editPrediction"'>
-                <CreatePrediction @err='$emit("err", $event)' :modelid='model.modelId' v-on:close='refresh' />
+                <CreatePrediction @err='$emit("err", $event)' :modelid='model.modelId' @close='refresh' />
             </template>
         </div>
     </div>
@@ -119,6 +150,7 @@
 <script>
 import vSort from 'semver-sort';
 import Imagery from './Imagery.vue';
+import Integration from './Integration.vue';
 import CreatePrediction from './CreatePrediction.vue';
 
 export default {
@@ -130,7 +162,9 @@ export default {
             predictions: [],
             model: {},
             imagery: [],
+            integrations: [],
             imageryid: false,
+            integrationid: false,
             prediction: {
                 modelId: this.$route.params.modelid,
                 version: '',
@@ -151,6 +185,7 @@ export default {
     },
     components: {
         Imagery,
+        Integration,
         CreatePrediction
     },
     mounted: function() {
@@ -163,6 +198,7 @@ export default {
             this.getPredictions();
             this.getModel();
             this.getImagery();
+            this.getIntegration();
         },
         close: function() {
             this.$emit('close');
@@ -180,6 +216,15 @@ export default {
             }
 
             this.mode = 'editImagery';
+        },
+        editIntegration: function(intid) {
+            if (intid) {
+                this.integrationid = intid;
+            } else {
+                this.integrationid = false;
+            }
+
+            this.mode = 'editIntegration';
         },
         getPredictions: async function() {
             try {
@@ -224,6 +269,19 @@ export default {
                 const body = await res.json();
                 if (!res.ok) throw new Error(body.message);
                 this.imagery = body;
+            } catch (err) {
+                this.$emit('err', err);
+            }
+        },
+        getIntegration: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/integration`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+                this.integrations = body;
             } catch (err) {
                 this.$emit('err', err);
             }
