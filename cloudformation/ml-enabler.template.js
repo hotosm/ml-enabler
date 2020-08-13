@@ -431,6 +431,9 @@ const Resources = {
                 },{
                     Name: 'ASSET_BUCKET',
                     Value: cf.ref('MLEnablerBucket')
+                },{
+                    Name: 'INTERACTIVE',
+                    Value: 'false'
                 }],
                 LogConfiguration: {
                     LogDriver: 'awslogs',

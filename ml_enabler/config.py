@@ -10,6 +10,7 @@ class EnvironmentConfig:
 
     # One of 'docker' or 'aws'
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'docker');
+    INTERACTIVE = os.getenv('ENVIRONMENT');
 
     SECRET_KEY = os.getenv('SECRET_KEY', 'secretkey');
 
@@ -28,21 +29,41 @@ class EnvironmentConfig:
 
     if ENVIRONMENT == 'aws':
         if GitSha is None:
-            print("GitSha Env Var Required")
-            raise
+            if INTERACTIVE is None:
+                print("GitSha Env Var Required")
+                raise
+            else:
+                print('Missing EnvVar: Gitsha')
+                GitSha = input('> ')
         if MACHINE_AUTH is None:
-            print("MACHINE_AUTH Env Var Required")
-            raise
+            if INTERACTIVE is None:
+                print("MACHINE_AUTH Env Var Required")
+                raise
+            else:
+                print('Missing EnvVar: MACHINE_AUTH')
+                MACHINE_AUTH = input('> ')
         if STACK is None:
-            print("STACK Env Var Required")
-            raise
+            if INTERACTIVE is None:
+                print("STACK Env Var Required")
+                raise
+            else:
+                print('Missing EnvVar: STACK')
+                STACK = input('> ')
         if ASSET_BUCKET is None:
-            print("ASSET_BUCKET Env Var Required")
-            raise
+            if INTERACTIVE is None:
+                print("ASSET_BUCKET Env Var Required")
+                raise
+            else:
+                print('Missing EnvVar: ASSET_BUCKET')
+                ASSET_BUCKET = input('> ')
 
     if MAPBOX_TOKEN is None:
-        print("MAPBOX_TOKEN Env Var Required")
-        raise
+        if INTERACTIVE is None:
+            print("MAPBOX_TOKEN Env Var Required")
+            raise
+        else:
+            print('Missing EnvVar: MAPBOX_TOKEN')
+            MAPBOX_TOKEN = input('> ')
 
     if os.getenv('MLENABLER_DB', False):
         SQLALCHEMY_DATABASE_URI = os.getenv('MLENABLER_DB', None)
@@ -54,7 +75,6 @@ class EnvironmentConfig:
                                     f'/{POSTGRES_DB}'
 
         SQLALCHEMY_TRACK_MODIFICATIONS = False
-
 
 class TestConfig(EnvironmentConfig):
     TESTING = True
