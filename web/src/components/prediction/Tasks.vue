@@ -39,7 +39,7 @@
                         <svg class='icon'><use href='#icon-refresh'/></svg>
                     </button>
 
-                    <div v-if='loading.tasks'>
+                    <div v-if='loading.tasks' class='clearfix w24 pr12'>
                         <div class='loading loading--s'></div>
                     </div>
                 </div>
@@ -50,6 +50,17 @@
                 </div>
                 <div class='flex-parent flex-parent--center-main w-full pb24'>
                     <div class='flex-child py24'>Loading Tasks</div>
+                </div>
+            </template>
+            <template v-if='tasks.length === 0'>
+                <div class='col col--12 py6'>
+                    <div class='flex-parent flex-parent--center-main pt36'>
+                        <svg class='flex-child icon w60 h60 color--gray'><use href='#icon-info'/></svg>
+                    </div>
+
+                    <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                        <h1 class='flex-child txt-h4 cursor-default'>No Tasks Yet</h1>
+                    </div>
                 </div>
             </template>
             <template v-else>
