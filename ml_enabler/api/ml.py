@@ -13,7 +13,7 @@ from ml_enabler.services.ml_model_service import MLModelService
 from ml_enabler.services.prediction_service import PredictionService, PredictionTileService
 from ml_enabler.services.task_service import TaskService
 from ml_enabler.utils import err
-from ml_enabler.models.utils import NotFound, VersionNotFound, \
+from ml_enabler.models.utils import NotFound, VersionNotFound, VersionExists, \
     PredictionsNotFound, ImageryNotFound
 from ml_enabler.utils import version_to_array, geojson_bounds, bbox_str_to_list, validate_geojson, InvalidGeojson, NoValid
 from sqlalchemy.exc import IntegrityError
@@ -1104,6 +1104,8 @@ class PredictionAPI(Resource):
             return {"prediction_id": prediction_id}, 200
         except NotFound:
             return err(404, "model not found"), 404
+        except VersionExists:
+            return err(400, "Version Exists"), 400
         except DataError as e:
             current_app.logger.error(f'Error validating request: {str(e)}')
             return err(400, str(4)), 400

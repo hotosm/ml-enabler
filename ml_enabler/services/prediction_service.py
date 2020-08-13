@@ -1,8 +1,11 @@
 import ml_enabler.config as CONFIG
+import sqlalchemy
 import mercantile, semver
-from ml_enabler.models.ml_model import MLModel, Prediction, PredictionTile
+from ml_enabler.models.ml_model import MLModel, PredictionTile
+from ml_enabler.models.prediction import Prediction
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
-from ml_enabler.models.utils import PredictionsNotFound, NotFound
+from ml_enabler.models.utils import PredictionsNotFound, NotFound, VersionExists
+from psycopg2.errors import UniqueViolation
 from ml_enabler import db
 
 class PredictionService():
@@ -33,7 +36,14 @@ class PredictionService():
         prediction_dto.validate()
 
         new_prediction = Prediction()
-        new_prediction.create(prediction_dto)
+        try:
+            new_prediction.create(prediction_dto)
+        except sqlalchemy.exc.IntegrityError as e:
+            if isinstance(e.orig, UniqueViolation):
+                raise VersionExists
+            else:
+                raise e
+
         return new_prediction.id
 
     @staticmethod
