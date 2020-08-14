@@ -55,7 +55,7 @@
                     </div>
                 </template>
                 <template v-else-if='mode === "integrations"'>
-                    INTEGRATIONS
+                    <Integrations/>
                 </template>
             </div>
         </template>
@@ -80,6 +80,7 @@
 
 <script>
 import PredictionHeader from './PredictionHeader.vue';
+import Integrations from '../Integrations.vue';
 
 export default {
     name: 'Export',
@@ -115,7 +116,8 @@ export default {
         },
     },
     components: {
-        PredictionHeader
+        PredictionHeader,
+        Integrations
     }
 }
 </script>
