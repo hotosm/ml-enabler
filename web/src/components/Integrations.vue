@@ -13,7 +13,7 @@
                 </div>
             </template>
             <template v-else>
-                <div :key='integration.id' v-for='integration in integrations' class='cursor-pointer col col--12'>
+                <div @click='$emit("integration", integration)' :key='integration.id' v-for='integration in integrations' class='cursor-pointer col col--12'>
                     <div class='col col--12 grid py6 px12 bg-darken10-on-hover'>
                         <h3 class='txt-h4 fl' v-text='integration.name'></h3>
                     </div>
