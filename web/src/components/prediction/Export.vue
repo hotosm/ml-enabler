@@ -55,7 +55,52 @@
                     </div>
                 </template>
                 <template v-else-if='mode === "integrations"'>
-                    <Integrations/>
+                    <template v-if='!integration'>
+                        <Integrations @integration='integration = $event'/>
+                    </template>
+                    <template v-else>
+                        <div class='col col--12 ml12 mb3'>
+                            <h2 class='txt-h4 fl' v-text='integration.name'></h2>
+
+                            <button @click='integration = false' class='btn fr round btn--stroke color-gray color-black-on-hover'>
+                                <svg class='icon'><use href='#icon-close'/></svg>
+                            </button>
+                        </div>
+                        <div class='grid grid--gut12 col col--12 border border--gray-light round ml12'>
+                            <div class='col col--6 pt12'>
+                                <label>Type</label>
+                                <div class='select-container w-full'>
+                                    <select v-model='mr.format' class='select'>
+                                        <option value='geojson'>GeoJSON</option>
+                                        <option value='geojsonld'>GeoJSON LD</option>
+                                        <option value='csv'>CSV</option>
+                                        <option value='npz'>NPZ</option>
+                                    </select>
+                                    <div class='select-arrow'></div>
+                                </div>
+                            </div>
+                            <div class='col col--6 pt12 pr12'>
+                                <label>Inferences</label>
+                                <div class='select-container w-full'>
+                                    <select v-model='mr.inferences' class='select'>
+                                        <option value='all'>All</option>
+                                        <option :key='inf' v-for='inf in tilejson.inferences' :value='inf'><span v-text='inf'/></option>
+                                    </select>
+                                    <div class='select-arrow'></div>
+                                </div>
+                            </div>
+                            <div class='col col--12 py12 pr12'>
+                                <label>Threshold (<span v-text='mr.threshold'/>%)</label>
+                                <div class='range range--s color-gray'>
+                                    <input :disabled='mr.inferences === "all"' v-on:input='mr.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
+                                </div>
+                            </div>
+
+                            <div class='col col--12 clearfix pt6 pb12 pr12'>
+                                <button @click='getExport' class='fr btn btn--stroke color-gray color-green-on-hover round'>Submit</button>
+                            </div>
+                            </div>
+                    </template>
                 </template>
             </div>
         </template>
@@ -89,6 +134,12 @@ export default {
         return {
             mode: 'download',
             loading: false,
+            integration: false,
+            mr: {
+                format: 'geojson',
+                inferences: 'all',
+                threshold: 50
+            },
             params: {
                 format: 'geojson',
                 inferences: 'all',
