@@ -6,40 +6,57 @@
 
         <template v-if='tilejson'>
             <div class='col col--12 grid grid--gut12'>
-                <h2 class='w-full align-center txt-h4 py12'>Export Inferences</h2>
-
                 <div class='col col--6'>
-                    <label>Type</label>
-                    <div class='select-container w-full'>
-                        <select v-model='params.format' class='select'>
-                            <option value='geojson'>GeoJSON</option>
-                            <option value='geojsonld'>GeoJSON LD</option>
-                            <option value='csv'>CSV</option>
-                            <option value='npz'>NPZ</option>
-                        </select>
-                        <div class='select-arrow'></div>
-                    </div>
+                    <h2 class='txt-h4 py12'>Export Inferences</h2>
                 </div>
                 <div class='col col--6'>
-                    <label>Inferences</label>
-                    <div class='select-container w-full'>
-                        <select v-model='params.inferences' class='select'>
-                            <option value='all'>All</option>
-                            <option :key='inf' v-for='inf in tilejson.inferences' :value='inf'><span v-text='inf'/></option>
-                        </select>
-                        <div class='select-arrow'></div>
-                    </div>
-                </div>
-                <div class='col col--12 py12'>
-                    <label>Threshold (<span v-text='params.threshold'/>%)</label>
-                    <div class='range range--s color-gray'>
-                        <input :disabled='params.inferences === "all"' v-on:input='params.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
+                    <div class="flex-parent-inline fr py12">
+                        <button @click='mode = "download"' :class='{
+                            "btn--stroke": mode !== "download"
+                        }' class="btn btn--pill btn--pill-stroke btn--s btn--pill-hl round">Download</button>
+                        <button @click='mode = "integrations"' :class='{
+                            "btn--stroke": mode !== "integrations"
+                        }' class="btn btn--pill btn--s btn--pill-hr btn--pill-stroke round">Integrations</button>
                     </div>
                 </div>
 
-                <div class='col col--12 clearfix py6'>
-                    <button @click='getExport' class='fr btn btn--stroke color-gray color-green-on-hover round'>Export</button>
-                </div>
+                <template v-if='mode === "download"'>
+                    <div class='col col--6'>
+                        <label>Type</label>
+                        <div class='select-container w-full'>
+                            <select v-model='params.format' class='select'>
+                                <option value='geojson'>GeoJSON</option>
+                                <option value='geojsonld'>GeoJSON LD</option>
+                                <option value='csv'>CSV</option>
+                                <option value='npz'>NPZ</option>
+                            </select>
+                            <div class='select-arrow'></div>
+                        </div>
+                    </div>
+                    <div class='col col--6'>
+                        <label>Inferences</label>
+                        <div class='select-container w-full'>
+                            <select v-model='params.inferences' class='select'>
+                                <option value='all'>All</option>
+                                <option :key='inf' v-for='inf in tilejson.inferences' :value='inf'><span v-text='inf'/></option>
+                            </select>
+                            <div class='select-arrow'></div>
+                        </div>
+                    </div>
+                    <div class='col col--12 py12'>
+                        <label>Threshold (<span v-text='params.threshold'/>%)</label>
+                        <div class='range range--s color-gray'>
+                            <input :disabled='params.inferences === "all"' v-on:input='params.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
+                        </div>
+                    </div>
+
+                    <div class='col col--12 clearfix py6'>
+                        <button @click='getExport' class='fr btn btn--stroke color-gray color-green-on-hover round'>Export</button>
+                    </div>
+                </template>
+                <template v-else-if='mode === "integrations"'>
+                    INTEGRATIONS
+                </template>
             </div>
         </template>
         <template v-else-if='loading'>
@@ -69,6 +86,7 @@ export default {
     props: ['meta', 'tilejson'],
     data: function() {
         return {
+            mode: 'download',
             loading: false,
             params: {
                 format: 'geojson',

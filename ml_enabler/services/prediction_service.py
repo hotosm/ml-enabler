@@ -1,8 +1,7 @@
 import ml_enabler.config as CONFIG
 import sqlalchemy
 import mercantile, semver
-from ml_enabler.models.ml_model import MLModel, PredictionTile
-from ml_enabler.models.prediction import Prediction
+from ml_enabler.models.ml_model import MLModel, PredictionTile, Prediction
 from ml_enabler.models.dtos.ml_model_dto import PredictionDTO
 from ml_enabler.models.utils import PredictionsNotFound, NotFound, VersionExists
 from psycopg2.errors import UniqueViolation
