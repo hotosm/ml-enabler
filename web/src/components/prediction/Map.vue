@@ -9,7 +9,7 @@
         </div>
 
         <template v-if='tilejson'>
-            <div class='align-center pb6'>Prediction Tiles</div>
+            <h2 class='w-full align-center txt-h4 py12'>Prediction Inferences</h2>
 
             <div class='col col--12 h600'>
                 <div id='map-container' class="col col--12 h-full w-full relative">

@@ -9,7 +9,7 @@
                 <h2 class='w-full align-center txt-h4 py12'>Export Inferences</h2>
 
                 <div class='col col--6'>
-                    <label>Format</label>
+                    <label>Type</label>
                     <div class='select-container w-full'>
                         <select v-model='params.format' class='select'>
                             <option value='geojson'>GeoJSON</option>
