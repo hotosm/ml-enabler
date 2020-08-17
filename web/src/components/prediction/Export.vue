@@ -137,7 +137,7 @@ import Integrations from '../Integrations.vue';
 
 export default {
     name: 'Export',
-    props: ['meta', 'tilejson'],
+    props: ['meta', 'tilejson', 'model', 'prediction'],
     data: function() {
         return {
             mode: 'download',
@@ -158,6 +158,9 @@ export default {
                 threshold: 50
             }
         };
+    },
+    mounted: function() {
+        this.mr.project = this.model.name;
     },
     methods: {
         getExport: function() {

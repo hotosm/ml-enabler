@@ -16,6 +16,7 @@
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
             <router-view
                 :meta='meta'
+                :model='model'
                 :prediction='prediction'
                 :tilejson='tilejson'
                 @refresh='refresh'
@@ -28,7 +29,7 @@
 <script>
 export default {
     name: 'Prediction',
-    props: ['meta'],
+    props: ['meta', 'model'],
     data: function() {
         return {
             mode: 'assets',
