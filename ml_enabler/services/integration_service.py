@@ -1,6 +1,8 @@
+import maproulette
 from ml_enabler.models.integration import Integration
 from ml_enabler.models.utils import IntegrationNotFound
 from ml_enabler import db
+from urllib.parse import urlparse
 
 class IntegrationService():
     @staticmethod
@@ -104,10 +106,37 @@ class IntegrationService():
         else:
             raise IntegrationNotFound('Integration Not Found')
 
-    def payload(payload: dict):
-        if self.integration != "maproulette":
+    @staticmethod
+    def payload(integration_id: int, payload: dict):
+        integration = IntegrationService.get_secrets(integration_id)
+
+        if integration is None:
+            raise IntegrationNotFound('Integration Not Found')
+
+        if integration.integration != "maproulette":
             raise Exception("Only MapRoulette Integrations supported");
 
-        for ele in ['project', 'project_desc', 'challenge', 'challenge_instr', 'threshold', 'inference']:
+        for ele in ['project', 'project_desc', 'challenge', 'challenge_instr', 'threshold', 'inferences']:
             if payload.get(ele) is None:
-                raise Exception("Missing ")
+                raise Exception('Missing ' + ele + ' key in body')
+
+        auth = integration.auth
+        if payload.get('auth') is not None:
+            auth = payload.get('auth')
+
+        parsed = urlparse(integration.url)
+
+        config = maproulette.Configuration(
+            api_key=auth,
+            hostname=parsed.netloc,
+            protocol=parsed.scheme
+        )
+
+        api = maproulette.Project(config)
+
+        api.create_project({
+            "name": payload.get('project'),
+            "display_name": payload.get('project'),
+            "description": payload.get('project_desc'),
+            "enabled": True
+        })

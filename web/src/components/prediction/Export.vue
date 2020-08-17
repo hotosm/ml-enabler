@@ -187,7 +187,7 @@ export default {
                         project: this.mr.project,
                         project_desc: this.mr.project_desc,
                         challenge: this.mr.challenge,
-                        challenge_instr: this.mr.challenge_instr
+                        challenge_instr: this.mr.challenge_instr,
                         inferences: this.mr.inferences,
                         threshold: this.mr.threshold
                     })
