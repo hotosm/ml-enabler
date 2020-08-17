@@ -71,3 +71,11 @@ def post(model_id):
         current_app.logger.error(error_msg)
         return err(500, "Failed to save integration source to DB"), 500
 
+@login_required
+@integration_bp.route('/v1/model/<int:model_id>/integration/<int:integration_id>', methods=['POST'])
+def use(model_id, integration_id):
+    integration_data = request.get_json();
+
+    return {
+        "status": "created"
+    }, 200

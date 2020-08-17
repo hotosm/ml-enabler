@@ -73,7 +73,7 @@
                             </div>
                             <div class='col col--12 pt12 pr12'>
                                 <label>Project Description</label>
-                                <textarea v-model='project_desc' class='textarea'></textarea>
+                                <textarea v-model='mr.project_desc' class='textarea'></textarea>
                             </div>
                             <div class='col col--12 pt12 pr12'>
                                 <label>Challenge Name</label>
@@ -81,7 +81,7 @@
                             </div>
                             <div class='col col--12 pt12 pr12'>
                                 <label>Challenge Instructions</label>
-                                <textarea v-model='challenge_instr' class='textarea'></textarea>
+                                <textarea v-model='mr.challenge_instr' class='textarea'></textarea>
                             </div>
                             <div class='col col--6 py12'>
                                 <label>Threshold (<span v-text='mr.threshold'/>%)</label>
@@ -101,7 +101,7 @@
                                 </div>
                             </div>
                             <div class='col col--12 clearfix pt6 pb12 pr12'>
-                                <button @click='getExport' class='fr btn btn--stroke color-gray color-green-on-hover round'>Submit</button>
+                                <button @click='createIntegration' class='fr btn btn--stroke color-gray color-green-on-hover round'>Submit</button>
                             </div>
                             </div>
                     </template>
@@ -171,6 +171,20 @@ export default {
             }
 
             this.external(url);
+        },
+        createIntegration: async function() {
+            try {
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/integration/${this.integration.id}`, {
+                    method: 'GET'
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+
+                console.error('OK - INTEGRATION CREATED');
+            } catch (err) {
+                this.$emit('err', err);
+            }
         },
         external: function(url) {
             if (!url) return;
