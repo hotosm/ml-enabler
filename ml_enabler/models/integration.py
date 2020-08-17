@@ -52,6 +52,18 @@ class Integration(db.Model):
 
         return Integration.query.get(integration_id)
 
+    def get_secrets(integration_id: int):
+        query = db.session.query(
+            Integration.id,
+            Integration.auth,
+            Integration.name,
+            Integration.integration,
+            Integration.url,
+            Integration.model_id
+        ).filter(Integration.id == integration_id)
+
+        return Integration.query.get(integration_id)
+
     def delete(self):
         """ Deletes the current model from the DB """
         db.session.delete(self)

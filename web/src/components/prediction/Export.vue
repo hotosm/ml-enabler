@@ -179,7 +179,18 @@ export default {
                 if (!this.mr.challenge_instr) throw new Error('Challenge Description Required');
 
                 const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/integration/${this.integration.id}`, {
-                    method: 'GET'
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        project: this.mr.project,
+                        project_desc: this.mr.project_desc,
+                        challenge: this.mr.challenge,
+                        challenge_instr: this.mr.challenge_instr
+                        inferences: this.mr.inferences,
+                        threshold: this.mr.threshold
+                    })
                 });
 
                 const body = await res.json();

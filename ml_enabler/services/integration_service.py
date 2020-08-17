@@ -87,8 +87,27 @@ class IntegrationService():
         else:
             raise IntegrationNotFound('Integration Not Found')
 
+    @staticmethod
+    def get_secrets(integration_id: int):
+        """
+        Fetch integration source for a given id but include auth information (Internal Use Only)
+        :params integration_id
+
+        :raises IntegrationNotFound
+        :returns integration
+        """
+
+        integration = Integration.get_secrets(integration_id)
+
+        if (integration):
+            return integration
+        else:
+            raise IntegrationNotFound('Integration Not Found')
+
     def payload(payload: dict):
         if self.integration != "maproulette":
             raise Exception("Only MapRoulette Integrations supported");
 
-
+        for ele in ['project', 'project_desc', 'challenge', 'challenge_instr', 'threshold', 'inference']:
+            if payload.get(ele) is None:
+                raise Exception("Missing ")

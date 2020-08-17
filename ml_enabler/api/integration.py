@@ -78,8 +78,8 @@ def use(model_id, integration_id):
     integration_payload = request.get_json();
 
     try:
-        integration = IntegrationService.get(integration_id)
-        return integration, 200
+        # Don't return this to the user - it contains auth secrets
+        integration = IntegrationService.get_secrets(integration_id)
     except IntegrationNotFound:
         return err(404, "Integration not found"), 404
     except Exception as e:
