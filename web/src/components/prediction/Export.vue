@@ -67,6 +67,14 @@
                             </button>
                         </div>
                         <div class='grid grid--gut12 col col--12 border border--gray-light round ml12'>
+                            <div class='col col--12 pt12 pr12'>
+                                <label>Project Name</label>
+                                <input type='text' v-model='mr.project' class='input'/>
+                            </div>
+                            <div class='col col--12 pt12 pr12'>
+                                <label>Challenge Name</label>
+                                <input type='text' v-model='mr.challenge' class='input'/>
+                            </div>
                             <div class='col col--6 pt12'>
                                 <label>Type</label>
                                 <div class='select-container w-full'>
@@ -136,6 +144,10 @@ export default {
             loading: false,
             integration: false,
             mr: {
+                project: '',
+                project_desc: '',
+                challenge: '',
+                challenge_instr: '',
                 format: 'geojson',
                 inferences: 'all',
                 threshold: 50
