@@ -144,7 +144,6 @@ export default {
                 project_desc: '',
                 challenge: '',
                 challenge_instr: '',
-                format: 'geojson',
                 inferences: 'all',
                 threshold: 50
             },
@@ -174,6 +173,11 @@ export default {
         },
         createIntegration: async function() {
             try {
+                if (!this.mr.project) throw new Error('Project Name Required');
+                if (!this.mr.project_desc) throw new Error('Project Description Required');
+                if (!this.mr.challenge) throw new Error('Challenge Name Required');
+                if (!this.mr.challenge_instr) throw new Error('Challenge Description Required');
+
                 const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/integration/${this.integration.id}`, {
                     method: 'GET'
                 });
