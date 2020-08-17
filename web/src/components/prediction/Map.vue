@@ -1,13 +1,11 @@
 <template>
     <div class='col col--12'>
         <div class='col col--12 border-b border--gray-light clearfix mb6'>
-            <PredictionHeader/>
-
+            <PredictionHeader/>         
             <div class='fr'>
                 <button @click='$emit("refresh")' class='mx3 btn btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl'><use href='#icon-refresh'/></svg></button>
             </div>
         </div>
-
         <template v-if='tilejson'>
             <h2 class='w-full align-center txt-h4 py12'>Prediction Inferences</h2>
 
@@ -47,7 +45,6 @@
                                     <input v-on:input='opacity = parseInt($event.target.value)' type='range' min=0 max=100 />
                                 </div>
                             </div>
-
                             <div class='col col--12'>
                                 <label>Threshold (<span v-text='threshold'/>%)</label>
                                 <div class='range range--s color-gray'>
@@ -116,6 +113,26 @@
                 </div>
             </div>
         </template>
+        <div class='flex-parent flex-parent--center-main my18'>
+            <div class='w240 round shadow-darken10 px12 py12 txt-s'>
+                <div class='flex-parent flex-parent--center-main flex-parent--center-cross align-center'>
+                    <div class='flex-child flex-child--grow wmin24'>
+                        <span class='inline-block w12 h12 round-full bg-gray-light'></span>
+                    </div>
+                    <div class='flex-child flex-child--grow wmin24'>
+                        <span class='inline-block w12 h12 round-full bg-blue-light'></span>
+                    </div>
+                    <div class='flex-child flex-child--grow wmin24'>
+                        <span class='inline-block w12 h12 round-full bg-pink-light'></span>
+                    </div>
+            </div>
+            <div class='grid txt-xs align-center'>
+                <div class='col col--4'>Unvalidated</div>
+                <div class='col col--4'>Validated<br>True</div>
+                <div class='col col--4'>Validated <br>False</div>
+            </div>
+        </div>
+</div>
     </div>
 </template>
 
@@ -336,11 +353,11 @@ export default {
                     paint: {
                         'fill-color': [
                             'case',
-                            ['==', ["feature-state", `v_${inf}`], false], '#ffffff',
-                            ['==', ["feature-state", `v_${inf}`], true], '#00ff00',
-                            ['==', ['get', `v_${inf}`], false], '#ffffff',
-                            ['==', ['get', `v_${inf}`], true], '#00ff00',
-                            '#ff0000'
+                            ['==', ["feature-state", `v_${inf}`], false], '#ec747e',
+                            ['==', ["feature-state", `v_${inf}`], true], '#00b6b0',
+                            ['==', ['get', `v_${inf}`], false], '#ec747e',
+                            ['==', ['get', `v_${inf}`], true], '#ec747e',
+                            '#ffffff'
                         ],
                         'fill-opacity': [
                             'number',
@@ -435,3 +452,4 @@ export default {
     }
 }
 </script>
+
