@@ -16,6 +16,7 @@ class Integration(db.Model):
     integration = db.Column(db.String, nullable=False)
     name = db.Column(db.String, nullable=False)
     url =  db.Column(db.String, nullable=False)
+    auth = db.Column(db.String, nullable=True)
 
     def create(self, model_id: int, integration: dict):
         """ Creates and saves the current model to the DB """

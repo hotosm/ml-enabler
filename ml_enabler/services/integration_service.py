@@ -87,3 +87,8 @@ class IntegrationService():
         else:
             raise IntegrationNotFound('Integration Not Found')
 
+    def payload(payload: dict):
+        if self.integration != "maproulette":
+            raise Exception("Only MapRoulette Integrations supported");
+
+
