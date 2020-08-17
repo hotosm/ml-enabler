@@ -72,22 +72,25 @@
                                 <input type='text' v-model='mr.project' class='input'/>
                             </div>
                             <div class='col col--12 pt12 pr12'>
+                                <label>Project Description</label>
+                                <textarea v-model='project_desc' class='textarea'></textarea>
+                            </div>
+                            <div class='col col--12 pt12 pr12'>
                                 <label>Challenge Name</label>
                                 <input type='text' v-model='mr.challenge' class='input'/>
                             </div>
-                            <div class='col col--6 pt12'>
-                                <label>Type</label>
-                                <div class='select-container w-full'>
-                                    <select v-model='mr.format' class='select'>
-                                        <option value='geojson'>GeoJSON</option>
-                                        <option value='geojsonld'>GeoJSON LD</option>
-                                        <option value='csv'>CSV</option>
-                                        <option value='npz'>NPZ</option>
-                                    </select>
-                                    <div class='select-arrow'></div>
+                            <div class='col col--12 pt12 pr12'>
+                                <label>Challenge Instructions</label>
+                                <textarea v-model='challenge_instr' class='textarea'></textarea>
+                            </div>
+                            <div class='col col--6 py12'>
+                                <label>Threshold (<span v-text='mr.threshold'/>%)</label>
+                                <div class='range range--s color-gray'>
+                                    <input :disabled='mr.inferences === "all"' v-on:input='mr.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
                                 </div>
                             </div>
-                            <div class='col col--6 pt12 pr12'>
+
+                            <div class='col col--6 py12 pr12'>
                                 <label>Inferences</label>
                                 <div class='select-container w-full'>
                                     <select v-model='mr.inferences' class='select'>
@@ -97,13 +100,6 @@
                                     <div class='select-arrow'></div>
                                 </div>
                             </div>
-                            <div class='col col--12 py12 pr12'>
-                                <label>Threshold (<span v-text='mr.threshold'/>%)</label>
-                                <div class='range range--s color-gray'>
-                                    <input :disabled='mr.inferences === "all"' v-on:input='mr.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
-                                </div>
-                            </div>
-
                             <div class='col col--12 clearfix pt6 pb12 pr12'>
                                 <button @click='getExport' class='fr btn btn--stroke color-gray color-green-on-hover round'>Submit</button>
                             </div>
@@ -161,6 +157,7 @@ export default {
     },
     mounted: function() {
         this.mr.project = this.model.name;
+        this.mr.challenge = 'v' + this.prediction.version;
     },
     methods: {
         getExport: function() {

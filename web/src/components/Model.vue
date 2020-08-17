@@ -1,6 +1,11 @@
 <template>
     <div class="col col--12">
-        <template v-if='$route.name === "model"'>
+        <template v-if='loading.model'>
+            <div class='flex-parent flex-parent--center-main w-full py24'>
+                <div class='flex-child loading py24'></div>
+            </div>
+        </template>
+        <template v-else-if='$route.name === "model"'>
             <div class='col col--12 clearfix py6'>
                 <h2 @click='$router.push({ name: "home" })' class='fl cursor-pointer txt-underline-on-hover'>Models</h2>
                 <h2 class='fl px6'>&gt;</h2>
@@ -157,6 +162,9 @@ export default {
             integrations: [],
             imageryid: false,
             integrationid: false,
+            loading: {
+                model: true
+            },
             prediction: {
                 modelId: this.$route.params.modelid,
                 version: '',
@@ -241,12 +249,16 @@ export default {
             }
         },
         getModel: async function() {
+            this.loading.model = true;
+
             try {
                 const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}`, {
                     method: 'GET'
                 });
 
                 const body = await res.json();
+
+                this.loading.model = false;
                 if (!res.ok) throw new Error(body.message);
                 this.model = body;
             } catch (err) {
