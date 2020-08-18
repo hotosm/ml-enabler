@@ -16,6 +16,7 @@ class Integration(db.Model):
     integration = db.Column(db.String, nullable=False)
     name = db.Column(db.String, nullable=False)
     url =  db.Column(db.String, nullable=False)
+    auth = db.Column(db.String, nullable=True)
 
     def create(self, model_id: int, integration: dict):
         """ Creates and saves the current model to the DB """
@@ -43,6 +44,18 @@ class Integration(db.Model):
     def get(integration_id: int):
         query = db.session.query(
             Integration.id,
+            Integration.name,
+            Integration.integration,
+            Integration.url,
+            Integration.model_id
+        ).filter(Integration.id == integration_id)
+
+        return Integration.query.get(integration_id)
+
+    def get_secrets(integration_id: int):
+        query = db.session.query(
+            Integration.id,
+            Integration.auth,
             Integration.name,
             Integration.integration,
             Integration.url,

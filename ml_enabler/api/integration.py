@@ -1,3 +1,4 @@
+import maproulette
 from flask import Blueprint, session
 from flask_restful import request, current_app
 from ml_enabler.utils import err
@@ -71,3 +72,20 @@ def post(model_id):
         current_app.logger.error(error_msg)
         return err(500, "Failed to save integration source to DB"), 500
 
+@login_required
+@integration_bp.route('/v1/model/<int:model_id>/integration/<int:integration_id>', methods=['POST'])
+def use(model_id, integration_id):
+    integration_payload = request.get_json();
+
+    try:
+        IntegrationService.payload(integration_id, integration_payload)
+    except IntegrationNotFound:
+        return err(404, "Integration not found"), 404
+    except Exception as e:
+        error_msg = f'Unhandled error: {str(e)}'
+        current_app.logger.error(error_msg)
+        return err(500, error_msg), 500
+
+    return {
+        "status": "created"
+    }, 200

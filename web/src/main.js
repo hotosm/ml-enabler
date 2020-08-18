@@ -23,38 +23,45 @@ const router = new VueRouter({
     routes: [
         { path: '/', name: 'home', component: Home },
         { path: '/login', name: 'login', component: Login },
-
+        
         { path: '/model/new', name: 'newmodel', component: EditModel },
-        { path: '/model/:modelid', name: 'model', component: Model },
-        { path: '/model/:modelid/edit', name: 'editmodel', component: EditModel },
 
         {
-            name: 'prediction',
-            path: '/model/:modelid/prediction/:predid',
-            redirect: '/model/:modelid/prediction/:predid/assets',
-            component: Prediction,
+            path: '/model/:modelid',
+            name: 'model',
+            component: Model,
             children: [{
-                name: 'assets',
-                path: 'assets',
-                component: Assets
+                path: 'edit',
+                name: 'editmodel',
+                component: EditModel,
             },{
-                name: 'stack',
-                path: 'stack',
-                component: Stack
-            },{
-                name: 'retrain',
-                path: 'retrain',
-                component: Retrain
-            },{
-                name: 'map',
-                path: 'map',
-                component: Map
-            },{
-                name: 'export',
-                path: 'export',
-                component: Export
+                name: 'prediction',
+                path: '/model/:modelid/prediction/:predid',
+                redirect: '/model/:modelid/prediction/:predid/assets',
+                component: Prediction,
+                children: [{
+                    name: 'assets',
+                    path: 'assets',
+                    component: Assets
+                },{
+                    name: 'stack',
+                    path: 'stack',
+                    component: Stack
+                },{
+                    name: 'retrain',
+                    path: 'retrain',
+                    component: Retrain
+                },{
+                    name: 'map',
+                    path: 'map',
+                    component: Map
+                },{
+                    name: 'export',
+                    path: 'export',
+                    component: Export
+                }]
             }]
-        },
+        }
     ]
 });
 

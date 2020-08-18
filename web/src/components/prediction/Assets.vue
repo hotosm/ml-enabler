@@ -10,6 +10,9 @@
                 <button v-if='prediction.dockerLink' @click='ecrLink(prediction.dockerLink)' class='mx3 btn btn--s btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl' style='margin-top: 4px;'><use href='#icon-link'/></svg> ECR</button>
             </div>
         </div>
+
+        <h2 class='w-full align-center txt-h4 py12'>Prediction Assets</h2>
+
         <template v-if='prediction.modelLink'>
             <div class='col col--12 py3'>
                 <div class='align-center'>TF Model</div>

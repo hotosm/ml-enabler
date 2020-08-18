@@ -6,40 +6,106 @@
 
         <template v-if='tilejson'>
             <div class='col col--12 grid grid--gut12'>
-                <h2 class='w-full align-center txt-h4 py12'>Export Inferences</h2>
-
                 <div class='col col--6'>
-                    <label>Format</label>
-                    <div class='select-container w-full'>
-                        <select v-model='params.format' class='select'>
-                            <option value='geojson'>GeoJSON</option>
-                            <option value='geojsonld'>GeoJSON LD</option>
-                            <option value='csv'>CSV</option>
-                            <option value='npz'>NPZ</option>
-                        </select>
-                        <div class='select-arrow'></div>
-                    </div>
+                    <h2 class='txt-h4 py12'>Export Inferences</h2>
                 </div>
                 <div class='col col--6'>
-                    <label>Inferences</label>
-                    <div class='select-container w-full'>
-                        <select v-model='params.inferences' class='select'>
-                            <option value='all'>All</option>
-                            <option :key='inf' v-for='inf in tilejson.inferences' :value='inf'><span v-text='inf'/></option>
-                        </select>
-                        <div class='select-arrow'></div>
-                    </div>
-                </div>
-                <div class='col col--12 py12'>
-                    <label>Threshold (<span v-text='params.threshold'/>%)</label>
-                    <div class='range range--s color-gray'>
-                        <input :disabled='params.inferences === "all"' v-on:input='params.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
+                    <div class="flex-parent-inline fr py12">
+                        <button @click='mode = "download"' :class='{
+                            "btn--stroke": mode !== "download"
+                        }' class="btn btn--pill btn--pill-stroke btn--s btn--pill-hl round">Download</button>
+                        <button @click='mode = "integrations"' :class='{
+                            "btn--stroke": mode !== "integrations"
+                        }' class="btn btn--pill btn--s btn--pill-hr btn--pill-stroke round">Integrations</button>
                     </div>
                 </div>
 
-                <div class='col col--12 clearfix py6'>
-                    <button @click='getExport' class='fr btn btn--stroke color-gray color-green-on-hover round'>Export</button>
-                </div>
+                <template v-if='mode === "download"'>
+                    <div class='col col--6'>
+                        <label>Type</label>
+                        <div class='select-container w-full'>
+                            <select v-model='params.format' class='select'>
+                                <option value='geojson'>GeoJSON</option>
+                                <option value='geojsonld'>GeoJSON LD</option>
+                                <option value='csv'>CSV</option>
+                                <option value='npz'>NPZ</option>
+                            </select>
+                            <div class='select-arrow'></div>
+                        </div>
+                    </div>
+                    <div class='col col--6'>
+                        <label>Inferences</label>
+                        <div class='select-container w-full'>
+                            <select v-model='params.inferences' class='select'>
+                                <option value='all'>All</option>
+                                <option :key='inf' v-for='inf in tilejson.inferences' :value='inf'><span v-text='inf'/></option>
+                            </select>
+                            <div class='select-arrow'></div>
+                        </div>
+                    </div>
+                    <div class='col col--12 py12'>
+                        <label>Threshold (<span v-text='params.threshold'/>%)</label>
+                        <div class='range range--s color-gray'>
+                            <input :disabled='params.inferences === "all"' v-on:input='params.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
+                        </div>
+                    </div>
+
+                    <div class='col col--12 clearfix py6'>
+                        <button @click='getExport' class='fr btn btn--stroke color-gray color-green-on-hover round'>Export</button>
+                    </div>
+                </template>
+                <template v-else-if='mode === "integrations"'>
+                    <template v-if='!integration'>
+                        <Integrations @integration='integration = $event'/>
+                    </template>
+                    <template v-else>
+                        <div class='col col--12 ml12 mb3'>
+                            <h2 class='txt-h4 fl' v-text='integration.name'></h2>
+
+                            <button @click='integration = false' class='btn fr round btn--stroke color-gray color-black-on-hover'>
+                                <svg class='icon'><use href='#icon-close'/></svg>
+                            </button>
+                        </div>
+                        <div class='grid grid--gut12 col col--12 border border--gray-light round ml12'>
+                            <div class='col col--12 pt12 pr12'>
+                                <label>Project Name</label>
+                                <input type='text' v-model='mr.project' class='input'/>
+                            </div>
+                            <div class='col col--12 pt12 pr12'>
+                                <label>Project Description</label>
+                                <textarea v-model='mr.project_desc' class='textarea'></textarea>
+                            </div>
+                            <div class='col col--12 pt12 pr12'>
+                                <label>Challenge Name</label>
+                                <input type='text' v-model='mr.challenge' class='input'/>
+                            </div>
+                            <div class='col col--12 pt12 pr12'>
+                                <label>Challenge Instructions</label>
+                                <textarea v-model='mr.challenge_instr' class='textarea'></textarea>
+                            </div>
+                            <div class='col col--6 py12'>
+                                <label>Threshold (<span v-text='mr.threshold'/>%)</label>
+                                <div class='range range--s color-gray'>
+                                    <input :disabled='mr.inferences === "all"' v-on:input='mr.threshold = parseInt($event.target.value)' type='range' min=0 max=100 />
+                                </div>
+                            </div>
+
+                            <div class='col col--6 py12 pr12'>
+                                <label>Inferences</label>
+                                <div class='select-container w-full'>
+                                    <select v-model='mr.inferences' class='select'>
+                                        <option value='all'>All</option>
+                                        <option :key='inf' v-for='inf in tilejson.inferences' :value='inf'><span v-text='inf'/></option>
+                                    </select>
+                                    <div class='select-arrow'></div>
+                                </div>
+                            </div>
+                            <div class='col col--12 clearfix pt6 pb12 pr12'>
+                                <button @click='createIntegration' class='fr btn btn--stroke color-gray color-green-on-hover round'>Submit</button>
+                            </div>
+                            </div>
+                    </template>
+                </template>
             </div>
         </template>
         <template v-else-if='loading'>
@@ -63,19 +129,34 @@
 
 <script>
 import PredictionHeader from './PredictionHeader.vue';
+import Integrations from '../Integrations.vue';
 
 export default {
     name: 'Export',
-    props: ['meta', 'tilejson'],
+    props: ['meta', 'tilejson', 'model', 'prediction'],
     data: function() {
         return {
+            mode: 'download',
             loading: false,
+            integration: false,
+            mr: {
+                project: '',
+                project_desc: '',
+                challenge: '',
+                challenge_instr: '',
+                inferences: 'all',
+                threshold: 50
+            },
             params: {
                 format: 'geojson',
                 inferences: 'all',
                 threshold: 50
             }
         };
+    },
+    mounted: function() {
+        this.mr.project = this.model.name;
+        this.mr.challenge = 'v' + this.prediction.version;
     },
     methods: {
         getExport: function() {
@@ -90,6 +171,37 @@ export default {
 
             this.external(url);
         },
+        createIntegration: async function() {
+            try {
+                if (!this.mr.project) throw new Error('Project Name Required');
+                if (!this.mr.project_desc) throw new Error('Project Description Required');
+                if (!this.mr.challenge) throw new Error('Challenge Name Required');
+                if (!this.mr.challenge_instr) throw new Error('Challenge Description Required');
+
+                const res = await fetch(window.api + `/v1/model/${this.$route.params.modelid}/integration/${this.integration.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prediction: this.$route.params.predid,
+                        project: this.mr.project,
+                        project_desc: this.mr.project_desc,
+                        challenge: this.mr.challenge,
+                        challenge_instr: this.mr.challenge_instr,
+                        inferences: this.mr.inferences,
+                        threshold: this.mr.threshold
+                    })
+                });
+
+                const body = await res.json();
+                if (!res.ok) throw new Error(body.message);
+
+                console.error('OK - INTEGRATION CREATED');
+            } catch (err) {
+                this.$emit('err', err);
+            }
+        },
         external: function(url) {
             if (!url) return;
 
@@ -97,7 +209,8 @@ export default {
         },
     },
     components: {
-        PredictionHeader
+        PredictionHeader,
+        Integrations
     }
 }
 </script>
