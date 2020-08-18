@@ -132,11 +132,24 @@ class IntegrationService():
             protocol=parsed.scheme
         )
 
-        api = maproulette.Project(config)
+        project_api = maproulette.Project(config)
+        challenge_api = maproulette.Challenge(config)
 
-        api.create_project({
-            "name": payload.get('project'),
-            "display_name": payload.get('project'),
-            "description": payload.get('project_desc'),
-            "enabled": True
+        try:
+            project = project_api.get_project_by_name(
+                project_name=payload.get('project')
+            )
+        except:
+            project = project_api.create_project({
+                "name": payload.get('project'),
+                "display_name": payload.get('project'),
+                "description": payload.get('project_desc'),
+                "enabled": True
+            })
+
+        challenge_api.create_challenge({
+            'name': project.get('challenge'),
+            'description': project.get('challenge_instr'),
+            'enabled': True
         })
+
