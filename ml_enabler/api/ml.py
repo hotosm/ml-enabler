@@ -292,7 +292,7 @@ class PredictionExport(Resource):
             for row in stream:
                 if req_inferences != 'all' and row[3].get(req_inferences) is None:
                     continue
-                
+
                 if req_inferences != 'all' and row[3].get(req_inferences) <= req_threshold:
                     continue
                 if row[4]:
