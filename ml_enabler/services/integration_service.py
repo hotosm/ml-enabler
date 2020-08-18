@@ -116,7 +116,7 @@ class IntegrationService():
         if integration.integration != "maproulette":
             raise Exception("Only MapRoulette Integrations supported");
 
-        for ele in ['project', 'project_desc', 'challenge', 'challenge_instr', 'threshold', 'inferences']:
+        for ele in ['prediction', 'project', 'project_desc', 'challenge', 'challenge_instr', 'threshold', 'inferences']:
             if payload.get(ele) is None:
                 raise Exception('Missing ' + ele + ' key in body')
 

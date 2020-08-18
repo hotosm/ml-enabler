@@ -184,6 +184,7 @@ export default {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                        prediction: this.$route.params.predid,
                         project: this.mr.project,
                         project_desc: this.mr.project_desc,
                         challenge: this.mr.challenge,
