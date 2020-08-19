@@ -15,6 +15,7 @@ class Imagery(db.Model):
 
     name = db.Column(db.String, nullable=False)
     url =  db.Column(db.String, nullable=False)
+    fmt = db.Column(db.String, nullable=False)
 
     def create(self, model_id: int, imagery: dict):
         """ Creates and saves the current model to the DB """
