@@ -52,8 +52,12 @@
                     <label>Imagery Source:</label>
                     <div class='border border--gray-light round my12'>
                         <div @click='params.image = img' :key='img.id' v-for='img in imagery' class='col col--12 cursor-pointer bg-darken10-on-hover'>
-                            <h3 v-if='params.image.id === img.id' class='px12 py6 txt-h4 w-full bg-gray color-white round' v-text='img.name'></h3>
-                            <h3 v-else class='txt-h4 round px12 py6' v-text='img.name'></h3>
+                            <div class='w-full py6 px6' :class='{
+                                "bg-gray-light": params.image.id === img.id
+                            }'>
+                                <span class='txt-h4 round' v-text='img.name'/>
+                                <div v-text='img.fmt' class='fr mx3 bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue px6 py3 round txt-xs txt-bold'></div>
+                            </div>
                         </div>
                     </div>
                 </div>
