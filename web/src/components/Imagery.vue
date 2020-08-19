@@ -16,9 +16,20 @@
         </div>
         <div class='border border--gray-light round col col--12 px12 py12 clearfix'>
             <div class='grid grid--gut12'>
-                <div class='col col--12 py6'>
+                <div class='col col--8 py6'>
                     <label>Imagery Name</label>
                     <input v-model='imagery.name' class='input' placeholder='Imagery Name'/>
+                </div>
+
+                <div class='col col--4 py6'>
+                    <label>Imagery Format</label>
+                    <div class='select-container w-full'>
+                        <select v-model='imagery.fmt' class='select'>
+                            <option value='wms'>WMS</option>
+                            <option value='list'>Chip List</option>
+                        </select>
+                        <div class='select-arrow'></div>
+                    </div>
                 </div>
 
                 <div class='col col--12 py6'>
@@ -57,6 +68,7 @@ export default {
                 imageryId: false,
                 modelId: false,
                 name: '',
+                fmt: 'wms',
                 url: ''
             }
         };
@@ -101,7 +113,8 @@ export default {
                     body: JSON.stringify({
                         modelId: this.imagery.modelId,
                         name: this.imagery.name,
-                        url: this.imagery.url
+                        url: this.imagery.url,
+                        fmt: this.imagery.fmt
                     })
                 });
 
