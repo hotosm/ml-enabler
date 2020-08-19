@@ -35,6 +35,8 @@ class ModelType(Enum):
 
 class MLEnabler(object):
     def __init__(self, mlenabler_endpoint: str):
+        super(MLEnabler, self).__init__()
+
         self.api = mlenabler_endpoint
 
     @staticmethod

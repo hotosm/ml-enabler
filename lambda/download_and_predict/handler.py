@@ -23,7 +23,10 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> bool:
     assert(mlenabler_endpoint)
 
     ml = MLEnabler(mlenabler_endpoint)
-    imagery = ml.get_imagery(model_id, imagery_id)
+    imagery = ml.get_imagery(
+        model_id=model_id,
+        imagery_imagery_id
+    )
 
     # instantiate our DownloadAndPredict class
     dap = DownloadAndPredict(

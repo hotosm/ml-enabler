@@ -766,7 +766,7 @@ class PredictionStackAPI(Resource):
                     'ParameterValue': str(prediction_id)
                 },{
                     'ParameterKey': 'ImageryId',
-                    'ParameterValue': payload["imagery"],
+                    'ParameterValue': str(payload["imagery"]),
                 },{
                     'ParameterKey': 'MaxSize',
                     'ParameterValue': payload.get("maxSize", "1"),
