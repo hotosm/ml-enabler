@@ -17,6 +17,7 @@ class ImageryDTO(Model):
     model_id = IntType(required=True)
     name = StringType(required=True)
     url = StringType(required=True)
+    fmt = StringType(required=True)
 
 class TaskDTO(Model):
     """ Describes JSON of an Task """

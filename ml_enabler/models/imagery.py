@@ -15,6 +15,7 @@ class Imagery(db.Model):
 
     name = db.Column(db.String, nullable=False)
     url =  db.Column(db.String, nullable=False)
+    fmt = db.Column(db.String, nullable=False)
 
     def create(self, model_id: int, imagery: dict):
         """ Creates and saves the current model to the DB """
@@ -22,6 +23,7 @@ class Imagery(db.Model):
         self.model_id = model_id
         self.name = imagery.get("name")
         self.url = imagery.get("url")
+        self.fmt = imagery.get("fmt")
 
         db.session.add(self)
         db.session.commit()
@@ -34,6 +36,7 @@ class Imagery(db.Model):
         imagery_dto.model_id = self.model_id
         imagery_dto.name = self.name
         imagery_dto.url = self.url
+        imagery_dto.fmt = self.fmt
 
         return imagery_dto
 
@@ -42,6 +45,7 @@ class Imagery(db.Model):
             Imagery.id,
             Imagery.name,
             Imagery.url,
+            Imagery.fmt,
             Imagery.model_id
         ).filter(Imagery.id == imagery_id)
 
@@ -56,7 +60,8 @@ class Imagery(db.Model):
         query = db.session.query(
             Imagery.id,
             Imagery.name,
-            Imagery.url
+            Imagery.url,
+            Imagery.fmt
         ).filter(Imagery.model_id == model_id)
 
         imagery = []
@@ -64,7 +69,8 @@ class Imagery(db.Model):
             imagery.append({
                 "id": img[0],
                 "name": img[1],
-                "url": img[2]
+                "url": img[2],
+                "fmt": img[3]
             })
 
         return imagery
@@ -74,6 +80,8 @@ class Imagery(db.Model):
             self.name = update["name"]
         if update.get("url") is not None:
             self.url = update["url"]
+        if update.get("fmt") is not None:
+            self.url = update["fmt"]
 
         db.session.commit()
 

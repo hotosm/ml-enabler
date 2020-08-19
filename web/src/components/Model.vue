@@ -106,7 +106,8 @@
                         <template v-else>
                             <div :key='img.id' v-for='img in imagery' @click='editImagery(img.id)' class='cursor-pointer col col--12'>
                                 <div class='col col--12 grid py6 px12 bg-darken10-on-hover'>
-                                    <h3 class='txt-h4 fl' v-text='img.name'></h3>
+                                    <div class='col col--8'><h3 class='txt-h4 fl' v-text='img.name'></h3></div>
+                                    <div class='col col--4'><div v-text='img.fmt' class='fr mx3 bg-blue-faint bg-blue-on-hover color-white-on-hover color-blue px6 py3 round txt-xs txt-bold'></div></div>
                                 </div>
                             </div>
                         </template>
