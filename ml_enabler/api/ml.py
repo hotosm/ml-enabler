@@ -27,9 +27,6 @@ gunicorn_logger = logging.getLogger('gunicorn.error')
 app.logger.handlers = gunicorn_logger.handlers
 app.logger.setLevel(gunicorn_logger.level)
 
-
-
-
 class MetaAPI(Resource):
 
     """
@@ -762,10 +759,13 @@ class PredictionStackAPI(Resource):
                     'ParameterKey': 'Inferences',
                     'ParameterValue': pred.inf_list,
                 },{
+                    'ParameterKey': 'ModelId',
+                    'ParameterValue': str(model_id)
+                },{
                     'ParameterKey': 'PredictionId',
                     'ParameterValue': str(prediction_id)
                 },{
-                    'ParameterKey': 'TileEndpoint',
+                    'ParameterKey': 'ImageryId',
                     'ParameterValue': payload["imagery"],
                 },{
                     'ParameterKey': 'MaxSize',

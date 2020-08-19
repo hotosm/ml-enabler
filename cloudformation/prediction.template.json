@@ -21,13 +21,17 @@
             "Type": "String",
             "Description": "Ordered, CSV Delimited list of name for prediction values"
         },
+        "ModelId": {
+            "Type": "String",
+            "Description": "MLEnabler Model ID"
+        },
         "PredictionId": {
             "Type": "String",
             "Description": "MLEnabler Prediction ID"
         },
-        "TileEndpoint": {
+        "ImageryId": {
             "Type": "String",
-            "Description": "WMS Endpoint from which to pull chips"
+            "Description": "ImageryId source to use"
         },
         "MaxConcurrency": {
             "Type": "Number",
@@ -97,7 +101,8 @@
                         "INFERENCES": { "Ref": "Inferences" },
                         "INF_SUPERTILE": {"Ref": "InfSupertile"},
                         "PREDICTION_ID": { "Ref": "PredictionId" },
-                        "TILE_ENDPOINT": { "Ref": "TileEndpoint" },
+                        "MODEL_ID": { "Ref": "ModelId" },
+                        "IMAGERY_ID": { "Ref": "ImageryId" },
                         "PREDICTION_ENDPOINT": { "Fn::Join": ["", [
                             "http://", { "Fn::GetAtt": ["PredELB", "DNSName"]}, "/v1/models/default/versions/001"]
                         ]},
