@@ -39,7 +39,6 @@ class MLEnabler(object):
 
         self.api = mlenabler_endpoint
 
-    @staticmethod
     def get_imagery(self, model_id, imagery_id):
         r = requests.get(self.api + "/v1/model/" + model_id + "/imagery/" + imagery_id)
         r.raise_for_status()
