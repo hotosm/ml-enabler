@@ -30,7 +30,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> bool:
 
     # instantiate our DownloadAndPredict class
     dap = DownloadAndPredict(
-        imagery=imagery.url,
+        imagery=imagery.get('url'),
         mlenabler_endpoint=mlenabler_endpoint,
         prediction_endpoint=prediction_endpoint
     )
@@ -44,7 +44,7 @@ def handler(event: SQSEvent, context: Dict[str, Any]) -> bool:
     # construct a payload for our prediction endpoint
 
     if super_tile == 'True':
-        dap = SuperTileDownloader(imagery=imagery.url, mlenabler_endpoint=mlenabler_endpoint, prediction_endpoint=prediction_endpoint)
+        dap = SuperTileDownloader(imagery=imagery.get('url'), mlenabler_endpoint=mlenabler_endpoint, prediction_endpoint=prediction_endpoint)
         tile_indices, payload = dap.get_prediction_payload(tiles, model_type)
     else:
         tile_indices, payload = dap.get_prediction_payload(tiles, model_type)
