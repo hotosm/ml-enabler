@@ -45,7 +45,7 @@
         }
     },
     "Resources" : {
-        "PredLogs": {
+        "PredLambdaLogs": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
                 "LogGroupName": { "Fn::Join": [ "", [
@@ -59,6 +59,16 @@
                 ]]},
                 "RetentionInDays": 7
             }
+        },
+         "PredLogs": {
+             "Type": "AWS::Logs::LogGroup",
+             "Properties": {
+                 "LogGroupName": { "Fn::Join": [ "-", [
+                     { "Ref": "StackName" },
+                     { "Ref": "PredictionId" }
+                 ]]},
+                 "RetentionInDays": 7
+             }
         },
         "PredLambdaSource": {
             "Type": "AWS::Lambda::EventSourceMapping",
