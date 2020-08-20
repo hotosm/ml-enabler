@@ -40,6 +40,7 @@ class MetaAPI(Resource):
         # Do not put sensitive data in this response
         return {
             'version': 1,
+            'stack': CONFIG.EnvironmentConfig.ENVIRONMENT,
             'environment': CONFIG.EnvironmentConfig.ENVIRONMENT,
             'security': 'authenticated'
         }, 200
