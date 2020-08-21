@@ -85,7 +85,7 @@
                         <label>Stack Tags</label>
                     </div>
 
-                    <div class='col col--12 grid grid--gut12' :key='tag.id' v-for='(tag, tag_idx) in params.tags'>
+                    <div class='col col--12 grid grid--gut12' :key='tag_idx' v-for='(tag, tag_idx) in params.tags'>
                         <div class='col col--4 py6'>
                             <input v-model='tag.Key' input='text' class='input w-full' placeholder='Key'/>
                         </div>
@@ -98,7 +98,7 @@
                     </div>
 
                     <div class='col col--12 py6'>
-                        <button @click='params.tags.push({"id": ++tagit, "Key": "", "Value": ""})' class='btn btn--stroke round color-gray color-blue-on-hover'><svg class='icon'><use href='#icon-plus'/></svg></button>
+                        <button @click='params.tags.push({"Key": "", "Value": ""})' class='btn btn--stroke round color-gray color-blue-on-hover'><svg class='icon'><use href='#icon-plus'/></svg></button>
                     </div>
                 </template>
 
@@ -191,7 +191,7 @@ import StackMap from './StackMap.vue';
 
 export default {
     name: 'Stack',
-    props: ['meta', 'prediction'],
+    props: ['meta', 'model', 'prediction'],
     data: function() {
         return {
             advanced: false,
@@ -210,7 +210,6 @@ export default {
                 dead: 0
             },
             looping: false,
-            tagit: 0,
             imagery: [],
             params: {
                 image: false,
@@ -241,6 +240,7 @@ export default {
         }
     },
     mounted: function() {
+        this.params.tags = JSON.parse(JSON.stringify(this.model.tags));
         this.refresh();
     },
     methods: {

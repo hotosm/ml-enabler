@@ -1,5 +1,5 @@
 from schematics import Model
-from schematics.types import StringType, IntType, DateTimeType, ListType, FloatType, BooleanType
+from schematics.types import StringType, IntType, DateTimeType, ListType, FloatType, BooleanType, DictType
 
 class IntegrationDTO(Model):
     """ Describes JSON of an Integration Source """
@@ -34,6 +34,7 @@ class MLModelDTO(Model):
     model_id = IntType(serialized_name='modelId')
     created = DateTimeType()
     name = StringType(required=True)
+    tags = ListType(DictType(StringType), required=True)
     source = StringType(required=True)
     archived = BooleanType()
     project_url = StringType(serialized_name='projectUrl')

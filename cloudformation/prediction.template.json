@@ -49,15 +49,30 @@
         }
     },
     "Resources" : {
-        "PredLogs": {
+        "PredLambdaLogs": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-                "LogGroupName": { "Fn::Join": [ "-", [
+                "LogGroupName": { "Fn::Join": [ "", [
+                    "/aws/lambda/",
                     { "Ref": "StackName" },
-                    { "Ref": "PredictionId" }
+                    "-models-",
+                    { "Ref": "ModelId" },
+                    "-prediction-",
+                    { "Ref": "PredictionId" },
+                    "-queue"
                 ]]},
                 "RetentionInDays": 7
             }
+        },
+         "PredLogs": {
+             "Type": "AWS::Logs::LogGroup",
+             "Properties": {
+                 "LogGroupName": { "Fn::Join": [ "-", [
+                     { "Ref": "StackName" },
+                     { "Ref": "PredictionId" }
+                 ]]},
+                 "RetentionInDays": 7
+             }
         },
         "PredLambdaSource": {
             "Type": "AWS::Lambda::EventSourceMapping",
