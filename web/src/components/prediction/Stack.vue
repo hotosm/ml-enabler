@@ -409,7 +409,7 @@ export default {
                                 Value: tag.Value
                             };
                         }),
-                        imagery: this.params.image.url,
+                        imagery: this.params.image.id,
                         maxSize: this.params.maxSize,
                         maxConcurrency: this.params.maxConcurrency
                     })
