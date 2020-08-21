@@ -342,7 +342,7 @@ class MLModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
-    tags = db.Column(MutableList.as_mutable(postgresql.JSONB), nullable=True)
+    tags = db.Column(MutableList.as_mutable(postgresql.JSONB), nullable=False)
     name = db.Column(db.String, unique=True)
     source = db.Column(db.String)
     archived = db.Column(db.Boolean)
