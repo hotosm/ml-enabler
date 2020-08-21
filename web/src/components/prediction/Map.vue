@@ -101,26 +101,26 @@
                     <div id="map" class='w-full h-full'></div>
                 </div>
             </div>
-        <div class='flex-parent flex-parent--center-main my18'>
-            <div class='w240 round shadow-darken10 px12 py12 txt-s'>
-                <div class='flex-parent flex-parent--center-main flex-parent--center-cross align-center'>
-                    <div class='flex-child flex-child--grow wmin24'>
-                        <span class='inline-block w12 h12 round-full bg-gray-light'></span>
+                <div class='flex-parent flex-parent--center-main my18'>
+                    <div class='w240 round shadow-darken10 px12 py12 txt-s'>
+                        <div class='flex-parent flex-parent--center-main flex-parent--center-cross align-center'>
+                            <div class='flex-child flex-child--grow wmin24'>
+                                <span class='inline-block w12 h12 round-full bg-gray-light'></span>
+                            </div>
+                            <div class='flex-child flex-child--grow wmin24'>
+                                <span class='inline-block w12 h12 round-full bg-blue-light'></span>
+                            </div>
+                            <div class='flex-child flex-child--grow wmin24'>
+                                <span class='inline-block w12 h12 round-full bg-pink-light'></span>
+                            </div>
                     </div>
-                    <div class='flex-child flex-child--grow wmin24'>
-                        <span class='inline-block w12 h12 round-full bg-blue-light'></span>
+                    <div class='grid txt-xs align-center'>
+                        <div class='col col--4'>Unvalidated</div>
+                        <div class='col col--4'>Validated<br>True</div>
+                        <div class='col col--4'>Validated <br>False</div>
                     </div>
-                    <div class='flex-child flex-child--grow wmin24'>
-                        <span class='inline-block w12 h12 round-full bg-pink-light'></span>
-                    </div>
-            </div>
-            <div class='grid txt-xs align-center'>
-                <div class='col col--4'>Unvalidated</div>
-                <div class='col col--4'>Validated<br>True</div>
-                <div class='col col--4'>Validated <br>False</div>
-            </div>
+                </div>
         </div>
-</div>
         </template>
         <template v-else>
             <div class='col col--12 py6'>
