@@ -26,8 +26,40 @@
 
                 <div class='col col--6 py6'>
                     <label>Project Url</label>
-                    <input v-model='model.projectUrl' class='input' placeholder='Docker Hub'/>
+                    <input v-model='model.projectUrl' class='input' placeholder='External URL'/>
                 </div>
+
+                <template v-if='!advanced'>
+                    <div class='col col--12'>
+                        <button @click='advanced = !advanced' class='btn btn--white color-gray px0'><svg class='icon fl my6'><use xlink:href='#icon-chevron-right'/></svg><span class='fl pl6'>Advanced Options</span></button>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class='col col--12 border-b border--gray-light mb12'>
+                        <button @click='advanced = !advanced' class='btn btn--white color-gray px0'><svg class='icon fl my6'><use xlink:href='#icon-chevron-down'/></svg><span class='fl pl6'>Advanced Options</span></button>
+                    </div>
+                </template>
+                <template v-if='advanced'>
+                    <div class='col col--12'>
+                        <label>Stack Tags</label>
+                    </div>
+
+                    <div class='col col--12 grid grid--gut12' :key='tag_idx' v-for='(tag, tag_idx) in model.tags'>
+                        <div class='col col--4 py6'>
+                            <input v-model='tag.Key' input='text' class='input w-full' placeholder='Key'/>
+                        </div>
+                        <div class='col col--7 py6'>
+                            <input v-model='tag.Value' input='text' class='input w-full' placeholder='Value'/>
+                        </div>
+                        <div class='col col--1 py6'>
+                            <button @click='model.tags.splice(tag_idx, 1)' class='btn btn--stroke round color-gray color-blue-on-hover h36'><svg class='icon'><use href='#icon-close'/></svg></button>
+                        </div>
+                    </div>
+
+                    <div class='col col--12 py6'>
+                        <button @click='model.tags.push({"Key": "", "Value": ""})' class='btn btn--stroke round color-gray color-blue-on-hover'><svg class='icon'><use href='#icon-plus'/></svg></button>
+                    </div>
+                </template>
 
                 <div class='col col--12 py12'>
                     <button v-if='!newModel' @click='postModel(true)' class='btn btn--stroke round fl color-gray color-red-on-hover'>Archive Model</button>
@@ -46,7 +78,13 @@ export default {
     data: function() {
         return {
             newModel: this.$route.name === 'newmodel',
-            model: {}
+            advanced: false,
+            model: {
+                name: '',
+                source: '',
+                projectUrl: '',
+                tags: []
+            }
         }
     },
     mounted: function() {
@@ -65,7 +103,8 @@ export default {
                         name: this.model.name,
                         source: this.model.source,
                         projectUrl: this.model.projectUrl,
-                        archived: archive ? true : false
+                        archived: archive ? true : false,
+                        tags: this.model.tags
                     })
                 });
 

@@ -1,7 +1,7 @@
 import mercantile
 import json
 from sqlalchemy.orm.attributes import flag_modified
-from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from ml_enabler import db
 from ml_enabler.models.utils import timestamp
 from geoalchemy2 import Geometry
@@ -342,6 +342,7 @@ class MLModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
+    tags = db.Column(MutableList.as_mutable(postgresql.JSONB), nullable=True)
     name = db.Column(db.String, unique=True)
     source = db.Column(db.String)
     archived = db.Column(db.Boolean)
@@ -359,6 +360,7 @@ class MLModel(db.Model):
         self.name = ml_model_dto.name
         self.source = ml_model_dto.source
         self.archived = False
+        self.tags = ml_model_dto.tags
         self.project_url = ml_model_dto.project_url
 
         db.session.add(self)
@@ -400,6 +402,7 @@ class MLModel(db.Model):
         model_dto = MLModelDTO()
         model_dto.model_id = self.id
         model_dto.name = self.name
+        model_dto.tags = self.tags
         model_dto.created = self.created
         model_dto.source = self.source
         model_dto.archived = self.archived
@@ -414,6 +417,7 @@ class MLModel(db.Model):
         self.source = updated_ml_model_dto.source
         self.project_url = updated_ml_model_dto.project_url
         self.archived = updated_ml_model_dto.archived
+        self.tags = updated_ml_model_dto.tags
 
         db.session.commit()
 
