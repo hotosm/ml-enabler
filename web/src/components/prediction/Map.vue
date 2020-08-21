@@ -1,7 +1,7 @@
 <template>
     <div class='col col--12'>
         <div class='col col--12 border-b border--gray-light clearfix mb6'>
-            <PredictionHeader/>         
+            <PredictionHeader/>
             <div class='fr'>
                 <button @click='$emit("refresh")' class='mx3 btn btn--stroke color-gray color-blue-on-hover round'><svg class='icon fl'><use href='#icon-refresh'/></svg></button>
             </div>
@@ -101,18 +101,6 @@
                     <div id="map" class='w-full h-full'></div>
                 </div>
             </div>
-        </template>
-        <template v-else>
-            <div class='col col--12 py6'>
-                <div class='flex-parent flex-parent--center-main pt36'>
-                    <svg class='flex-child icon w60 h60 color-gray'><use href='#icon-info'/></svg>
-                </div>
-
-                <div class='flex-parent flex-parent--center-main pt12 pb36'>
-                    <h1 class='flex-child txt-h4 cursor-default'>No Inferences Uploaded</h1>
-                </div>
-            </div>
-        </template>
         <div class='flex-parent flex-parent--center-main my18'>
             <div class='w240 round shadow-darken10 px12 py12 txt-s'>
                 <div class='flex-parent flex-parent--center-main flex-parent--center-cross align-center'>
@@ -133,6 +121,18 @@
             </div>
         </div>
 </div>
+        </template>
+        <template v-else>
+            <div class='col col--12 py6'>
+                <div class='flex-parent flex-parent--center-main pt36'>
+                    <svg class='flex-child icon w60 h60 color-gray'><use href='#icon-info'/></svg>
+                </div>
+
+                <div class='flex-parent flex-parent--center-main pt12 pb36'>
+                    <h1 class='flex-child txt-h4 cursor-default'>No Inferences Uploaded</h1>
+                </div>
+            </div>
+        </template>
     </div>
 </template>
 
