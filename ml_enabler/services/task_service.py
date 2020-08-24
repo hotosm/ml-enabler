@@ -3,14 +3,6 @@ from ml_enabler import db
 from ml_enabler.models.utils import NotFound
 import boto3
 
-batch = boto3.client(
-    service_name='batch',
-    region_name='us-east-1',
-    endpoint_url='https://batch.us-east-1.amazonaws.com'
-)
-
-cwl = boto3.client('logs')
-
 class TaskService():
     @staticmethod
     def create(payload: dict) -> int:
@@ -31,6 +23,12 @@ class TaskService():
             task.delete()
 
             if task.batch_id:
+                batch = boto3.client(
+                    service_name='batch',
+                    region_name='us-east-1',
+                    endpoint_url='https://batch.us-east-1.amazonaws.com'
+                )
+
                 batch.cancel_job(
                     jobId=task.batch_id,
                     reason='User Requested'
@@ -74,6 +72,12 @@ class TaskService():
         task = task.as_dto().to_primitive()
 
         if task.get('batch_id') is not None:
+            batch = boto3.client(
+                service_name='batch',
+                region_name='us-east-1',
+                endpoint_url='https://batch.us-east-1.amazonaws.com'
+            )
+
             desc = batch.describe_jobs(
                 jobs = [ task.get('batch_id') ]
             )
@@ -106,6 +110,14 @@ class TaskService():
                 'message': 'No Logs in LogStream'
             })
         else:
+            batch = boto3.client(
+                service_name='batch',
+                region_name='us-east-1',
+                endpoint_url='https://batch.us-east-1.amazonaws.com'
+            )
+
+            cwl = boto3.client('logs')
+
             rawlogs = cwl.get_log_events(
                 logGroupName = '/aws/batch/job',
                 logStreamName = task['logs']
