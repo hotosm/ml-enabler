@@ -31,9 +31,14 @@
                     </div>
                 </div>
 
-                <div class='col col--12 pt6'>
+                <div class='col col--8 pt6'>
                     <label>Integration Url</label>
                     <input v-model='integration.url' class='input' placeholder='Integration Name'/>
+                </div>
+
+                <div class='col col--4 pt6'>
+                    <label>Integration Auth</label>
+                    <input v-model='integration.auth' class='input' placeholder='Integration Auth'/>
                 </div>
 
                 <div class='col col--12 py12'>
@@ -68,6 +73,7 @@ export default {
                 integration: 'maproulette',
                 modelId: false,
                 name: '',
+                auth: '',
                 url: ''
             }
         };
@@ -114,6 +120,7 @@ export default {
                     body: JSON.stringify({
                         modelId: this.integration.modelId,
                         integration: this.integration.integration,
+                        auth: this.integration.auth,
                         name: this.integration.name,
                         url: this.integration.url
                     })
