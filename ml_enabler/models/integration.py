@@ -23,6 +23,7 @@ class Integration(db.Model):
 
         self.model_id = model_id
         self.integration = integration.get("integration")
+        self.auth = integration.get("auth")
         self.name = integration.get("name")
         self.url = integration.get("url")
 
@@ -91,6 +92,8 @@ class Integration(db.Model):
     def update(self, update: dict):
         if update.get("name") is not None:
             self.name = update["name"]
+        if update.get("auth") is not None:
+            self.auth = update["auth"]
         if update.get("url") is not None:
             self.url = update["url"]
 
