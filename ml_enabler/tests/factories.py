@@ -14,7 +14,7 @@ class MLModelFactory(SQLAlchemyModelFactory):
 
     name = factory.faker.Faker('name')
     source = factory.fuzzy.FuzzyText(length=25)
-    dockerhub_url = factory.fuzzy.FuzzyText(length=20)
+    project_url = factory.fuzzy.FuzzyText(length=20)
 
 
 class MLModelVersionFactory(SQLAlchemyModelFactory):
@@ -32,6 +32,6 @@ class PredictionFactory(SQLAlchemyModelFactory):
         model = Prediction
         sqlalchemy_session = db.session
 
-    dockerhub_hash = factory.fuzzy.FuzzyText(length=25)
+    docker_url = factory.fuzzy.FuzzyText(length=25)
     bbox = 'SRID=4326;POLYGON((10.048885 53.5225,10.048885 53.540843,10.013795 53.540843,10.013795 53.5225,10.048885 53.5225))'
     tile_zoom = 18

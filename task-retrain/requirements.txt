@@ -1,0 +1,11 @@
+requests==2.24.0
+numpy==1.19.1
+boto3==1.14.41
+pandas==1.1.0
+scikit-learn==0.23.2
+tqdm==4.48.2
+mercantile==1.1.5
+pillow==7.2.0
+rasterio==1.1.5
+requests-toolbelt==0.9.1
+semver==2.10.2
