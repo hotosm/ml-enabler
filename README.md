@@ -2,6 +2,13 @@
 
 A service that integrates ML models to applications like Tasking Manager.
 
+# **ML Enabler is now maintained and developed by Development Seed.**
+
+* [Repository](https://github.com/developmentseed/ml-enabler)
+* [Roadmap for version 3](https://github.com/developmentseed/ml-enabler/issues/4)
+
+
+----
 ## Background
 Machine Learning has proven to be very successful to make mapping fast with high quality. With a diverse set of models and tools, it is hard to integrate them to existing tools like Tasking Manager and iD. HOT is developing ml-enabler to enable AI-assist to existing mapping tools.
 
