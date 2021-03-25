@@ -21,7 +21,7 @@ python-dateutil==2.8.0
 python-dotenv==0.10.2
 python-editor==1.0.4
 pytz==2019.1
-PyYAML==5.1
+PyYAML==5.4
 schematics==2.1.0
 Shapely==1.6.4.post2
 six==1.12.0
