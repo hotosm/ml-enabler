@@ -1,0 +1,16 @@
+{
+    "name": "batch-task",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "private": true,
+    "dependencies": {
+        "aws-sdk": "^2.631.0",
+        "d3-queue": "^3.0.7",
+        "find": "^0.3.0",
+        "fs-extra": "^9.0.1",
+        "mkdirp": "^1.0.3",
+        "request": "^2.88.2",
+        "unzipper": "^0.10.10"
+    }
+}

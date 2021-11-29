@@ -1,7 +1,7 @@
 from flask import current_app
-from ml_enabler.models.ml_model import MLModel, MLModelVersion
-from ml_enabler.models.dtos.ml_model_dto import MLModelDTO, MLModelVersionDTO
-from ml_enabler.models.utils import NotFound, VersionNotFound
+from ml_enabler.models.ml_model import MLModel
+from ml_enabler.models.dtos.ml_model_dto import MLModelDTO
+from ml_enabler.models.utils import NotFound
 from ml_enabler.utils import version_to_array
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -59,7 +59,7 @@ class MLModelService():
             raise NotFound('Model does not exist')
 
     @staticmethod
-    def get_all():
+    def get_all(model_filter: str, model_archived: bool):
         """
         Get all ML Models
 
@@ -67,7 +67,7 @@ class MLModelService():
         :returns array of ML Models
         """
 
-        ml_models = MLModel.get_all()
+        ml_models = MLModel.get_all(model_filter, model_archived)
         if (ml_models):
             model_collection = []
             for model in ml_models:
@@ -92,35 +92,3 @@ class MLModelService():
             return updated_ml_model_dto.model_id
         else:
             raise NotFound('Model does not exist')
-
-
-class MLModelVersionService():
-    @staticmethod
-    def get_version_by_model_version(model_id: int, version: str):
-        """
-        Get the version of the given model
-        :params model_id, version
-
-        :raises NotFound
-        :returns MLModelVersion
-        """
-        try:
-            version_array = version_to_array(version)
-            model_version = MLModelVersion.get_version(model_id, version_array[0], version_array[1], version_array[2])
-            return model_version.as_dto()
-        except NoResultFound:
-            raise VersionNotFound('This version of the model is not registered')
-
-    @staticmethod
-    def create_version(version_dto: MLModelVersionDTO) -> int:
-        """
-        Create a new version of an ML Model
-        :params version_dto
-
-        :raises DataError
-        :returns version ID
-        """
-
-        new_version = MLModelVersion()
-        new_version.create(version_dto)
-        return new_version.id

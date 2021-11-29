@@ -1,6 +1,6 @@
-# ml-enabler
+<h1 align=center>ML Enabler</h1>
 
-A service that integrates ML models to applications like Tasking Manager.
+<p align=center>A service that integrates ML models to applications like Tasking Manager.</p>
 
 # **ML Enabler is now maintained and developed by Development Seed.**
 
@@ -10,11 +10,8 @@ A service that integrates ML models to applications like Tasking Manager.
 
 ----
 ## Background
-Machine Learning has proven to be very successful to make mapping fast with high quality. With a diverse set of models and tools, it is hard to integrate them to existing tools like Tasking Manager and iD. HOT is developing ml-enabler to enable AI-assist to existing mapping tools.
 
-ml-enabler is two projects:
-1. ml-enabler-api (this repo) - Storage and API to hold tile level ML prediction data.
-2. ml-enabler-cli ([repo](https://github.com/hotosm/ml-enabler-cli)) - CLI for interacting with models and subscribe them to the ml-enabler-api
+Machine Learning has proven to be very successful to make mapping fast with high quality. With a diverse set of models and tools, it is hard to integrate them to existing tools like Tasking Manager and iD. HOT is developing ml-enabler to enable AI-assist to existing mapping tools.
 
 The API uses the following terms:
 * **Model** --
@@ -25,6 +22,29 @@ A prediction is a set of results from an ML Model for a bounding box (region) an
 
 * **Prediction tiles** --
 Prediction tiles are the results of the prediction. The tiles are indexed using quadkeys for easy spatial search.
+
+## Deploying
+
+The CloudFormation template is designed to be AWS Account agnostic and will create all necessary resources with the exception of an SSL certificate (leave blank to disable https)
+
+### Deploy Tools
+
+The cloudformation template is designed to be deployed with [cfn-config](https://github.com/mapbox/cfn-config), or a cfn-config compatible client.
+[OpenAddresses/Deploy](https://github.com/openaddresses/deploy) is a compatible client with a bunch of extra nice features.
+
+### Paramaters
+
+The following parameters have special considerations you should be aware of.
+
+#### ContainerCpu & Container Memory
+
+These values must be compatible with Fargate. See [Task CPU Limitations](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-cpu-memory-error.html)
+for compatible values.
+
+#### SSLCertificateIdentifier
+
+The name of the SSL Cert as managed by AWS to use with the HTTPS ELB.
+This value can be left blank to disable all HTTPS Load Balancing
 
 ## Using this API
 
@@ -45,7 +65,7 @@ See [API.md](/API.md)
   * Setup database. If you're on a Mac use Postgres.app, or use docker
   * Copy `example.env` to `ml_enabler.env` and add database configuration
   * Initialize tables `flask db upgrade`
-6. Start the app 
+6. Start the app
   * `export FLASK_APP="ml_enabler"`
   * `export FLASK_ENV="development"`
   * `flask run`
