@@ -13,7 +13,7 @@ GeoAlchemy2==0.6.2
 gunicorn==19.9.0
 itsdangerous==1.1.0
 Jinja2==2.10.1
-Mako==1.0.10
+Mako==1.2.2
 MarkupSafe==1.1.1
 mercantile==1.0.4
 psycopg2==2.8.2
